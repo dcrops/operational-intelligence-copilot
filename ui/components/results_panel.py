@@ -122,6 +122,11 @@ def _trend_business_description(finding: Finding) -> str:
     metric = _metric_label(finding).capitalize()
     description = finding.description.lower()
 
+    if "volatile" in description:
+        return (
+            f"{metric} fluctuated significantly over the reporting period, "
+            "with repeated ups and downs and no consistent directional movement."
+        )
     if "increas" in description:
         movement = "increased steadily"
         trend = "upward"
