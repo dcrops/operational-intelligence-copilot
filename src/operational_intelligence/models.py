@@ -163,3 +163,23 @@ class Finding(BaseModel):
                 raise ValueError('recommended_action must not be empty if provided')
             return v2
         return v
+
+class ExecutiveReport(BaseModel):
+    """
+    Executive-ready operational intelligence report summarising
+    findings, priorities, and recommended actions.
+    """
+    executive_summary: str = Field(..., description="Concise executive summary of the overall findings.")
+    high_priority_findings: list[Finding] = Field(default_factory=list, description="Findings with HIGH severity.")
+    medium_priority_findings: list[Finding] = Field(default_factory=list, description="Findings with MEDIUM severity.")
+    low_priority_findings: list[Finding] = Field(default_factory=list, description="Findings with LOW or INFO severity.")
+    recommended_next_steps: list[str] = Field(default_factory=list, description="Recommended follow-up steps.")
+
+    @field_validator('executive_summary')
+    @classmethod
+    def executive_summary_not_empty(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError('executive_summary must not be empty')
+        return v
+   
