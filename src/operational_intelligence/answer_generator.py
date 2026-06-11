@@ -47,21 +47,34 @@ class AnswerGenerator:
         return "\n".join(lines)
 
     def _build_direct_answer(self, findings: list[Finding]) -> str:
+        # Define severity order: HIGH, MEDIUM, LOW, INFO
+        severity_order = ['HIGH', 'MEDIUM', 'LOW', 'INFO']
+
+        # Group findings by severity while preserving their original order in each group
+        grouped = {severity: [] for severity in severity_order}
         for finding in findings:
-            title = finding.title.lower()
+            severity = (getattr(finding, "severity", "INFO") or "INFO").upper()
+            if severity not in grouped:
+                severity = "INFO"
+            grouped[severity].append(finding)
 
-            if "variance" in title:
-                answer = self._direct_variance_answer(finding)
-                if answer:
-                    return answer
+        # Iterate by ordered severity levels
+        for severity in severity_order:
+            for finding in grouped[severity]:
+                title = finding.title.lower()
 
-            if "anomaly" in title:
-                answer = self._direct_anomaly_answer(finding)
-                if answer:
-                    return answer
+                if "variance" in title:
+                    answer = self._direct_variance_answer(finding)
+                    if answer:
+                        return answer
 
-            if "trend" in title and finding.description:
-                return finding.description.strip()
+                if "anomaly" in title:
+                    answer = self._direct_anomaly_answer(finding)
+                    if answer:
+                        return answer
+
+                if "trend" in title and finding.description:
+                    return finding.description.strip()
 
         return "A direct answer could not be determined from the available findings."
 
