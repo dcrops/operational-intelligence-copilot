@@ -30,16 +30,22 @@ def render_sidebar() -> None:
                 st.sidebar.error(f"Could not read CSV: {exc}")
 
     if st.sidebar.button("Load sample dataset"):
-        source_id = f"sample:{SAMPLE_DATASET_PATH}"
-        if st.session_state.get("loaded_source_id") != source_id:
-            try:
-                df = pd.read_csv(SAMPLE_DATASET_PATH)
-                profile = DatasetProfiler().profile_dataframe("workforce_demo", df)
-                set_dataset(df, "workforce_demo", profile)
-                st.session_state.loaded_source_id = source_id
-                st.sidebar.success("Loaded sample dataset.")
-            except Exception as exc:
-                st.sidebar.error(f"Could not load sample dataset: {exc}")
+        if not SAMPLE_DATASET_PATH.exists():
+            st.sidebar.error(
+                f"Sample dataset not found at `{SAMPLE_DATASET_PATH}`. "
+                "Upload a CSV file instead."
+            )
+        else:
+            source_id = f"sample:{SAMPLE_DATASET_PATH}"
+            if st.session_state.get("loaded_source_id") != source_id:
+                try:
+                    df = pd.read_csv(SAMPLE_DATASET_PATH)
+                    profile = DatasetProfiler().profile_dataframe("workforce_demo", df)
+                    set_dataset(df, "workforce_demo", profile)
+                    st.session_state.loaded_source_id = source_id
+                    st.sidebar.success("Loaded sample dataset.")
+                except Exception as exc:
+                    st.sidebar.error(f"Could not load sample dataset: {exc}")
 
     profile = st.session_state.get("profile")
     if profile is not None:

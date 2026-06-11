@@ -28,12 +28,23 @@ def run_analysis(
     routes = IntentRouter().route(request, [profile])
     findings = OperationalPipeline().run(request, df, [profile])
     report = ExecutiveReportGenerator().generate(findings)
-    deterministic_answer = AnswerGenerator().generate(request, findings, report)
+
+    answer_generator = AnswerGenerator()
+    deterministic_answer = answer_generator.generate(request, findings, report)
+    if not findings:
+        direct_answer = deterministic_answer
+    else:
+        direct_answer = answer_generator._build_direct_answer(
+            request=request,
+            findings=findings,
+            report=report,
+        )
 
     return AnalysisResult(
         request=request,
         routes=routes,
         findings=findings,
         report=report,
+        direct_answer=direct_answer,
         deterministic_answer=deterministic_answer,
     )

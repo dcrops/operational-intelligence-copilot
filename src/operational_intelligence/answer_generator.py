@@ -12,9 +12,6 @@ class AnswerGenerator:
         findings: list[Finding],
         report: ExecutiveReport,
     ) -> str:
-        """
-        Format a direct answer plus report-style supporting sections.
-        """
         if not isinstance(request, AnalysisRequest):
             raise ValueError("request must be an AnalysisRequest")
         if not isinstance(findings, list):
@@ -28,7 +25,7 @@ class AnswerGenerator:
         lines: list[str] = []
 
         lines.append("Direct Answer:")
-        lines.append(self._build_direct_answer(findings))
+        lines.append(self._build_direct_answer(request, findings, report))
 
         lines.append("\nExecutive Summary:")
         lines.append(report.executive_summary.strip())
@@ -46,19 +43,26 @@ class AnswerGenerator:
 
         return "\n".join(lines)
 
-    def _build_direct_answer(self, findings: list[Finding]) -> str:
-        # Define severity order: HIGH, MEDIUM, LOW, INFO
-        severity_order = ['HIGH', 'MEDIUM', 'LOW', 'INFO']
+    def _build_direct_answer(
+        self,
+        request: AnalysisRequest,
+        findings: list[Finding],
+        report: ExecutiveReport,
+    ) -> str:
+        if self._is_broad_analysis_question(request.question):
+            overview = self._build_executive_overview(report)
+            if overview:
+                return overview
 
-        # Group findings by severity while preserving their original order in each group
+        severity_order = ["HIGH", "MEDIUM", "LOW", "INFO"]
         grouped = {severity: [] for severity in severity_order}
+
         for finding in findings:
-            severity = (getattr(finding, "severity", "INFO") or "INFO").upper()
+            severity = (finding.severity or "INFO").upper()
             if severity not in grouped:
                 severity = "INFO"
             grouped[severity].append(finding)
 
-        # Iterate by ordered severity levels
         for severity in severity_order:
             for finding in grouped[severity]:
                 title = finding.title.lower()
@@ -78,32 +82,73 @@ class AnswerGenerator:
 
         return "A direct answer could not be determined from the available findings."
 
+    def _is_broad_analysis_question(self, question: str) -> bool:
+        q = question.strip().lower()
+        broad_phrases = [
+            "analyse this dataset",
+            "analyze this dataset",
+            "analyse the dataset",
+            "analyze the dataset",
+            "review this dataset",
+            "review the dataset",
+            "assess this dataset",
+            "assess the dataset",
+            "summarise this dataset",
+            "summarize this dataset",
+            "give me an overview",
+            "what should i know",
+        ]
+        return any(phrase in q for phrase in broad_phrases)
+
+    def _build_executive_overview(self, report: ExecutiveReport) -> str:
+        messages: list[str] = []
+
+        if report.high_priority_findings:
+            messages.append("a high-priority anomaly or issue requiring investigation")
+
+        if report.medium_priority_findings:
+            messages.append("a medium-priority variance or comparison finding")
+
+        if report.low_priority_findings:
+            messages.append("a lower-priority trend or contextual finding")
+
+        if not messages:
+            return "No priority findings were identified from the analysis."
+
+        if len(messages) == 1:
+            finding_summary = messages[0]
+        elif len(messages) == 2:
+            finding_summary = f"{messages[0]} and {messages[1]}"
+        else:
+            finding_summary = f"{', '.join(messages[:-1])}, and {messages[-1]}"
+
+        return (
+            "Operational analysis identified multiple areas requiring attention, "
+            f"including {finding_summary}."
+        )
+
     def _direct_variance_answer(self, finding: Finding) -> str | None:
         if not finding.evidence:
             return None
 
         evidence_with_values = [
             item for item in finding.evidence
-            if isinstance(item.metric_value, int | float)
+            if isinstance(item.metric_value, (int, float))
         ]
 
         if not evidence_with_values:
             return None
 
         highest = max(evidence_with_values, key=lambda item: item.metric_value)
-
         dimension_label = self._extract_dimension_label(highest.supporting_context)
 
         if dimension_label:
             return (
-                f"{dimension_label} had the highest "
-                f"{highest.metric_name} value at {highest.metric_value}."
+                f"The {dimension_label} recorded the highest total "
+                f"{highest.metric_name} ({highest.metric_value:g})."
             )
 
-        return (
-            f"The highest {highest.metric_name} value was "
-            f"{highest.metric_value}."
-        )
+        return f"The highest total {highest.metric_name} was {highest.metric_value:g}."
 
     def _direct_anomaly_answer(self, finding: Finding) -> str | None:
         if not finding.evidence:
@@ -118,10 +163,7 @@ class AnswerGenerator:
             return None
 
         if direction:
-            return (
-                f"An unusual {direction} value was detected for "
-                f"{metric_name}: {value}."
-            )
+            return f"An unusual {direction} value was detected for {metric_name}: {value}."
 
         return f"An unusual value was detected for {metric_name}: {value}."
 

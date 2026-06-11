@@ -1,3 +1,5 @@
+import logging
+
 import streamlit as st
 
 from ui.analysis_service import run_analysis
@@ -11,6 +13,8 @@ EXAMPLE_QUESTIONS = [
     "Which department has the highest hours?",
     "Analyse this dataset",
 ]
+
+PREVIEW_ROW_LIMIT = 50
 
 
 st.set_page_config(
@@ -33,7 +37,12 @@ if not has_dataset():
     st.stop()
 
 st.subheader("Dataset Preview")
-st.dataframe(st.session_state.df, use_container_width=True)
+df = st.session_state.df
+st.dataframe(df.head(PREVIEW_ROW_LIMIT), use_container_width=True)
+if len(df) > PREVIEW_ROW_LIMIT:
+    st.caption(f"Showing first {PREVIEW_ROW_LIMIT} of {len(df)} rows.")
+else:
+    st.caption(f"Showing all {len(df)} rows.")
 
 st.subheader("Ask a Question")
 st.caption("Example questions:")
@@ -42,22 +51,33 @@ for index, example in enumerate(EXAMPLE_QUESTIONS):
     if example_cols[index].button(example, key=f"example_{index}"):
         st.session_state.question = example
 
-question = st.text_area(
+st.text_area(
     "Your question",
     key="question",
     placeholder="Which department has the highest hours?",
 )
 
-if st.button("Analyze", type="primary"):
+if st.button(
+    "Analyze",
+    type="primary",
+    disabled=not st.session_state.question.strip(),
+):
     try:
-        result = run_analysis(
-            question=question,
-            df=st.session_state.df,
-            profile=st.session_state.profile,
-        )
+        with st.spinner("Running analysis..."):
+            result = run_analysis(
+                question=st.session_state.question,
+                df=st.session_state.df,
+                profile=st.session_state.profile,
+            )
         set_analysis_result(result)
     except ValueError as exc:
         set_analysis_error(str(exc))
+    except Exception:
+        logging.exception("Analysis run failed")
+        set_analysis_error(
+            "Something went wrong while running the analysis. "
+            "Please check your dataset and try again."
+        )
 
 if st.session_state.last_error:
     st.error(st.session_state.last_error)

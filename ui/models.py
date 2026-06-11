@@ -15,4 +15,5 @@ class AnalysisResult:
     routes: list[str]
     findings: list[Finding]
     report: ExecutiveReport
+    direct_answer: str
     deterministic_answer: str
