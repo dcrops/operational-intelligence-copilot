@@ -14,6 +14,78 @@ from src.operational_intelligence.anomaly_detection import AnomalyDetectionTool
 from src.operational_intelligence.risk_assessment import RiskAssessmentTool
 
 
+IDENTIFIER_COLUMNS = {
+    "employee_id",
+    "employee_number",
+    "record_id",
+    "transaction_id",
+    "id",
+    "uuid",
+}
+
+
+def _is_identifier_column(column_name: str) -> bool:
+    lowered = column_name.strip().lower()
+    if lowered in IDENTIFIER_COLUMNS:
+        return True
+    if lowered.endswith("_id") or lowered.endswith("_number"):
+        return True
+    return False
+
+
+def _non_identifier_dimensions(potential_dimensions: list[str]) -> list[str]:
+    return [
+        dimension
+        for dimension in potential_dimensions
+        if not _is_identifier_column(dimension)
+    ]
+
+
+def _select_dimension_from_question(
+    question: str,
+    potential_dimensions: list[str],
+) -> str | None:
+    question_lower = question.lower()
+    matched = [
+        dimension
+        for dimension in potential_dimensions
+        if dimension.lower() in question_lower
+    ]
+    if not matched:
+        return None
+    return max(matched, key=len)
+
+
+def _select_variance_dimension(
+    question: str,
+    potential_dimensions: list[str],
+) -> str:
+    explicit_dimension = _select_dimension_from_question(question, potential_dimensions)
+    if explicit_dimension is not None:
+        return explicit_dimension
+
+    non_identifier_dimensions = _non_identifier_dimensions(potential_dimensions)
+    if non_identifier_dimensions:
+        return non_identifier_dimensions[0]
+
+    return potential_dimensions[0]
+
+
+def _select_metric_from_question(
+    question: str,
+    potential_metrics: list[str],
+) -> str | None:
+    question_lower = question.lower()
+    matched = [
+        metric
+        for metric in potential_metrics
+        if metric.lower() in question_lower
+    ]
+    if not matched:
+        return None
+    return max(matched, key=len)
+
+
 class OperationalPipeline:
     """
     Coordinates intent routing, analysis tool execution, and risk assessment workflow.
@@ -113,8 +185,11 @@ class OperationalPipeline:
                         warnings=["Profile lacks potential_metrics required for variance analysis."]
                     ))
                     continue
-                dimension_col = dims[0]
-                metric_col = metrics[0]
+                dimension_col = _select_variance_dimension(request.question, dims)
+
+                metric_col = _select_metric_from_question(request.question, metrics)
+                if metric_col is None:
+                    metric_col = metrics[0]
                 try:
                     result = self.variance_tool.analyze(df, dimension_col, metric_col)
                 except Exception as ex:

@@ -13,6 +13,8 @@ SEVERITY_BADGES = {
     "INFO": "🔵 **INFO**",
 }
 
+MAX_EVIDENCE_DISPLAY = 5
+
 
 def _severity_badge(severity: str) -> str:
     return SEVERITY_BADGES.get(severity.upper(), f"**{severity}**")
@@ -38,7 +40,126 @@ def _evidence_type(finding: Finding) -> str:
         return "variance"
     if "trend" in title:
         return "trend"
+    if "failed" in title or "tool '" in title:
+        return "failure"
     return "generic"
+
+
+def _metric_label(finding: Finding, default: str = "hours") -> str:
+    for item in finding.evidence:
+        if item.metric_name:
+            return item.metric_name.replace("_", " ")
+    return default
+
+
+def _anomaly_business_description(finding: Finding) -> str:
+    count = len(finding.evidence)
+    metric = _metric_label(finding)
+    high_count = sum(
+        1
+        for item in finding.evidence
+        if str(item.supporting_context.get("anomaly_direction", "")).upper() == "HIGH"
+    )
+    low_count = count - high_count
+
+    if count == 0:
+        return (
+            "Unusual workforce values were identified that differ significantly "
+            "from normal workforce patterns."
+        )
+
+    if high_count >= low_count:
+        direction = "high"
+    else:
+        direction = "low"
+
+    value_label = "value" if count == 1 else "values"
+    return (
+        f"{count} unusually {direction} {metric} {value_label} were identified "
+        f"that differ significantly from normal workforce patterns."
+    )
+
+
+def _variance_business_description(finding: Finding) -> str:
+    if not finding.evidence:
+        return (
+            "Significant differences were observed across workforce groups "
+            "that may warrant operational review."
+        )
+
+    metric = _metric_label(finding)
+    numeric_evidence = [
+        item
+        for item in finding.evidence
+        if isinstance(item.metric_value, int | float)
+    ]
+    if not numeric_evidence:
+        return (
+            "Significant differences were observed across workforce groups "
+            "that may warrant operational review."
+        )
+
+    highest = max(numeric_evidence, key=lambda item: item.metric_value)
+    lowest = min(numeric_evidence, key=lambda item: item.metric_value)
+    dimension_name, highest_group = _context_dimension(highest.supporting_context)
+    _, lowest_group = _context_dimension(lowest.supporting_context)
+    group_label = dimension_name or "group"
+
+    if highest_group and lowest_group:
+        return (
+            f"Significant differences were observed between {group_label}s, "
+            f"with {highest_group} recording substantially higher {metric} "
+            f"than {lowest_group}."
+        )
+
+    return (
+        f"Significant differences were observed in {metric} across workforce "
+        f"{group_label}s."
+    )
+
+
+def _trend_business_description(finding: Finding) -> str:
+    metric = _metric_label(finding).capitalize()
+    description = finding.description.lower()
+
+    if "increas" in description:
+        movement = "increased steadily"
+        trend = "upward"
+    elif "decreas" in description:
+        movement = "decreased steadily"
+        trend = "downward"
+    elif "stable" in description:
+        movement = "remained relatively stable"
+        trend = "stable"
+    else:
+        movement = "changed over time"
+        trend = "emerging"
+
+    return (
+        f"{metric} {movement} over the reporting period, "
+        f"indicating a sustained {trend} trend."
+    )
+
+
+def _failure_business_description(finding: Finding) -> str:
+    return (
+        "One analysis step could not be completed successfully. "
+        "Review the dataset quality and configuration before re-running the analysis."
+    )
+
+
+def _business_friendly_description(finding: Finding) -> str:
+    """Translate technical finding descriptions into operational language for the UI."""
+    mapping = {
+        "anomaly": _anomaly_business_description,
+        "variance": _variance_business_description,
+        "trend": _trend_business_description,
+        "failure": _failure_business_description,
+    }
+    presenter = mapping.get(_evidence_type(finding))
+    if presenter is not None:
+        return presenter(finding)
+    return finding.description
 
 
 def _context_dimension(ctx: dict) -> tuple[str | None, str | None]:
@@ -120,11 +241,18 @@ def _render_evidence(evidence: list[EvidenceItem], finding: Finding) -> None:
         return
 
     evidence_type = _evidence_type(finding)
+    total_count = len(evidence)
+    visible_evidence = evidence[:MAX_EVIDENCE_DISPLAY]
 
-    for index, item in enumerate(evidence, start=1):
+    for index, item in enumerate(visible_evidence, start=1):
         _render_evidence_item(item, index, evidence_type)
-        if index < len(evidence):
+        if index < len(visible_evidence):
             st.divider()
+
+    if total_count > MAX_EVIDENCE_DISPLAY:
+        st.caption(
+            f"Showing top {MAX_EVIDENCE_DISPLAY} of {total_count} evidence items."
+        )
 
 
 def _bucketed_findings(result: AnalysisResult) -> list[Finding]:
@@ -138,7 +266,7 @@ def _bucketed_findings(result: AnalysisResult) -> list[Finding]:
 def _render_finding(finding: Finding) -> None:
     badge = _severity_badge(finding.severity)
     st.markdown(f"{badge} · **{finding.title}**")
-    st.markdown(finding.description)
+    st.markdown(_business_friendly_description(finding))
 
     if finding.recommended_action:
         st.caption(f"Suggested action: {finding.recommended_action}")

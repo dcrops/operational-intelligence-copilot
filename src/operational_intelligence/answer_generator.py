@@ -154,18 +154,46 @@ class AnswerGenerator:
         if not finding.evidence:
             return None
 
-        item = finding.evidence[0]
-        direction = item.supporting_context.get("anomaly_direction")
-        metric_name = item.metric_name or "metric"
-        value = item.metric_value
+        evidence_count = len(finding.evidence)
+        metric_name = finding.evidence[0].metric_name or "metric"
 
-        if value is None:
+        if evidence_count == 1:
+            item = finding.evidence[0]
+            value = item.metric_value
+            if value is None:
+                return None
+
+            direction = item.supporting_context.get("anomaly_direction")
+            if direction:
+                return (
+                    f"An unusual {direction} value was detected for "
+                    f"{metric_name}: {value:g}."
+                )
+
+            return f"An unusual value was detected for {metric_name}: {value:g}."
+
+        numeric_items = [
+            item for item in finding.evidence
+            if isinstance(item.metric_value, (int, float))
+        ]
+        if not numeric_items:
             return None
 
-        if direction:
-            return f"An unusual {direction} value was detected for {metric_name}: {value}."
+        extreme_item = max(numeric_items, key=lambda item: item.metric_value)
+        extreme_value = extreme_item.metric_value
+        metric_name = extreme_item.metric_name or metric_name
+        direction = extreme_item.supporting_context.get("anomaly_direction")
 
-        return f"An unusual value was detected for {metric_name}: {value}."
+        if direction:
+            return (
+                f"{evidence_count} unusual {direction} values were detected for "
+                f"{metric_name}. The most extreme value was {extreme_value:g}."
+            )
+
+        return (
+            f"{evidence_count} unusual values were detected for {metric_name}. "
+            f"The most extreme value was {extreme_value:g}."
+        )
 
     def _extract_dimension_label(
         self,
