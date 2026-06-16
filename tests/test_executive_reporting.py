@@ -64,6 +64,29 @@ class TestExecutiveReportGenerator:
         assert report.high_priority_findings == []
         assert report.recommended_next_steps == ["Monitor the metric periodically."]
 
+
+    def test_suggested_follow_up_investigations_populated_for_sample_findings(self):
+        findings = make_sample_findings()
+        report = ExecutiveReportGenerator().generate(findings)
+
+        assert report.suggested_follow_up_investigations
+        assert len(report.suggested_follow_up_investigations) >= 3
+
+    def test_empty_findings_have_empty_suggested_investigations(self):
+        report = ExecutiveReportGenerator().generate([])
+
+        assert report.suggested_follow_up_investigations == []
+
+    def test_recommended_next_steps_remain_separate_from_investigations(self):
+        findings = make_sample_findings()
+        report = ExecutiveReportGenerator().generate(findings)
+
+        assert report.recommended_next_steps
+        assert report.suggested_follow_up_investigations
+        assert set(report.recommended_next_steps).isdisjoint(
+            set(report.suggested_follow_up_investigations)
+        )
+
     def test_rejects_non_list_input(self):
         with pytest.raises(ValueError, match="findings must be a list"):
             ExecutiveReportGenerator().generate("not a list")  # type: ignore[arg-type]

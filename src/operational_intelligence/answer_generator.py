@@ -46,6 +46,13 @@ class AnswerGenerator:
         else:
             lines.append("  None.")
 
+        lines.append("\nSuggested Follow-Up Investigations:")
+        if report.suggested_follow_up_investigations:
+            for suggestion in report.suggested_follow_up_investigations:
+                lines.append(f"- {suggestion}")
+        else:
+            lines.append("  None.")
+
         return "\n".join(lines)
 
     def _build_direct_answer(

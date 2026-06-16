@@ -94,3 +94,94 @@ def make_sample_findings() -> list[Finding]:
             recommended_action="Review the drivers for the observed trend to evaluate operational implications.",
         ),
     ]
+
+def make_trend_finding(
+    *,
+    metric_name: str = "hours",
+    trend_label: str | None = None,
+    with_period_evidence: bool = True,
+    with_group_metadata: bool = False,
+    dimension_key: str = "department",
+    dimension_value: str = "Ops",
+) -> Finding:
+    evidence: list[EvidenceItem] = []
+    if with_period_evidence:
+        evidence.append(
+            EvidenceItem(
+                description=f"period value for {metric_name}",
+                metric_name=metric_name,
+                metric_value=100.0,
+                supporting_context={
+                    "report_date": "2024-01-01",
+                    "aggregation": "sum",
+                },
+            )
+        )
+    if with_group_metadata:
+        evidence.append(
+            EvidenceItem(
+                description=f"group context for {metric_name}",
+                metric_name=metric_name,
+                metric_value=120.0,
+                supporting_context={
+                    dimension_key: dimension_value,
+                    "aggregation": "sum",
+                },
+            )
+        )
+    context: dict = {"aggregation": "sum"}
+    if trend_label is not None:
+        context["trend_label"] = trend_label
+    if trend_label is not None or with_period_evidence:
+        evidence.append(
+            EvidenceItem(
+                description="Trend classification summary",
+                metric_name=metric_name,
+                supporting_context=context,
+            )
+        )
+
+    return Finding(
+        title="Trend Identified by Trend Analysis Tool",
+        description=(
+            f"The total {metric_name} increased from 100 to 220 (120.0% change). "
+            "The series remained volatile over the period."
+        ),
+        severity="LOW",
+        confidence="MEDIUM",
+        evidence=evidence,
+        recommended_action=(
+            "Review the drivers for the observed trend to evaluate operational implications."
+        ),
+    )
+
+
+def make_anomaly_finding(
+    *,
+    metric_name: str = "overtime_hours",
+    anomaly_direction: str = "HIGH",
+    row_index: int = 42,
+) -> Finding:
+    return Finding(
+        title="Anomalies Detected by Anomaly Detection Tool",
+        description="Anomalies were detected.",
+        severity="HIGH",
+        confidence="HIGH",
+        evidence=[
+            EvidenceItem(
+                description="Anomalous value",
+                metric_name=metric_name,
+                metric_value=900.0,
+                supporting_context={
+                    "row_index": row_index,
+                    "mean": 100.0,
+                    "standard_deviation": 10.0,
+                    "z_score": 80.0,
+                    "anomaly_direction": anomaly_direction,
+                },
+            )
+        ],
+        recommended_action=(
+            "Investigate the records identified as anomalous for potential operational issues."
+        ),
+    )

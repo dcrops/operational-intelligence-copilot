@@ -335,3 +335,50 @@ class TestMixedIntentClarification:
 
         assert_no_clarification(result)
         assert result.routes == expected_route_subset
+
+@pytest.mark.integration
+class TestFollowUpInvestigationsIntegration:
+    @pytest.mark.parametrize(
+        ("bundle_fn", "question", "kwargs", "expected_snippet"),
+        [
+            (
+                manufacturing_bundle,
+                "How has downtime_minutes changed over time?",
+                {},
+                "Investigate whether downtime minutes changes are concentrated",
+            ),
+            (
+                education_bundle,
+                "Which school has the lowest attendance?",
+                {},
+                "school values contributed most",
+            ),
+            (
+                workforce_bundle,
+                "What looks unusual?",
+                {},
+                "Investigate whether anomalies",
+            ),
+        ],
+    )
+    def test_pipeline_populates_domain_agnostic_investigations(
+        self,
+        bundle_fn,
+        question,
+        kwargs,
+        expected_snippet,
+    ):
+        from tests.support.assertions import assert_suggestions_are_humble
+
+        df, profile = bundle_fn()
+        result = run_analysis(question, df, profile, **kwargs)
+
+        assert_no_clarification(result)
+        assert result.report is not None
+        assert result.report.suggested_follow_up_investigations
+        assert any(
+            expected_snippet in suggestion
+            for suggestion in result.report.suggested_follow_up_investigations
+        )
+        assert_suggestions_are_humble(result.report.suggested_follow_up_investigations)
+

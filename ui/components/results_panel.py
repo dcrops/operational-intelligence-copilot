@@ -261,6 +261,15 @@ def render_results(result: AnalysisResult) -> None:
         else:
             st.caption("No recommended actions.")
 
+
+    st.markdown("#### Suggested Follow-Up Investigations")
+    with st.container(border=True):
+        if result.report.suggested_follow_up_investigations:
+            for suggestion in result.report.suggested_follow_up_investigations:
+                st.markdown(f"- {suggestion}")
+        else:
+            st.caption("No follow-up investigations suggested.")
+
     st.markdown("#### System Transparency")
     with st.container(border=True):
         st.markdown(f"**Question:** {result.request.question}")

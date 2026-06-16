@@ -129,6 +129,7 @@ def assert_answer_contains_standard_sections(answer: str) -> None:
         "Medium Priority Findings:",
         "Low Priority Findings:",
         "Recommended Next Steps:",
+        "Suggested Follow-Up Investigations:",
     ):
         assert heading in answer, f"Missing section heading: {heading}"
 
@@ -148,3 +149,27 @@ def assert_no_causation_claims(text: str) -> None:
     lowered = text.lower()
     for phrase in _CAUSATION_CLAIM_PHRASES:
         assert phrase not in lowered, f"Unexpected causation claim phrase: {phrase!r}"
+
+_HUMILITY_VERBS = ("investigate", "review", "explore", "examine", "may warrant")
+
+_SUGGESTION_CAUSATION_PHRASES = (
+    "caused by",
+    "because of",
+    "due to",
+    "proves",
+    "responsible for",
+    "root cause",
+)
+
+
+def assert_suggestions_are_humble(suggestions: list[str]) -> None:
+    assert suggestions, "Expected at least one suggestion"
+    for suggestion in suggestions:
+        lowered = suggestion.lower()
+        assert any(verb in lowered for verb in _HUMILITY_VERBS), (
+            f"Suggestion missing humble wording: {suggestion!r}"
+        )
+        for phrase in _SUGGESTION_CAUSATION_PHRASES:
+            assert phrase not in lowered, (
+                f"Unexpected causation phrase {phrase!r} in suggestion: {suggestion!r}"
+            )

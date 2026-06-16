@@ -17,7 +17,11 @@ from src.operational_intelligence.question_semantics import (
     causation_requested,
 )
 from ui.analysis_service import run_analysis
-from tests.support.assertions import assert_clarification, assert_no_causation_claims
+from tests.support.assertions import (
+    assert_clarification,
+    assert_no_causation_claims,
+    assert_suggestions_are_humble,
+)
 from tests.support.factories import education_bundle, manufacturing_bundle, workforce_bundle
 
 
@@ -65,6 +69,12 @@ class TestCausalQuestionGuardrails:
         assert result.direct_answer.startswith(CAUSATION_DISCLAIMER)
         assert CAUSATION_FINDINGS_INTRO in result.direct_answer
         assert_no_causation_claims(result.direct_answer)
+        assert result.report is not None
+        assert result.report.suggested_follow_up_investigations
+        assert_suggestions_are_humble(result.report.suggested_follow_up_investigations)
+        for suggestion in result.report.suggested_follow_up_investigations:
+            assert_no_causation_claims(suggestion)
+
 
     @pytest.mark.parametrize(
         ("bundle_fn", "question", "selected_metrics"),
@@ -98,6 +108,12 @@ class TestCausalQuestionGuardrails:
         assert CAUSATION_FINDINGS_INTRO in result.direct_answer
         assert result.findings
         assert_no_causation_claims(result.direct_answer)
+        assert result.report is not None
+        assert result.report.suggested_follow_up_investigations
+        assert_suggestions_are_humble(result.report.suggested_follow_up_investigations)
+        for suggestion in result.report.suggested_follow_up_investigations:
+            assert_no_causation_claims(suggestion)
+
 
     def test_non_causal_questions_do_not_include_disclaimer(self):
         df, profile = education_bundle()

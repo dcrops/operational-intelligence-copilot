@@ -1,3 +1,4 @@
+from src.operational_intelligence.investigation_suggestions import InvestigationSuggestionGenerator
 from src.operational_intelligence.models import ExecutiveReport, Finding
 
 class ExecutiveReportGenerator:
@@ -51,10 +52,15 @@ class ExecutiveReportGenerator:
                 recommended_next_steps.append(action)
                 seen.add(action)
 
+        suggested_follow_up_investigations = InvestigationSuggestionGenerator().generate_for_findings(
+            findings
+        )
+
         return ExecutiveReport(
             executive_summary=executive_summary,
             high_priority_findings=high_priority_findings,
             medium_priority_findings=medium_priority_findings,
             low_priority_findings=low_priority_findings,
-            recommended_next_steps=recommended_next_steps
+            recommended_next_steps=recommended_next_steps,
+            suggested_follow_up_investigations=suggested_follow_up_investigations,
         )

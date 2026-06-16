@@ -35,6 +35,15 @@ class TestAnswerGeneratorFullOutput:
         assert "[LOW] Trend Identified by Trend Analysis Tool" in answer
         assert "- Investigate the records identified as anomalous" in answer
 
+    def test_generated_answer_includes_suggested_follow_up_investigations(self):
+        findings = make_sample_findings()
+        report = ExecutiveReportGenerator().generate(findings)
+        answer = AnswerGenerator().generate(_request(), findings, report)
+
+        assert "Suggested Follow-Up Investigations:" in answer
+        assert "Investigate whether anomalies" in answer
+
+
     def test_no_findings_path_returns_expected_message(self):
         report = ExecutiveReportGenerator().generate([])
         answer = AnswerGenerator().generate(_request(), [], report)

@@ -217,6 +217,10 @@ class ExecutiveReport(BaseModel):
     medium_priority_findings: list[Finding] = Field(default_factory=list, description="Findings with MEDIUM severity.")
     low_priority_findings: list[Finding] = Field(default_factory=list, description="Findings with LOW or INFO severity.")
     recommended_next_steps: list[str] = Field(default_factory=list, description="Recommended follow-up steps.")
+    suggested_follow_up_investigations: list[str] = Field(
+        default_factory=list,
+        description="Suggested follow-up investigations derived from findings.",
+    )
 
     @field_validator('executive_summary')
     @classmethod
