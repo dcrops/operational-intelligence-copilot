@@ -1,4 +1,9 @@
 from src.operational_intelligence.models import AnalysisRequest, ExecutiveReport, Finding
+from src.operational_intelligence.question_semantics import (
+    CAUSATION_DISCLAIMER,
+    CAUSATION_FINDINGS_INTRO,
+    causation_requested,
+)
 
 
 class AnswerGenerator:
@@ -52,8 +57,22 @@ class AnswerGenerator:
         if self._is_broad_analysis_question(request.question):
             overview = self._build_executive_overview(report)
             if overview:
-                return overview
+                analytical_answer = overview
+            else:
+                analytical_answer = self._resolve_analytical_direct_answer(request, findings)
+        else:
+            analytical_answer = self._resolve_analytical_direct_answer(request, findings)
 
+        if causation_requested(request.question):
+            return self._apply_causation_disclaimer(analytical_answer, findings)
+
+        return analytical_answer
+
+    def _resolve_analytical_direct_answer(
+        self,
+        request: AnalysisRequest,
+        findings: list[Finding],
+    ) -> str:
         severity_order = ["HIGH", "MEDIUM", "LOW", "INFO"]
         grouped = {severity: [] for severity in severity_order}
 
@@ -81,6 +100,17 @@ class AnswerGenerator:
                     return finding.description.strip()
 
         return "A direct answer could not be determined from the available findings."
+
+    def _apply_causation_disclaimer(
+        self,
+        analytical_answer: str,
+        findings: list[Finding],
+    ) -> str:
+        parts = [CAUSATION_DISCLAIMER]
+        if findings:
+            parts.append(CAUSATION_FINDINGS_INTRO)
+            parts.append(analytical_answer)
+        return "\n\n".join(parts)
 
     def _is_broad_analysis_question(self, question: str) -> bool:
         q = question.strip().lower()

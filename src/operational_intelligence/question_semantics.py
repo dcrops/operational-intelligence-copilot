@@ -69,6 +69,23 @@ BROAD_METRIC_TERMS = (
 RATE_TOKENS = ("rate", "percentage", "percent", "ratio", "pct")
 MEAN_TOKENS = ("score", "average", "avg", "mean")
 DUAL_COMPARISON_CUES = (" and ", " vs ", " versus ")
+CAUSATION_PHRASES = (
+    "what caused",
+    "cause of",
+    "driver of",
+    "drivers of",
+    "reason for",
+    "what led to",
+    "what contributed to",
+)
+CAUSATION_DISCLAIMER = (
+    "I cannot determine causation from this dataset alone. The current analysis "
+    "capabilities identify trends, anomalies, and differences, but do not establish "
+    "causal relationships."
+)
+CAUSATION_FINDINGS_INTRO = (
+    "However, the following findings may warrant further investigation:"
+)
 
 
 def _contains_term(question_lower: str, term: str) -> bool:
@@ -97,6 +114,14 @@ def has_trend_intent(question: str) -> bool:
 def has_risk_intent(question: str) -> bool:
     question_lower = question.lower()
     return any(_contains_term(question_lower, term) for term in RISK_TERMS)
+
+
+def causation_requested(question: str) -> bool:
+    """Return True when the question asks for causal attribution."""
+    question_lower = question.lower().strip()
+    if _contains_term(question_lower, "why"):
+        return True
+    return any(phrase in question_lower for phrase in CAUSATION_PHRASES)
 
 
 def is_comparative_question(question: str) -> bool:

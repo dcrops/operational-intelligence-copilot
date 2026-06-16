@@ -2,6 +2,10 @@ import pytest
 
 from src.operational_intelligence.answer_generator import AnswerGenerator
 from src.operational_intelligence.models import AnalysisRequest, EvidenceItem, Finding
+from src.operational_intelligence.question_semantics import (
+    CAUSATION_DISCLAIMER,
+    CAUSATION_FINDINGS_INTRO,
+)
 from src.operational_intelligence.reporting import ExecutiveReportGenerator
 from tests.support.assertions import assert_answer_contains_standard_sections
 from tests.support.builders import (
@@ -153,3 +157,53 @@ class TestAnswerGeneratorDirectAnswers:
 
         assert "volatile" in direct.lower()
         assert "120.0% change" in direct
+
+
+@pytest.mark.unit
+class TestCausationAnswerHandling:
+    def test_causal_question_prefixes_direct_answer_with_disclaimer(self):
+        finding = make_variance_finding(
+            [
+                make_variance_evidence_item(
+                    dimension_key="school",
+                    dimension_value="School B",
+                    metric_name="attendance_rate",
+                    metric_value=71.0,
+                    aggregation="mean",
+                    comparison_direction="bottom",
+                )
+            ]
+        )
+        report = ExecutiveReportGenerator().generate([finding])
+        direct = AnswerGenerator()._build_direct_answer(
+            _request("What caused attendance to drop?"),
+            [finding],
+            report,
+        )
+
+        assert direct.startswith(CAUSATION_DISCLAIMER)
+        assert CAUSATION_FINDINGS_INTRO in direct
+        assert "lowest mean attendance_rate" in direct
+
+    def test_non_causal_question_omits_causation_disclaimer(self):
+        finding = make_variance_finding(
+            [
+                make_variance_evidence_item(
+                    dimension_key="school",
+                    dimension_value="School B",
+                    metric_name="attendance_rate",
+                    metric_value=71.0,
+                    aggregation="mean",
+                    comparison_direction="bottom",
+                )
+            ]
+        )
+        report = ExecutiveReportGenerator().generate([finding])
+        direct = AnswerGenerator()._build_direct_answer(
+            _request("Which school has the lowest attendance?"),
+            [finding],
+            report,
+        )
+
+        assert CAUSATION_DISCLAIMER not in direct
+        assert "lowest mean attendance_rate" in direct

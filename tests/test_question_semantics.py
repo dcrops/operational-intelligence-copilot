@@ -2,6 +2,7 @@ import pytest
 
 from src.operational_intelligence.question_semantics import (
     DEFAULT_AGGREGATION,
+    causation_requested,
     has_conflicting_comparison_direction,
     infer_aggregation_type,
     is_dual_comparison_question,
@@ -59,3 +60,24 @@ def test_infer_aggregation_type(metric: str, expected: str):
 def test_broad_metric_term_detection():
     assert question_uses_broad_metric_term("How has performance changed?") is True
     assert question_uses_broad_metric_term("How has attendance changed?") is False
+
+
+@pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        ("What caused attendance to drop?", True),
+        ("Why did downtime increase?", True),
+        ("What led to the increase in overtime?", True),
+        ("What is the reason for the spike in defects?", True),
+        ("What is the driver of overtime growth?", True),
+        ("What are the drivers of absence?", True),
+        ("What contributed to the rise in hours?", True),
+        ("What is the cause of lower attendance?", True),
+        ("What changed over time?", False),
+        ("What looks unusual?", False),
+        ("How has attendance changed over time?", False),
+        ("Which department has the highest hours?", False),
+    ],
+)
+def test_causation_requested(question: str, expected: bool):
+    assert causation_requested(question) is expected
