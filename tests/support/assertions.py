@@ -119,3 +119,32 @@ def assert_run_analysis_complete(result: AnalysisResult) -> None:
     assert result.report is not None
     assert result.report.executive_summary
     assert result.direct_answer
+
+
+def assert_answer_contains_standard_sections(answer: str) -> None:
+    for heading in (
+        "Direct Answer:",
+        "Executive Summary:",
+        "High Priority Findings:",
+        "Medium Priority Findings:",
+        "Low Priority Findings:",
+        "Recommended Next Steps:",
+    ):
+        assert heading in answer, f"Missing section heading: {heading}"
+
+
+_CAUSATION_CLAIM_PHRASES = (
+    "caused by",
+    "because of",
+    "due to",
+    "root cause",
+    "the reason is",
+    "was caused",
+)
+
+
+def assert_no_causation_claims(text: str) -> None:
+    """Guardrail: descriptive analytics must not assert causal explanations."""
+    lowered = text.lower()
+    for phrase in _CAUSATION_CLAIM_PHRASES:
+        assert phrase not in lowered, f"Unexpected causation claim phrase: {phrase!r}"

@@ -1,3 +1,5 @@
+import pytest
+
 from src.operational_intelligence.question_semantics import DEFAULT_AGGREGATION, infer_aggregation_type
 from src.operational_intelligence.trend_analysis import TrendAnalysisTool
 from src.operational_intelligence.variance_analysis import VarianceAnalysisTool
@@ -6,6 +8,8 @@ from tests.support.factories import (
     make_education_df,
     make_manufacturing_df,
 )
+
+pytestmark = pytest.mark.unit
 
 
 def test_trend_uses_mean_for_rate_metrics():

@@ -1,5 +1,9 @@
+import pytest
+
 from src.operational_intelligence.models import EvidenceItem, Finding
 from ui.anomaly_presentation import anomaly_business_description, anomaly_direction_label
+
+pytestmark = pytest.mark.unit
 
 
 def _anomaly_finding(items: list[EvidenceItem]) -> Finding:

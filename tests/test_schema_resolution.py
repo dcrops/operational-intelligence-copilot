@@ -1,3 +1,7 @@
+import pytest
+
+import pytest
+
 from src.operational_intelligence.schema_resolution import (
     is_identifier_column,
     non_identifier_dimensions,
@@ -24,6 +28,9 @@ WORKFORCE_DIMENSIONS = [
     "manager",
     "employment_type",
 ]
+
+
+pytestmark = pytest.mark.unit
 
 
 def test_resolve_downtime_minutes_underscore_form():

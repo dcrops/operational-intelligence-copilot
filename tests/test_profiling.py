@@ -2,6 +2,8 @@ import pandas as pd
 import pytest
 from src.operational_intelligence.profiling import DatasetProfiler
 
+pytestmark = pytest.mark.unit
+
 def test_basic_profiling_mixed_dataframe():
     df = pd.DataFrame({
         "id": [1, 2, 3],

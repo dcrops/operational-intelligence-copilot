@@ -269,10 +269,12 @@ class TestWorkforcePipelineScenarios:
         assert direct_answer is not None
         assert direction in direct_answer
         assert label in {"high", "low", "mixed"}
+        assert finding.evidence[0].supporting_context.get("anomaly_direction") == direction
         if label == "high":
-            assert "high value" in business_copy
+            assert "high values" in business_copy or "high value" in business_copy
+            assert "low values" not in business_copy and "low value" not in business_copy
         elif label == "low":
-            assert "low value" in business_copy
+            assert "low values" in business_copy or "low value" in business_copy
 
     def test_performance_question_requires_metric_clarification(self):
         df, profile = workforce_bundle()

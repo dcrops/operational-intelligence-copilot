@@ -10,6 +10,9 @@ from src.operational_intelligence.question_semantics import (
 )
 
 
+pytestmark = pytest.mark.unit
+
+
 @pytest.mark.parametrize(
     ("question", "expected"),
     [

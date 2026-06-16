@@ -1,9 +1,12 @@
 import pandas as pd
+import pytest
 
 from src.operational_intelligence.trend_analysis import (
     TrendAnalysisTool,
     _classify_trend,
 )
+
+pytestmark = pytest.mark.unit
 
 
 def _analyze_series(values: list[float]) -> tuple[str, str]:
