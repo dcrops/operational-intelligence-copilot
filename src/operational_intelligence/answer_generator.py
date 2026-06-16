@@ -131,24 +131,64 @@ class AnswerGenerator:
         if not finding.evidence:
             return None
 
-        evidence_with_values = [
-            item for item in finding.evidence
+        targets = [
+            item
+            for item in finding.evidence
             if isinstance(item.metric_value, (int, float))
+            and item.supporting_context.get("is_comparison_target") is True
         ]
-
-        if not evidence_with_values:
+        if not targets:
+            targets = [
+                item for item in finding.evidence
+                if isinstance(item.metric_value, (int, float))
+            ]
+        if not targets:
             return None
 
-        highest = max(evidence_with_values, key=lambda item: item.metric_value)
-        dimension_label = self._extract_dimension_label(highest.supporting_context)
+        direction = targets[0].supporting_context.get("comparison_direction", "top")
+        aggregation = targets[0].supporting_context.get("aggregation", "sum")
+        agg_label = "mean" if aggregation == "mean" else "total"
+        metric_name = targets[0].metric_name or "metric"
+
+        if direction == "dual" and len(targets) >= 1:
+            top_item = next(
+                (
+                    item
+                    for item in targets
+                    if item.supporting_context.get("comparison_extreme") == "top"
+                ),
+                max(targets, key=lambda item: item.metric_value),
+            )
+            bottom_item = next(
+                (
+                    item
+                    for item in targets
+                    if item.supporting_context.get("comparison_extreme") == "bottom"
+                ),
+                min(targets, key=lambda item: item.metric_value),
+            )
+            top_label = self._extract_dimension_label(top_item.supporting_context)
+            bottom_label = self._extract_dimension_label(bottom_item.supporting_context)
+            if top_label and bottom_label:
+                return (
+                    f"{top_label} recorded the highest {agg_label} {metric_name} "
+                    f"({top_item.metric_value:g}), and {bottom_label} recorded the "
+                    f"lowest {agg_label} {metric_name} ({bottom_item.metric_value:g})."
+                )
+
+        item = targets[0]
+        dimension_label = self._extract_dimension_label(item.supporting_context)
+        direction_word = "highest" if direction == "top" else "lowest"
 
         if dimension_label:
             return (
-                f"The {dimension_label} recorded the highest total "
-                f"{highest.metric_name} ({highest.metric_value:g})."
+                f"The {dimension_label} recorded the {direction_word} {agg_label} "
+                f"{metric_name} ({item.metric_value:g})."
             )
 
-        return f"The highest total {highest.metric_name} was {highest.metric_value:g}."
+        return (
+            f"The {direction_word} {agg_label} {metric_name} was {item.metric_value:g}."
+        )
 
     def _direct_anomaly_answer(self, finding: Finding) -> str | None:
         if not finding.evidence:
@@ -205,6 +245,10 @@ class AnswerGenerator:
             "standard_deviation",
             "z_score",
             "anomaly_direction",
+            "aggregation",
+            "comparison_direction",
+            "comparison_extreme",
+            "is_comparison_target",
         }
 
         for key, value in supporting_context.items():

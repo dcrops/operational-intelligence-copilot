@@ -4,6 +4,11 @@ from __future__ import annotations
 
 import re
 
+from src.operational_intelligence.question_semantics import (
+    has_explicit_column_mention,
+    question_uses_broad_metric_term,
+)
+
 IDENTIFIER_COLUMNS = {
     "employee_id",
     "employee_number",
@@ -15,10 +20,18 @@ IDENTIFIER_COLUMNS = {
 
 
 def is_identifier_column(column_name: str) -> bool:
-    lowered = column_name.strip().lower()
+    name = column_name.strip()
+    lowered = name.lower()
     if lowered in IDENTIFIER_COLUMNS:
         return True
-    if lowered.endswith("_id") or lowered.endswith("_number"):
+    if (
+        lowered.endswith("_id")
+        or lowered.endswith("_number")
+        or lowered.endswith("_no")
+    ):
+        return True
+    # camelCase account/order number columns (e.g. accountNo, invoiceNo)
+    if re.search(r"[a-z]No$", name):
         return True
     return False
 
@@ -60,6 +73,17 @@ def resolve_metric_from_question(
     question: str,
     candidate_metrics: list[str],
 ) -> str | None:
+    explicit_matches = [
+        metric
+        for metric in candidate_metrics
+        if has_explicit_column_mention(question, metric)
+    ]
+    if explicit_matches:
+        return max(explicit_matches, key=len)
+
+    if question_uses_broad_metric_term(question):
+        return None
+
     matched = [
         metric
         for metric in candidate_metrics

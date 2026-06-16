@@ -80,6 +80,10 @@ class AnalysisRequest(BaseModel):
     requested_analysis_type: str | None = Field(None, description="Optional analysis type (if any).")
     selected_metrics: list[str] = Field(default_factory=list, description="Metrics for the analysis.")
     selected_dimensions: list[str] = Field(default_factory=list, description="Dimensions for grouping or slicing.")
+    selected_comparison_direction: str | None = Field(
+        None,
+        description="Optional comparison direction: top, bottom, or dual.",
+    )
 
     @field_validator('question')
     @classmethod

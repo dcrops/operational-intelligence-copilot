@@ -77,4 +77,7 @@ def test_longest_metric_match_is_preferred():
 def test_is_identifier_column_recognizes_common_patterns():
     assert is_identifier_column("employee_id") is True
     assert is_identifier_column("transaction_id") is True
+    assert is_identifier_column("accountNo") is True
+    assert is_identifier_column("order_no") is True
+    assert is_identifier_column("behaviour_incidents") is False
     assert is_identifier_column("department") is False

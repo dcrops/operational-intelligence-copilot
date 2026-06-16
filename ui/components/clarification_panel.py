@@ -18,6 +18,14 @@ _CLARIFICATION_MESSAGES = {
         "Multiple grouping fields are available for this dataset. "
         "Which one would you like to compare?"
     ),
+    "analysis_type": (
+        "This question could mean comparison analysis or anomaly detection. "
+        "Which analysis would you like to run?"
+    ),
+    "comparison_direction": (
+        "This question could refer to the highest or lowest value. "
+        "Which comparison do you want?"
+    ),
 }
 _DEFAULT_CLARIFICATION_MESSAGE = (
     "I need one more detail before I can run the analysis."
@@ -31,6 +39,12 @@ def _clarification_message(clarification_type: str) -> str:
     )
 
 
+def _format_clarification_option(option: str, clarification_type: str) -> str:
+    if clarification_type in {"analysis_type", "comparison_direction"}:
+        return option.replace("_", " ")
+    return format_column_label(option)
+
+
 def render_clarification(result: AnalysisResult) -> None:
     """Render a clarification prompt and allow the user to continue analysis."""
     clarification = result.clarification
@@ -41,24 +55,32 @@ def render_clarification(result: AnalysisResult) -> None:
     st.write(_clarification_message(clarification.clarification_type))
     st.caption("Select an option below to continue the analysis.")
 
+    clarification_type = clarification.clarification_type
     selected = st.radio(
         "Clarification options",
         options=clarification.options,
-        format_func=format_column_label,
+        format_func=lambda option: _format_clarification_option(option, clarification_type),
         label_visibility="collapsed",
-        key=f"clarification_{clarification.clarification_type}",
+        key=f"clarification_{clarification_type}",
     )
 
     if st.button("Continue analysis", type="primary", key="continue_clarification"):
         prior_metrics = list(result.request.selected_metrics or [])
         prior_dimensions = list(result.request.selected_dimensions or [])
+        prior_comparison_direction = result.request.selected_comparison_direction
         selected_metrics = prior_metrics or None
         selected_dimensions = prior_dimensions or None
+        selected_comparison_direction = prior_comparison_direction
+        requested_analysis_type = result.request.requested_analysis_type
 
-        if clarification.clarification_type == "metric":
+        if clarification_type == "metric":
             selected_metrics = [selected]
-        elif clarification.clarification_type in {"dimension", "comparison_target"}:
+        elif clarification_type in {"dimension", "comparison_target"}:
             selected_dimensions = [selected]
+        elif clarification_type == "analysis_type":
+            requested_analysis_type = selected
+        elif clarification_type == "comparison_direction":
+            selected_comparison_direction = selected
 
         try:
             with st.spinner("Running analysis..."):
@@ -68,6 +90,8 @@ def render_clarification(result: AnalysisResult) -> None:
                     profile=st.session_state.profile,
                     selected_metrics=selected_metrics,
                     selected_dimensions=selected_dimensions,
+                    selected_comparison_direction=selected_comparison_direction,
+                    requested_analysis_type=requested_analysis_type,
                 )
             set_analysis_result(continued_result)
             st.rerun()

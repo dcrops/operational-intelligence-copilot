@@ -15,6 +15,11 @@ from src.operational_intelligence.schema_resolution import (
     resolve_metric_from_question,
     resolve_dimension_from_question,
 )
+from src.operational_intelligence.question_semantics import (
+    ComparisonDirection,
+    infer_aggregation_type,
+    resolve_comparison_direction,
+)
 from src.operational_intelligence.trend_analysis import TrendAnalysisTool
 from src.operational_intelligence.variance_analysis import VarianceAnalysisTool
 from src.operational_intelligence.anomaly_detection import AnomalyDetectionTool
@@ -39,18 +44,6 @@ class OperationalPipeline:
         df: pd.DataFrame,
         dataset_profiles: List[DatasetProfile],
     ) -> Union[ClarificationRequest, List[Finding]]:
-        """
-        Execute the operational intelligence pipeline for a single AnalysisRequest.
-
-        Args:
-            request: The analysis request with question/context.
-            df: DataFrame containing the dataset to analyze.
-            dataset_profiles: List of profiles for available datasets.
-
-        Returns:
-            ClarificationRequest when schema resolution is ambiguous, otherwise findings.
-        """
-        # Basic input validation
         if not isinstance(request, AnalysisRequest):
             raise ValueError("request must be an instance of AnalysisRequest")
         if not isinstance(df, pd.DataFrame) or df.empty:
@@ -65,6 +58,7 @@ class OperationalPipeline:
         if clarification is not None:
             return clarification
 
+        comparison_direction = self._resolve_comparison_direction(request)
         tool_results: List[ToolResult] = []
 
         for tool_name in tool_names:
@@ -91,8 +85,14 @@ class OperationalPipeline:
                     continue
                 date_col = date_cols[0]
                 metric_col = self._resolve_metric(request, metrics)
+                aggregation = infer_aggregation_type(metric_col)
                 try:
-                    result = self.trend_tool.analyze(df, date_col, metric_col)
+                    result = self.trend_tool.analyze(
+                        df,
+                        date_col,
+                        metric_col,
+                        aggregation=aggregation,
+                    )
                 except Exception as ex:
                     tool_results.append(ToolResult(
                         tool_name="trend_analysis",
@@ -127,8 +127,15 @@ class OperationalPipeline:
                     continue
                 dimension_col = self._resolve_variance_dimension(request, dims)
                 metric_col = self._resolve_metric(request, metrics)
+                aggregation = infer_aggregation_type(metric_col)
                 try:
-                    result = self.variance_tool.analyze(df, dimension_col, metric_col)
+                    result = self.variance_tool.analyze(
+                        df,
+                        dimension_col,
+                        metric_col,
+                        aggregation=aggregation,
+                        comparison_direction=comparison_direction,
+                    )
                 except Exception as ex:
                     tool_results.append(ToolResult(
                         tool_name="variance_analysis",
@@ -168,10 +175,8 @@ class OperationalPipeline:
                         tool_results.append(result)
 
             elif tool_name == "risk_assessment":
-                # RiskAssessment is run after analysis toolresults gathered, not directly here.
                 continue
 
-        # If no tool results from analysis tools, return an empty findings list
         analysis_results = [
             t for t in tool_results
             if getattr(t, "tool_name", "") != "risk_assessment"
@@ -183,6 +188,17 @@ class OperationalPipeline:
         return findings
 
     @staticmethod
+    def _resolve_comparison_direction(request: AnalysisRequest) -> ComparisonDirection:
+        selected = request.selected_comparison_direction
+        if selected in {"top", "bottom", "dual"}:
+            return selected
+
+        resolved = resolve_comparison_direction(request.question)
+        if resolved is not None:
+            return resolved
+        return "top"
+
+    @staticmethod
     def _resolve_metric(request: AnalysisRequest, metrics: list[str]) -> str:
         if request.selected_metrics:
             return request.selected_metrics[0]
@@ -191,7 +207,12 @@ class OperationalPipeline:
         if metric_col is not None:
             return metric_col
 
-        return metrics[0]
+        if len(metrics) == 1:
+            return metrics[0]
+
+        raise ValueError(
+            "Metric could not be resolved from the question. Clarification should have been requested."
+        )
 
     @staticmethod
     def _resolve_variance_dimension(request: AnalysisRequest, dimensions: list[str]) -> str:
@@ -203,10 +224,12 @@ class OperationalPipeline:
             return dimension_col
 
         fallback_dimensions = non_identifier_dimensions(dimensions)
-        if fallback_dimensions:
+        if len(fallback_dimensions) == 1:
             return fallback_dimensions[0]
 
-        return dimensions[0]
+        raise ValueError(
+            "Dimension could not be resolved from the question. Clarification should have been requested."
+        )
 
     @staticmethod
     def _resolve_anomaly_metrics(request: AnalysisRequest, metrics: list[str]) -> list[str]:

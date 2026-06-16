@@ -19,6 +19,8 @@ def run_analysis(
     *,
     selected_metrics: list[str] | None = None,
     selected_dimensions: list[str] | None = None,
+    selected_comparison_direction: str | None = None,
+    requested_analysis_type: str | None = None,
 ) -> AnalysisResult:
     """
     Run the operational intelligence flow for a natural language question.
@@ -32,6 +34,8 @@ def run_analysis(
         dataset_names=[profile.dataset_name],
         selected_metrics=selected_metrics or [],
         selected_dimensions=selected_dimensions or [],
+        selected_comparison_direction=selected_comparison_direction,
+        requested_analysis_type=requested_analysis_type,
     )
 
     routes = IntentRouter().route(request, [profile])

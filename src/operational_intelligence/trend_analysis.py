@@ -5,6 +5,11 @@ from dataclasses import dataclass
 import pandas as pd
 
 from src.operational_intelligence.models import EvidenceItem, ToolResult
+from src.operational_intelligence.question_semantics import (
+    AggregationType,
+    aggregation_label,
+    infer_aggregation_type,
+)
 
 DIRECTION_THRESHOLD = 0.02
 REVERSAL_THRESHOLD = 2
@@ -277,6 +282,8 @@ class TrendAnalysisTool:
         df: pd.DataFrame,
         date_column: str,
         metric_column: str,
+        *,
+        aggregation: AggregationType | None = None,
     ) -> ToolResult:
         """
         Analyze how a metric changes over time in the DataFrame.
@@ -321,7 +328,12 @@ class TrendAnalysisTool:
             )
 
         data = data.sort_values(by=date_column)
-        grouped = data.groupby(date_column, dropna=False)[metric_column].sum()
+        aggregation = aggregation or infer_aggregation_type(metric_column)
+        grouped_frame = data.groupby(date_column, dropna=False)[metric_column]
+        if aggregation == "mean":
+            grouped = grouped_frame.mean()
+        else:
+            grouped = grouped_frame.sum()
         grouped = grouped.sort_index()
 
         evidence_items: list[EvidenceItem] = []
@@ -335,7 +347,10 @@ class TrendAnalysisTool:
                     dataset_name=None,
                     metric_name=metric_column,
                     metric_value=float(metric_value) if pd.notnull(metric_value) else None,
-                    supporting_context={date_column: str(timestamp)},
+                    supporting_context={
+                        date_column: str(timestamp),
+                        "aggregation": aggregation,
+                    },
                 )
             )
 

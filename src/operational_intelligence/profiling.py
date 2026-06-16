@@ -1,5 +1,7 @@
 import pandas as pd
+
 from src.operational_intelligence.models import DatasetProfile
+from src.operational_intelligence.schema_resolution import is_identifier_column
 
 
 class DatasetProfiler:
@@ -31,7 +33,7 @@ class DatasetProfiler:
         ]
         numeric_columns: list[str] = self._detect_numeric_columns(df)
         potential_metrics: list[str] = [
-            col for col in numeric_columns if not self._is_id_like(col)
+            col for col in numeric_columns if not is_identifier_column(col)
         ]
         potential_dimensions: list[str] = list(categorical_columns)
 
@@ -73,7 +75,7 @@ class DatasetProfiler:
                 date_columns.append(str(col))
                 continue
 
-            if self._is_id_like(str(col)):
+            if is_identifier_column(str(col)):
                 continue
 
             if pd.api.types.is_object_dtype(series) or pd.api.types.is_string_dtype(series):
@@ -109,14 +111,3 @@ class DatasetProfiler:
         """
         return [str(col) for col in df.select_dtypes(include=["number"]).columns]
 
-    def _is_id_like(self, colname: str) -> bool:
-        """
-        Returns True if column name appears to refer to an ID, code, or number.
-        """
-        lowered = colname.lower()
-        return (
-            "id" in lowered
-            or lowered.endswith("_id")
-            or "code" in lowered
-            or "number" in lowered or "no" in lowered
-        )

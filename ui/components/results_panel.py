@@ -5,6 +5,7 @@ import streamlit as st
 from src.operational_intelligence.models import EvidenceItem, Finding
 from ui.anomaly_presentation import anomaly_business_description
 from ui.models import AnalysisResult
+from ui.variance_presentation import variance_business_description
 
 
 SEVERITY_BADGES = {
@@ -59,41 +60,8 @@ def _anomaly_business_description(finding: Finding) -> str:
 
 
 def _variance_business_description(finding: Finding) -> str:
-    if not finding.evidence:
-        return (
-            "Significant differences were observed across operational groups "
-            "that may warrant operational review."
-        )
-
     metric = _metric_label(finding)
-    numeric_evidence = [
-        item
-        for item in finding.evidence
-        if isinstance(item.metric_value, int | float)
-    ]
-    if not numeric_evidence:
-        return (
-            "Significant differences were observed across operational groups "
-            "that may warrant operational review."
-        )
-
-    highest = max(numeric_evidence, key=lambda item: item.metric_value)
-    lowest = min(numeric_evidence, key=lambda item: item.metric_value)
-    dimension_name, highest_group = _context_dimension(highest.supporting_context)
-    _, lowest_group = _context_dimension(lowest.supporting_context)
-    group_label = dimension_name or "group"
-
-    if highest_group and lowest_group:
-        return (
-            f"Significant differences were observed between {group_label}s, "
-            f"with {highest_group} recording substantially higher {metric} "
-            f"than {lowest_group}."
-        )
-
-    return (
-        f"Significant differences were observed in {metric} across operational "
-        f"{group_label}s."
-    )
+    return variance_business_description(finding, metric)
 
 
 def _trend_business_description(finding: Finding) -> str:
@@ -152,6 +120,10 @@ def _context_dimension(ctx: dict) -> tuple[str | None, str | None]:
         "standard_deviation",
         "z_score",
         "anomaly_direction",
+        "aggregation",
+        "comparison_direction",
+        "comparison_extreme",
+        "is_comparison_target",
     }
 
     for key, value in ctx.items():
