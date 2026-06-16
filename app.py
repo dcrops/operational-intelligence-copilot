@@ -3,18 +3,52 @@ import logging
 import streamlit as st
 
 from ui.analysis_service import run_analysis
+from ui.components.clarification_panel import render_clarification
 from ui.components.results_panel import render_results
 from ui.components.upload import render_sidebar
 from ui.state import has_dataset, init_session_state, set_analysis_error, set_analysis_result
 
-EXAMPLE_QUESTIONS = [
+EXAMPLE_QUESTIONS_BY_DATASET = {
+    "workforce_demo": [
+        "What looks unusual and what should I investigate?",
+        "How have hours changed over time?",
+        "Which department has the highest hours?",
+        "Analyse this dataset",
+    ],
+    "manufacturing_demo": [
+        "What looks unusual and what should I investigate?",
+        "How has downtime changed over time?",
+        "Which production line has the highest defects?",
+        "Analyse this dataset",
+    ],
+    "education_demo": [
+        "What looks unusual and what should I investigate?",
+        "How has attendance changed over time?",
+        "Which school has the highest behaviour incidents?",
+        "Analyse this dataset",
+    ],
+}
+DEFAULT_EXAMPLE_QUESTIONS = [
     "What looks unusual and what should I investigate?",
-    "How has hours changed over time?",
-    "Which department has the highest hours?",
+    "How has this metric changed over time?",
+    "Which group has the highest values?",
     "Analyse this dataset",
 ]
 
 PREVIEW_ROW_LIMIT = 50
+
+
+def _example_questions_for_dataset(dataset_name: str) -> list[str]:
+    return EXAMPLE_QUESTIONS_BY_DATASET.get(dataset_name, DEFAULT_EXAMPLE_QUESTIONS)
+
+
+def _question_placeholder_for_dataset(dataset_name: str) -> str:
+    placeholders = {
+        "workforce_demo": "Which department has the highest hours?",
+        "manufacturing_demo": "Which production line has the highest defects?",
+        "education_demo": "Which school has the highest behaviour incidents?",
+    }
+    return placeholders.get(dataset_name, "Ask a question about this dataset...")
 
 
 st.set_page_config(
@@ -33,8 +67,11 @@ st.write(
 )
 
 if not has_dataset():
-    st.info("Upload a CSV in the sidebar or load the sample dataset to get started.")
+    st.info("Upload a CSV in the sidebar or load a sample dataset to get started.")
     st.stop()
+
+dataset_name = st.session_state.dataset_name
+example_questions = _example_questions_for_dataset(dataset_name)
 
 st.subheader("Dataset Preview")
 df = st.session_state.df
@@ -46,21 +83,22 @@ else:
 
 st.subheader("Ask a Question")
 st.caption("Example questions:")
-example_cols = st.columns(len(EXAMPLE_QUESTIONS))
-for index, example in enumerate(EXAMPLE_QUESTIONS):
+example_cols = st.columns(len(example_questions))
+for index, example in enumerate(example_questions):
     if example_cols[index].button(example, key=f"example_{index}"):
         st.session_state.question = example
 
 st.text_area(
     "Your question",
     key="question",
-    placeholder="Which department has the highest hours?",
+    placeholder=_question_placeholder_for_dataset(dataset_name),
 )
 
 if st.button(
     "Analyze",
     type="primary",
     disabled=not st.session_state.question.strip(),
+    key="analyze_question",
 ):
     try:
         with st.spinner("Running analysis..."):
@@ -83,4 +121,7 @@ if st.session_state.last_error:
     st.error(st.session_state.last_error)
 
 if st.session_state.last_result:
-    render_results(st.session_state.last_result)
+    if st.session_state.last_result.clarification is not None:
+        render_clarification(st.session_state.last_result)
+    else:
+        render_results(st.session_state.last_result)

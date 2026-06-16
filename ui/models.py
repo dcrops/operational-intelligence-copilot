@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from src.operational_intelligence.models import (
     AnalysisRequest,
+    ClarificationRequest,
     ExecutiveReport,
     Finding,
 )
@@ -14,6 +15,7 @@ class AnalysisResult:
     request: AnalysisRequest
     routes: list[str]
     findings: list[Finding]
-    report: ExecutiveReport
+    report: ExecutiveReport | None
     direct_answer: str
     deterministic_answer: str
+    clarification: ClarificationRequest | None = None

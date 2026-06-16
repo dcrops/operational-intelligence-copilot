@@ -2,7 +2,11 @@ import pandas as pd
 
 from src.operational_intelligence.answer_generator import AnswerGenerator
 from src.operational_intelligence.intent_router import IntentRouter
-from src.operational_intelligence.models import AnalysisRequest, DatasetProfile
+from src.operational_intelligence.models import (
+    AnalysisRequest,
+    ClarificationRequest,
+    DatasetProfile,
+)
 from src.operational_intelligence.pipeline import OperationalPipeline
 from src.operational_intelligence.reporting import ExecutiveReportGenerator
 from ui.models import AnalysisResult
@@ -12,6 +16,9 @@ def run_analysis(
     question: str,
     df: pd.DataFrame,
     profile: DatasetProfile,
+    *,
+    selected_metrics: list[str] | None = None,
+    selected_dimensions: list[str] | None = None,
 ) -> AnalysisResult:
     """
     Run the operational intelligence flow for a natural language question.
@@ -23,10 +30,25 @@ def run_analysis(
     request = AnalysisRequest(
         question=cleaned_question,
         dataset_names=[profile.dataset_name],
+        selected_metrics=selected_metrics or [],
+        selected_dimensions=selected_dimensions or [],
     )
 
     routes = IntentRouter().route(request, [profile])
-    findings = OperationalPipeline().run(request, df, [profile])
+    pipeline_outcome = OperationalPipeline().run(request, df, [profile])
+
+    if isinstance(pipeline_outcome, ClarificationRequest):
+        return AnalysisResult(
+            request=request,
+            routes=routes,
+            findings=[],
+            report=None,
+            direct_answer="",
+            deterministic_answer="",
+            clarification=pipeline_outcome,
+        )
+
+    findings = pipeline_outcome
     report = ExecutiveReportGenerator().generate(findings)
 
     answer_generator = AnswerGenerator()

@@ -3,6 +3,7 @@ from datetime import datetime
 import streamlit as st
 
 from src.operational_intelligence.models import EvidenceItem, Finding
+from ui.anomaly_presentation import anomaly_business_description
 from ui.models import AnalysisResult
 
 
@@ -45,7 +46,7 @@ def _evidence_type(finding: Finding) -> str:
     return "generic"
 
 
-def _metric_label(finding: Finding, default: str = "hours") -> str:
+def _metric_label(finding: Finding, default: str = "metric") -> str:
     for item in finding.evidence:
         if item.metric_name:
             return item.metric_name.replace("_", " ")
@@ -53,37 +54,14 @@ def _metric_label(finding: Finding, default: str = "hours") -> str:
 
 
 def _anomaly_business_description(finding: Finding) -> str:
-    count = len(finding.evidence)
     metric = _metric_label(finding)
-    high_count = sum(
-        1
-        for item in finding.evidence
-        if str(item.supporting_context.get("anomaly_direction", "")).upper() == "HIGH"
-    )
-    low_count = count - high_count
-
-    if count == 0:
-        return (
-            "Unusual workforce values were identified that differ significantly "
-            "from normal workforce patterns."
-        )
-
-    if high_count >= low_count:
-        direction = "high"
-    else:
-        direction = "low"
-
-    value_label = "value" if count == 1 else "values"
-    return (
-        f"{count} unusually {direction} {metric} {value_label} were identified "
-        f"that differ significantly from normal workforce patterns."
-    )
+    return anomaly_business_description(finding, metric)
 
 
 def _variance_business_description(finding: Finding) -> str:
     if not finding.evidence:
         return (
-            "Significant differences were observed across workforce groups "
+            "Significant differences were observed across operational groups "
             "that may warrant operational review."
         )
 
@@ -95,7 +73,7 @@ def _variance_business_description(finding: Finding) -> str:
     ]
     if not numeric_evidence:
         return (
-            "Significant differences were observed across workforce groups "
+            "Significant differences were observed across operational groups "
             "that may warrant operational review."
         )
 
@@ -113,7 +91,7 @@ def _variance_business_description(finding: Finding) -> str:
         )
 
     return (
-        f"Significant differences were observed in {metric} across workforce "
+        f"Significant differences were observed in {metric} across operational "
         f"{group_label}s."
     )
 

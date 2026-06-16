@@ -32,6 +32,45 @@ class DatasetProfile(BaseModel):
         return v
 
 
+class ClarificationRequest(BaseModel):
+    """
+    Returned when the pipeline cannot deterministically resolve required schema fields.
+    """
+    clarification_type: str = Field(
+        ...,
+        description="Type of clarification needed: metric, dimension, or comparison_target.",
+    )
+    message: str = Field(..., description="User-facing explanation of what is ambiguous.")
+    options: list[str] = Field(
+        default_factory=list,
+        description="Valid choices the user can select from.",
+    )
+
+    @field_validator("clarification_type")
+    @classmethod
+    def clarification_type_not_empty(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("clarification_type must not be empty")
+        return v
+
+    @field_validator("message")
+    @classmethod
+    def message_not_empty(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("message must not be empty")
+        return v
+
+    @field_validator("options")
+    @classmethod
+    def options_not_empty(cls, v: list[str]) -> list[str]:
+        cleaned = [option.strip() for option in v if option.strip()]
+        if not cleaned:
+            raise ValueError("options must contain at least one non-empty value")
+        return cleaned
+
+
 class AnalysisRequest(BaseModel):
     """
     Request describing a data analysis or question for one or more datasets.

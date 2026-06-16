@@ -6,7 +6,47 @@ import streamlit as st
 from src.operational_intelligence.profiling import DatasetProfiler
 from ui.state import set_dataset
 
-SAMPLE_DATASET_PATH = Path("data/sample/workforce_demo.csv")
+SAMPLE_DATASETS = {
+    "Workforce demo": {
+        "path": Path("data/sample/workforce_demo_v2.csv"),
+        "dataset_name": "workforce_demo",
+    },
+    "Manufacturing demo": {
+        "path": Path("data/sample/manufacturing_demo.csv"),
+        "dataset_name": "manufacturing_demo",
+    },
+    "Education demo": {
+        "path": Path("data/sample/education_demo.csv"),
+        "dataset_name": "education_demo",
+    },
+}
+
+
+def _load_sample_dataset(label: str) -> None:
+    sample = SAMPLE_DATASETS[label]
+    sample_path = sample["path"]
+    dataset_name = sample["dataset_name"]
+
+    if not sample_path.exists():
+        st.sidebar.error(
+            f"Sample dataset not found at `{sample_path}`. "
+            "Run the generator script or upload a CSV file instead."
+        )
+        return
+
+    source_id = f"sample:{sample_path}"
+    if st.session_state.get("loaded_source_id") == source_id:
+        return
+
+    try:
+        df = pd.read_csv(sample_path)
+        profile = DatasetProfiler().profile_dataframe(dataset_name, df)
+        set_dataset(df, dataset_name, profile)
+        st.session_state.loaded_source_id = source_id
+        st.session_state.sample_dataset_label = label
+        st.sidebar.success(f"Loaded {label}.")
+    except Exception as exc:
+        st.sidebar.error(f"Could not load {label}: {exc}")
 
 
 def render_sidebar() -> None:
@@ -25,27 +65,21 @@ def render_sidebar() -> None:
                     profile = DatasetProfiler().profile_dataframe(dataset_name, df)
                     set_dataset(df, dataset_name, profile)
                     st.session_state.loaded_source_id = source_id
+                    st.session_state.sample_dataset_label = None
                     st.sidebar.success(f"Loaded {dataset_name}.")
             except Exception as exc:
                 st.sidebar.error(f"Could not read CSV: {exc}")
 
-    if st.sidebar.button("Load sample dataset"):
-        if not SAMPLE_DATASET_PATH.exists():
-            st.sidebar.error(
-                f"Sample dataset not found at `{SAMPLE_DATASET_PATH}`. "
-                "Upload a CSV file instead."
-            )
-        else:
-            source_id = f"sample:{SAMPLE_DATASET_PATH}"
-            if st.session_state.get("loaded_source_id") != source_id:
-                try:
-                    df = pd.read_csv(SAMPLE_DATASET_PATH)
-                    profile = DatasetProfiler().profile_dataframe("workforce_demo", df)
-                    set_dataset(df, "workforce_demo", profile)
-                    st.session_state.loaded_source_id = source_id
-                    st.sidebar.success("Loaded sample dataset.")
-                except Exception as exc:
-                    st.sidebar.error(f"Could not load sample dataset: {exc}")
+    st.sidebar.subheader("Sample datasets")
+    sample_labels = list(SAMPLE_DATASETS.keys())
+    selected_sample = st.sidebar.selectbox(
+        "Choose a sample dataset",
+        sample_labels,
+        key="sample_dataset_choice",
+    )
+
+    if st.sidebar.button("Load selected sample"):
+        _load_sample_dataset(selected_sample)
 
     profile = st.session_state.get("profile")
     if profile is not None:
