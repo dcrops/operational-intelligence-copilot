@@ -1,19 +1,15 @@
-import pandas as pd
-
 from src.operational_intelligence.question_semantics import DEFAULT_AGGREGATION, infer_aggregation_type
 from src.operational_intelligence.trend_analysis import TrendAnalysisTool
 from src.operational_intelligence.variance_analysis import VarianceAnalysisTool
+from tests.support.factories import (
+    EDUCATION_LOWEST_ATTENDANCE_SCHOOL,
+    make_education_df,
+    make_manufacturing_df,
+)
 
 
 def test_trend_uses_mean_for_rate_metrics():
-    dates = pd.date_range("2026-01-01", periods=3, freq="MS")
-    df = pd.DataFrame(
-        {
-            "month": dates,
-            "school": ["A", "A", "A"],
-            "attendance_rate": [80.0, 90.0, 70.0],
-        }
-    )
+    df = make_education_df()
 
     result = TrendAnalysisTool().analyze(
         df,
@@ -28,12 +24,7 @@ def test_trend_uses_mean_for_rate_metrics():
 
 
 def test_variance_uses_bottom_direction_and_mean():
-    df = pd.DataFrame(
-        {
-            "school": ["North", "North", "South", "South"],
-            "attendance_rate": [95.0, 94.0, 70.0, 72.0],
-        }
-    )
+    df = make_education_df()
 
     result = VarianceAnalysisTool().analyze(
         df,
@@ -49,22 +40,17 @@ def test_variance_uses_bottom_direction_and_mean():
         for item in result.evidence_items
         if item.supporting_context.get("is_comparison_target")
     )
-    assert target.supporting_context["school"] == "South"
+    assert target.supporting_context["school"] == EDUCATION_LOWEST_ATTENDANCE_SCHOOL
     assert target.supporting_context["comparison_direction"] == "bottom"
     assert "lowest mean" in result.summary
 
 
 def test_variance_dual_direction_marks_both_targets():
-    df = pd.DataFrame(
-        {
-            "school": ["North", "South", "East"],
-            "defects": [10, 2, 5],
-        }
-    )
+    df = make_manufacturing_df()[["production_line", "defects"]].drop_duplicates()
 
     result = VarianceAnalysisTool().analyze(
         df,
-        "school",
+        "production_line",
         "defects",
         aggregation=infer_aggregation_type("defects"),
         comparison_direction="dual",

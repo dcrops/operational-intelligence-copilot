@@ -16,6 +16,7 @@ from src.operational_intelligence.pipeline import OperationalPipeline
 from src.operational_intelligence.schema_resolution import non_identifier_dimensions
 from ui.analysis_service import run_analysis
 from ui.anomaly_presentation import anomaly_business_description, anomaly_direction_label
+from tests.support.assertions import assert_run_analysis_complete, assert_trend_outcome
 
 
 def _trend_metric_names(findings) -> set[str]:
@@ -154,12 +155,13 @@ class TestMultiStepClarificationWorkflow:
             selected_metrics=["downtime_minutes"],
             selected_dimensions=["production_line"],
         )
-        assert completed.clarification is None
+        assert_run_analysis_complete(completed)
         assert "trend_analysis" in completed.routes
-        assert _trend_metric_names(completed.findings) == {"downtime_minutes"}
-        assert completed.report is not None
-        assert completed.report.executive_summary
-        assert completed.direct_answer
+        assert_trend_outcome(
+            completed.findings,
+            expected_metric="downtime_minutes",
+            expected_aggregation="sum",
+        )
 
 
 @pytest.mark.e2e

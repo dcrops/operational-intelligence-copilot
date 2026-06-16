@@ -7,6 +7,15 @@ import pytest
 
 from src.operational_intelligence.models import AnalysisRequest, DatasetProfile
 from src.operational_intelligence.profiling import DatasetProfiler
+from tests.support.factories import (
+    education_bundle,
+    make_education_df,
+    make_manufacturing_df,
+    make_profile,
+    make_workforce_df,
+    manufacturing_bundle,
+    workforce_bundle,
+)
 
 MANUFACTURING_METRICS = ["defects", "downtime_minutes", "units_produced"]
 MANUFACTURING_DIMENSIONS = [
@@ -44,6 +53,43 @@ def workforce_df() -> pd.DataFrame:
 @pytest.fixture
 def workforce_profile(workforce_df: pd.DataFrame) -> DatasetProfile:
     return DatasetProfiler().profile_dataframe("workforce_demo_v2", workforce_df)
+
+
+@pytest.fixture
+def synthetic_manufacturing_df() -> pd.DataFrame:
+    return make_manufacturing_df()
+
+
+@pytest.fixture
+def synthetic_manufacturing_profile(
+    synthetic_manufacturing_df: pd.DataFrame,
+) -> DatasetProfile:
+    return make_profile("manufacturing_synthetic", synthetic_manufacturing_df)
+
+
+@pytest.fixture
+def synthetic_manufacturing_bundle() -> tuple[pd.DataFrame, DatasetProfile]:
+    return manufacturing_bundle()
+
+
+@pytest.fixture
+def synthetic_education_bundle() -> tuple[pd.DataFrame, DatasetProfile]:
+    return education_bundle()
+
+
+@pytest.fixture
+def synthetic_workforce_bundle() -> tuple[pd.DataFrame, DatasetProfile]:
+    return workforce_bundle()
+
+
+@pytest.fixture
+def synthetic_education_df() -> pd.DataFrame:
+    return make_education_df()
+
+
+@pytest.fixture
+def synthetic_workforce_df() -> pd.DataFrame:
+    return make_workforce_df()
 
 
 @pytest.fixture
