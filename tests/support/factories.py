@@ -9,6 +9,7 @@ from src.operational_intelligence.profiling import DatasetProfiler
 
 # Known expected outcomes for the default synthetic datasets below.
 MANUFACTURING_HIGHEST_DEFECTS_LINE = "Line B"
+MANUFACTURING_LOWEST_DEFECTS_LINE = "Line A"
 MANUFACTURING_LOWEST_DOWNTIME_LINE = "Line A"
 EDUCATION_LOWEST_ATTENDANCE_SCHOOL = "School B"
 WORKFORCE_HIGHEST_HOURS_DEPARTMENT = "Ops"
@@ -126,7 +127,10 @@ def make_workforce_df() -> pd.DataFrame:
                 "employment_type": "Full Time",
             }
         )
-    return pd.DataFrame(rows)
+    df = pd.DataFrame(rows)
+    # Spike supports deterministic anomaly-detection scenarios without skewing hours totals.
+    df.loc[df.index[-1], "overtime_hours"] = 100.0
+    return df
 
 
 def make_profile(dataset_name: str, df: pd.DataFrame) -> DatasetProfile:
