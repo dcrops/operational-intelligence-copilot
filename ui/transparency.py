@@ -54,6 +54,8 @@ def format_clarification_trail(request: AnalysisRequest) -> list[str]:
         lines.append(
             f"Comparison direction selected: {request.selected_comparison_direction}"
         )
+    if request.selected_date_column:
+        lines.append(f"Date column selected: {request.selected_date_column}")
     return lines
 
 

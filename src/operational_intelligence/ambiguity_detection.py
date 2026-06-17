@@ -16,6 +16,7 @@ from src.operational_intelligence.schema_resolution import (
     resolve_dimension_from_question,
     resolve_metric_from_question,
 )
+from src.operational_intelligence.temporal_resolution import needs_date_column_clarification
 
 _COMPARE_KEYWORDS = ("compare",)
 _ANALYSIS_TYPE_OPTIONS = ["variance_analysis", "anomaly_detection"]
@@ -79,7 +80,26 @@ def detect_clarification(
             if clarification is not None:
                 return clarification
 
+    clarification = _date_column_clarification(request, profile)
+    if clarification is not None:
+        return clarification
+
     return None
+
+
+def _date_column_clarification(
+    request: AnalysisRequest,
+    profile: DatasetProfile,
+) -> ClarificationRequest | None:
+    date_columns = list(profile.date_columns or [])
+    if not needs_date_column_clarification(request, date_columns):
+        return None
+
+    return ClarificationRequest(
+        clarification_type="date_column",
+        message="Multiple date columns are available. Which one should be used?",
+        options=date_columns,
+    )
 
 
 def _trend_metric_clarification(

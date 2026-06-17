@@ -38,7 +38,7 @@ class ClarificationRequest(BaseModel):
     """
     clarification_type: str = Field(
         ...,
-        description="Type of clarification needed: metric, dimension, or comparison_target.",
+        description="Type of clarification needed: metric, dimension, comparison_target, or date_column.",
     )
     message: str = Field(..., description="User-facing explanation of what is ambiguous.")
     options: list[str] = Field(
@@ -83,6 +83,10 @@ class AnalysisRequest(BaseModel):
     selected_comparison_direction: str | None = Field(
         None,
         description="Optional comparison direction: top, bottom, or dual.",
+    )
+    selected_date_column: str | None = Field(
+        None,
+        description="Date/time column selected for temporal filtering.",
     )
 
     @field_validator('question')

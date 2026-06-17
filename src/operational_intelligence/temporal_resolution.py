@@ -8,6 +8,9 @@ from enum import Enum
 
 import pandas as pd
 
+from src.operational_intelligence.models import AnalysisRequest
+from src.operational_intelligence.question_semantics import has_explicit_column_mention
+
 _MONTH_NAMES = {
     "january": 1,
     "february": 2,
@@ -197,3 +200,40 @@ def apply_temporal_filter(
 
     mask = valid & (parsed_dates >= constraint.start) & (parsed_dates < constraint.end)
     return df.loc[mask].copy()
+
+
+def resolve_date_column(
+    request: AnalysisRequest,
+    date_columns: list[str],
+) -> str | None:
+    """Resolve which date column to use for temporal filtering."""
+    if request.selected_date_column:
+        return request.selected_date_column
+
+    if not date_columns:
+        return None
+
+    explicit_matches = [
+        column
+        for column in date_columns
+        if has_explicit_column_mention(request.question, column)
+    ]
+    if explicit_matches:
+        return max(explicit_matches, key=len)
+
+    if len(date_columns) == 1:
+        return date_columns[0]
+
+    return None
+
+
+def needs_date_column_clarification(
+    request: AnalysisRequest,
+    date_columns: list[str],
+) -> bool:
+    """Return True when a temporal question requires date-column clarification."""
+    if parse_temporal_constraint(request.question) is None:
+        return False
+    if len(date_columns) <= 1:
+        return False
+    return resolve_date_column(request, date_columns) is None

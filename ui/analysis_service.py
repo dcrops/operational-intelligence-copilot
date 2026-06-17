@@ -21,6 +21,7 @@ def run_analysis(
     selected_metrics: list[str] | None = None,
     selected_dimensions: list[str] | None = None,
     selected_comparison_direction: str | None = None,
+    selected_date_column: str | None = None,
     requested_analysis_type: str | None = None,
 ) -> AnalysisResult:
     """
@@ -36,6 +37,7 @@ def run_analysis(
         selected_metrics=selected_metrics or [],
         selected_dimensions=selected_dimensions or [],
         selected_comparison_direction=selected_comparison_direction,
+        selected_date_column=selected_date_column,
         requested_analysis_type=requested_analysis_type,
     )
 
