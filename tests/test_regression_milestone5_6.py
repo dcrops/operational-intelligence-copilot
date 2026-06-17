@@ -138,6 +138,75 @@ class TestMultiStepClarificationWorkflow:
             expected_metric="downtime_minutes",
             expected_aggregation="sum",
         )
+        assert completed.request.selected_metrics == ["downtime_minutes"]
+        assert completed.request.selected_dimensions == ["production_line"]
+
+
+@pytest.mark.integration
+class TestTransparencyIntegration:
+    def test_auto_resolved_trail_present_for_auto_resolved_education_trend(self):
+        from tests.support.factories import education_bundle
+        from ui.transparency import format_auto_resolved_trail
+
+        df, profile = education_bundle()
+        result = run_analysis(
+            "How has attendance changed over time?",
+            df,
+            profile,
+        )
+
+        assert result.clarification is None
+        trail = format_auto_resolved_trail(
+            result.request,
+            result.findings,
+            result.routes,
+            metrics_analysed=result.metrics_analysed,
+        )
+        assert any(line.startswith("Metric inferred: attendance_rate") for line in trail)
+        assert "Aggregation inferred: mean" in trail
+
+    def test_multi_metric_anomaly_shows_metrics_analysed_not_auto_resolved(self):
+        from ui.transparency import format_auto_resolved_trail, format_metrics_analysed_trail
+
+        df, profile = manufacturing_bundle()
+        result = run_analysis(
+            "What looks unusual?",
+            df,
+            profile,
+        )
+
+        assert result.clarification is None
+        assert result.routes == ["anomaly_detection"]
+
+        auto_resolved = format_auto_resolved_trail(
+            result.request,
+            result.findings,
+            result.routes,
+            metrics_analysed=result.metrics_analysed,
+        )
+        metrics_analysed = format_metrics_analysed_trail(result.metrics_analysed)
+
+        assert auto_resolved == []
+        assert len(metrics_analysed) > 1
+        assert not any("Metric" in line for line in auto_resolved)
+
+    def test_clarification_trail_present_after_user_selections(self):
+        df, profile = manufacturing_bundle()
+        result = run_analysis(
+            "How has performance been affected?",
+            df,
+            profile,
+            selected_metrics=["downtime_minutes"],
+            selected_dimensions=["production_line"],
+        )
+
+        from ui.transparency import format_clarification_trail
+
+        trail = format_clarification_trail(result.request)
+        assert trail == [
+            "Metric selected: downtime_minutes",
+            "Dimension selected: production_line",
+        ]
 
 
 @pytest.mark.integration

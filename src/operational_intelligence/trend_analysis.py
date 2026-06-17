@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
+from src.operational_intelligence.evidence_utils import build_supporting_context
 from src.operational_intelligence.models import EvidenceItem, ToolResult
 from src.operational_intelligence.question_semantics import (
     AggregationType,
@@ -338,6 +339,9 @@ class TrendAnalysisTool:
 
         evidence_items: list[EvidenceItem] = []
         for timestamp, metric_value in grouped.items():
+            normalized_metric_value = (
+                float(metric_value) if pd.notnull(metric_value) else None
+            )
             evidence_items.append(
                 EvidenceItem(
                     description=(
@@ -346,11 +350,15 @@ class TrendAnalysisTool:
                     ),
                     dataset_name=None,
                     metric_name=metric_column,
-                    metric_value=float(metric_value) if pd.notnull(metric_value) else None,
-                    supporting_context={
-                        date_column: str(timestamp),
-                        "aggregation": aggregation,
-                    },
+                    metric_value=normalized_metric_value,
+                    supporting_context=build_supporting_context(
+                        {
+                            date_column: str(timestamp),
+                            "aggregation": aggregation,
+                        },
+                        metric_column,
+                        normalized_metric_value,
+                    ),
                 )
             )
 
@@ -387,7 +395,11 @@ class TrendAnalysisTool:
                     dataset_name=None,
                     metric_name=metric_column,
                     metric_value=last_value,
-                    supporting_context=_build_classification_context(classification),
+                    supporting_context=build_supporting_context(
+                        _build_classification_context(classification),
+                        metric_column,
+                        last_value,
+                    ),
                 )
             )
 

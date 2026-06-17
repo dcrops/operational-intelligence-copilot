@@ -77,6 +77,23 @@ def test_aggregate_classification_evidence_included():
     assert aggregate.description.startswith("Trend classification summary")
     assert aggregate.supporting_context["trend_label"] == "increasing"
     assert aggregate.supporting_context["reversals"] == 0
+    assert aggregate.supporting_context["hours"] == aggregate.metric_value
+
+
+def test_period_evidence_includes_metric_value_and_aggregation():
+    dates = pd.date_range("2026-01-01", periods=3, freq="MS")
+    df = pd.DataFrame({"month": dates, "attendance_rate": [88.0, 89.0, 90.0]})
+    result = TrendAnalysisTool().analyze(
+        df,
+        "month",
+        "attendance_rate",
+        aggregation="mean",
+    )
+
+    period_item = result.evidence_items[0]
+    assert period_item.supporting_context["aggregation"] == "mean"
+    assert period_item.supporting_context["attendance_rate"] == period_item.metric_value
+    assert period_item.metric_name == "attendance_rate"
 
 
 def test_classify_trend_unit_cases():

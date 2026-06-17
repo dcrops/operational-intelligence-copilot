@@ -10,6 +10,7 @@ from src.operational_intelligence.models import (
 from src.operational_intelligence.pipeline import OperationalPipeline
 from src.operational_intelligence.reporting import ExecutiveReportGenerator
 from ui.models import AnalysisResult
+from ui.transparency import resolve_metrics_analysed
 
 
 def run_analysis(
@@ -50,9 +51,15 @@ def run_analysis(
             direct_answer="",
             deterministic_answer="",
             clarification=pipeline_outcome,
+            metrics_analysed=[],
         )
 
     findings = pipeline_outcome
+    metrics_analysed = resolve_metrics_analysed(
+        request,
+        routes,
+        profile.potential_metrics,
+    )
     report = ExecutiveReportGenerator().generate(findings)
 
     answer_generator = AnswerGenerator()
@@ -73,4 +80,5 @@ def run_analysis(
         report=report,
         direct_answer=direct_answer,
         deterministic_answer=deterministic_answer,
+        metrics_analysed=metrics_analysed,
     )

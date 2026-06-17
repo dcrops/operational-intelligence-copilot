@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from src.operational_intelligence.models import (
     AnalysisRequest,
@@ -19,3 +19,4 @@ class AnalysisResult:
     direct_answer: str
     deterministic_answer: str
     clarification: ClarificationRequest | None = None
+    metrics_analysed: list[str] = field(default_factory=list)

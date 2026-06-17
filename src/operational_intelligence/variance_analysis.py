@@ -1,5 +1,6 @@
 import pandas as pd
 
+from src.operational_intelligence.evidence_utils import build_supporting_context
 from src.operational_intelligence.models import EvidenceItem, ToolResult
 from src.operational_intelligence.question_semantics import (
     DEFAULT_AGGREGATION,
@@ -89,6 +90,9 @@ class VarianceAnalysisTool:
                     "top" if category in top_categories else "bottom"
                 )
 
+            normalized_metric_value = (
+                float(metric_value) if pd.notnull(metric_value) else None
+            )
             evidence_items.append(
                 EvidenceItem(
                     description=(
@@ -97,8 +101,12 @@ class VarianceAnalysisTool:
                     ),
                     dataset_name=None,
                     metric_name=metric_column,
-                    metric_value=float(metric_value) if pd.notnull(metric_value) else None,
-                    supporting_context=context,
+                    metric_value=normalized_metric_value,
+                    supporting_context=build_supporting_context(
+                        context,
+                        metric_column,
+                        normalized_metric_value,
+                    ),
                 )
             )
 

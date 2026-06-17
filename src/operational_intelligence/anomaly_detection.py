@@ -1,5 +1,10 @@
 import pandas as pd
-from src.operational_intelligence.models import ToolResult, EvidenceItem
+
+from src.operational_intelligence.evidence_utils import (
+    build_supporting_context,
+    normalize_scalar,
+)
+from src.operational_intelligence.models import EvidenceItem, ToolResult
 
 class AnomalyDetectionTool:
     """
@@ -77,6 +82,7 @@ class AnomalyDetectionTool:
             value = data.at[idx, metric_column]
             z_score = z_scores.at[idx]
             anomaly_direction = "HIGH" if z_score > 0 else "LOW"
+            normalized_metric_value = normalize_scalar(value)
             evidence_items.append(
                 EvidenceItem(
                     description=(
@@ -85,14 +91,18 @@ class AnomalyDetectionTool:
                     ),
                     dataset_name=None,
                     metric_name=metric_column,
-                    metric_value=value,
-                    supporting_context={
-                        "row_index": idx,
-                        "mean": mean,
-                        "standard_deviation": std,
-                        "z_score": float(z_score),
-                        "anomaly_direction": anomaly_direction,
-                    }
+                    metric_value=normalized_metric_value,
+                    supporting_context=build_supporting_context(
+                        {
+                            "row_index": int(idx),
+                            "mean": float(mean),
+                            "standard_deviation": float(std),
+                            "z_score": float(z_score),
+                            "anomaly_direction": anomaly_direction,
+                        },
+                        metric_column,
+                        normalized_metric_value,
+                    ),
                 )
             )
 

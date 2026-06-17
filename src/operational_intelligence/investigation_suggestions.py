@@ -82,6 +82,8 @@ def _extract_dimension_column(finding: Finding) -> str | None:
                 continue
             if isinstance(value, bool):
                 continue
+            if isinstance(value, (int, float)):
+                continue
             if _looks_like_period_key(key, value):
                 continue
             return key

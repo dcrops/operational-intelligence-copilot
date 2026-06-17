@@ -5,6 +5,11 @@ import streamlit as st
 from src.operational_intelligence.models import EvidenceItem, Finding
 from ui.anomaly_presentation import anomaly_business_description
 from ui.models import AnalysisResult
+from ui.transparency import (
+    format_auto_resolved_trail,
+    format_clarification_trail,
+    format_metrics_analysed_trail,
+)
 from ui.variance_presentation import variance_business_description
 
 
@@ -275,6 +280,33 @@ def render_results(result: AnalysisResult) -> None:
         st.markdown(f"**Question:** {result.request.question}")
         st.markdown(f"**Routed tools:** {', '.join(result.routes) or 'None'}")
         st.markdown(f"**Findings returned:** {len(result.findings)}")
+
+        clarifications = format_clarification_trail(result.request)
+        st.markdown("**Clarifications:**")
+        if clarifications:
+            for line in clarifications:
+                st.markdown(f"- {line}")
+        else:
+            st.markdown("None required")
+
+        auto_resolved = format_auto_resolved_trail(
+            result.request,
+            result.findings,
+            result.routes,
+            metrics_analysed=result.metrics_analysed or [],
+        )
+        st.markdown("**Automatically resolved:**")
+        if auto_resolved:
+            for line in auto_resolved:
+                st.markdown(f"- {line}")
+        else:
+            st.markdown("None")
+
+        metrics_analysed = format_metrics_analysed_trail(result.metrics_analysed)
+        if metrics_analysed:
+            st.markdown("**Metrics analysed:**")
+            for metric in metrics_analysed:
+                st.markdown(f"- {metric}")
 
     st.markdown("#### LLM Explanation")
     with st.container(border=True):

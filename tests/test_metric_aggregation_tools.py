@@ -25,6 +25,10 @@ def test_trend_uses_mean_for_rate_metrics():
     assert result.success is True
     assert result.evidence_items[0].supporting_context["aggregation"] == "mean"
     assert result.evidence_items[0].metric_value == 80.0
+    assert (
+        result.evidence_items[0].supporting_context["attendance_rate"]
+        == result.evidence_items[0].metric_value
+    )
 
 
 def test_variance_uses_bottom_direction_and_mean():
@@ -46,6 +50,9 @@ def test_variance_uses_bottom_direction_and_mean():
     )
     assert target.supporting_context["school"] == EDUCATION_LOWEST_ATTENDANCE_SCHOOL
     assert target.supporting_context["comparison_direction"] == "bottom"
+    assert target.supporting_context["aggregation"] == "mean"
+    assert target.supporting_context["attendance_rate"] == target.metric_value
+    assert target.supporting_context["is_comparison_target"] is True
     assert "lowest mean" in result.summary
 
 
