@@ -21,6 +21,40 @@ pytestmark = pytest.mark.integration
 
 
 class TestTemporalFilterContext:
+    def test_temporal_filter_context_row_count_matches_filtered_dataset(self):
+        df, profile = manufacturing_bundle()
+        apply_calls: list[int] = []
+
+        original_apply = __import__(
+            "src.operational_intelligence.temporal_resolution",
+            fromlist=["apply_temporal_filter"],
+        ).apply_temporal_filter
+
+        def counting_apply(source_df, date_column, constraint):
+            filtered = original_apply(source_df, date_column, constraint)
+            apply_calls.append(len(filtered))
+            return filtered
+
+        with patch(
+            "src.operational_intelligence.pipeline.apply_temporal_filter",
+            side_effect=counting_apply,
+        ):
+            outcome = OperationalPipeline().run(
+                AnalysisRequest(
+                    question="Which production line has the highest defects in Q1 2026?",
+                    dataset_names=[profile.dataset_name],
+                ),
+                df,
+                [profile],
+            )
+
+        assert_no_clarification(outcome)
+        temporal_filter = pipeline_temporal_filter(outcome)
+        assert temporal_filter is not None
+        assert len(apply_calls) == 1
+        assert temporal_filter.filtered_row_count == apply_calls[0]
+        assert temporal_filter.filtered_row_count == 6
+
     def test_temporal_filter_context_populated_after_filtering(self):
         df, profile = manufacturing_bundle()
         outcome = OperationalPipeline().run(

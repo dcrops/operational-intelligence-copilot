@@ -245,27 +245,18 @@ def date_column_was_inferred(
 def build_temporal_filter_context(
     request: AnalysisRequest,
     df: pd.DataFrame,
-    profile,
+    filtered_df: pd.DataFrame,
+    date_column: str,
     constraint: TemporalConstraint,
-) -> TemporalFilterContext | None:
-    """Build temporal filter metadata when a date column can be resolved."""
-    from src.operational_intelligence.models import DatasetProfile, TemporalFilterContext
+    *,
+    date_columns: list[str],
+) -> TemporalFilterContext:
+    """Build temporal filter metadata from an already-filtered dataset."""
+    from src.operational_intelligence.models import TemporalFilterContext
 
-    if not isinstance(profile, DatasetProfile):
-        raise ValueError("profile must be a DatasetProfile")
-
-    date_columns = list(profile.date_columns or [])
-    if not date_columns:
-        return None
-
-    date_col = resolve_date_column(request, date_columns)
-    if date_col is None:
-        return None
-
-    filtered_df = apply_temporal_filter(df, date_col, constraint)
     return TemporalFilterContext(
         label=constraint.label,
-        date_column=date_col,
+        date_column=date_column,
         original_row_count=len(df),
         filtered_row_count=len(filtered_df),
         date_column_inferred=date_column_was_inferred(request, date_columns),

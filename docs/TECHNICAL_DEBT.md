@@ -23,11 +23,16 @@ Items recorded here are not necessarily defects. Many represent deliberate trade
 
 | Priority  | Status                      | Item                                             |
 | --------- | --------------------------- | ------------------------------------------------ |
+| Completed | Implemented (Milestone 8.1) | Temporal Intelligence — Phase 1 (explicit periods) |
 | Completed | Implemented (Milestone 7.2) | Adaptive Direct Answer Summarisation             |
 | High      | Planned                     | Pipeline ↔ Transparency Contract Protection      |
-| Medium    | Planned                     | Temporal Intelligence / Date Constraint Handling |
+| Medium    | Planned                     | Snapshot Intelligence                            |
+| Medium    | Planned                     | Month-only Cross-Year Ambiguity                  |
+| Medium    | Planned                     | Temporal Intent Without Applicable Date Columns  |
+| Medium    | Planned                     | Compare-Keyword Suppresses Temporal Parsing      |
 | Medium    | Deferred                    | Capability-Aware Investigation Suggestions       |
 | Medium    | Partially Implemented       | Metrics Analysed Presentation Improvements       |
+| Low       | Planned                     | Empty-Findings Answer Does Not Reference Temporal Scope |
 | Low       | Planned                     | Deterministic Answer Transparency Alignment      |
 | Low       | Future Enhancement          | Auto-Resolved Decision Transparency Expansion    |
 | Low       | Future Enhancement          | Contextual Baseline Intelligence                 |
@@ -35,58 +40,171 @@ Items recorded here are not necessarily defects. Many represent deliberate trade
 
 ---
 
-# Temporal Intelligence / Date Constraint Handling
+# Temporal Intelligence — Phase 1 (Explicit Periods)
+
+**Status:** Implemented (Milestone 8.1)
+
+## What was implemented
+
+Phase 1 temporal intelligence now supports deterministic parsing and pipeline-level filtering for:
+
+* month + year (April 2026)
+* month only (January)
+* year only (2026)
+* quarter + year (Q1 2026)
+
+The pipeline applies temporal scope before analytical tool execution. System Transparency reports the applied period, date column, and record counts when filtering runs successfully.
+
+## Remaining Phase 2+ scope
+
+The following are intentionally deferred:
+
+* relative periods (`this month`, `last month`)
+* comparative periods (`April vs May`)
+* temporal year clarification for month-only questions across multiple years
+* temporal capability notices when filtering cannot be applied
+
+See the dedicated entries below for known Phase 1 limitations.
+
+---
+
+# Snapshot Intelligence
 
 **Status:** Planned
 
 ## Context
 
-Manual testing identified that questions containing date or period constraints are currently analysed across the full dataset.
+Temporal filtering can reduce a dataset to a single period.
 
 **Example question:**
 
-> "How has performance changed for April 2026?"
+> "How has attendance changed in April 2026?"
 
 ### Current behaviour
 
-The system analyses the full available dataset (e.g. January to June 2026).
+After filtering to April, trend analysis may compare April → April and report a stable 0% trend.
 
 ### Problem
 
-The user asked for a specific period, but temporal constraints are not currently extracted or applied.
+Trend analysis assumes multiple periods. Single-period questions are interpreted as trends, producing technically correct but potentially misleading "stable" outcomes.
 
-This can produce misleading answers.
+### Desired future behaviour
 
-## Desired future behaviour
+Detect when temporal filtering results in a single period and transition into snapshot-style reasoning.
 
-The system should detect temporal constraints in user questions and either:
+**Potential examples:**
 
-* filter the dataset before analysis, or
-* explicitly warn that temporal filtering is not yet supported.
-
-## Examples to support in future
-
-* April 2026
-* March
-* Q1 2026
-* Q2
-* this month
-* last month
-* compare April to May
-* since March
-* after April
+* How did attendance perform in April 2026?
+* What was attendance in January?
+* How many defects occurred in Q2?
 
 ## Suggested future milestone
 
-**Milestone 8 — Temporal Intelligence**
+**Milestone 8.5 — Snapshot Intelligence**
 
-### Potential phased approach
+---
 
-| Phase   | Scope                            |
-| ------- | -------------------------------- |
-| Phase 1 | Explicit months, years, quarters |
-| Phase 2 | Relative periods                 |
-| Phase 3 | Comparative periods              |
+# Month-only Cross-Year Ambiguity
+
+**Status:** Planned
+
+## Context
+
+Month-only questions such as "What happened in January?" are parsed without a year constraint.
+
+### Current behaviour
+
+When multiple years exist in the dataset, filtering matches all rows for that calendar month across years.
+
+### Problem
+
+The period label (e.g. "January") may imply a single month scope, but the analysis may span multiple years unless the user specifies a year.
+
+### Desired future behaviour
+
+When multiple years are present, prompt for year clarification before applying month-only filters.
+
+## Suggested future milestone
+
+**Milestone 8 — Temporal Intelligence (Phase 2+)**
+
+---
+
+# Temporal Intent Without Applicable Date Columns
+
+**Status:** Planned
+
+## Context
+
+A user may ask a temporal question against a dataset that has no profiled date columns.
+
+### Current behaviour
+
+The pipeline cannot apply the requested temporal scope and returns generic no-findings output without temporal transparency metadata.
+
+### Problem
+
+The user asked for a specific period, but the system provides no clear explanation that temporal filtering could not be applied.
+
+### Desired future behaviour
+
+Provide a clear capability notice explaining that the dataset lacks a usable date column for the requested period.
+
+## Suggested future milestone
+
+**Milestone 8 — Temporal Intelligence (Phase 2+)**
+
+---
+
+# Compare-Keyword Suppresses Temporal Parsing
+
+**Status:** Planned
+
+## Context
+
+Comparative phrasing is currently treated as out of scope for Phase 1 temporal parsing.
+
+### Current behaviour
+
+Questions containing comparative keywords such as "compare" do not parse explicit temporal constraints, even when a valid period is also present (e.g. "compare lines in Q1 2026"). Analysis may run on the full dataset without temporal filtering.
+
+### Problem
+
+Users may reasonably expect explicit periods to still apply when comparative language is present.
+
+### Desired future behaviour
+
+Support comparative temporal intelligence safely, applying explicit period constraints where deterministically parseable.
+
+## Suggested future milestone
+
+**Milestone 8 — Temporal Intelligence (Phase 3)**
+
+---
+
+# Empty-Findings Answer Does Not Reference Temporal Scope
+
+**Status:** Planned
+
+## Context
+
+When a temporal filter produces zero matching records, System Transparency can show `Records analysed: 0 of N`, but the Direct Answer layer may still report a generic message.
+
+### Current behaviour
+
+> "No findings were identified from the analysis."
+
+### Problem
+
+The answer does not explain that zero records matched the requested period, which can feel inconsistent with the transparency panel.
+
+### Desired future behaviour
+
+Reference temporal scope in answer generation when a filter was applied and zero records remain (or when zero findings result from an empty filtered scope).
+
+## Suggested future milestone
+
+**Milestone 8 — Temporal Intelligence (Phase 2+)**
 
 ---
 
@@ -405,13 +523,3 @@ Selecting the investigation could automatically execute an appropriate analytica
 ## Suggested future milestone
 
 **Milestone 9 — Guided Drill-Down Investigations**
-
-
-Snapshot Intelligence
-
-Single-period temporal trend questions may produce
-stable 0% trends because TrendAnalysisTool expects
-multiple periods.
-
-Future capability:
-snapshot-oriented analytical reasoning.

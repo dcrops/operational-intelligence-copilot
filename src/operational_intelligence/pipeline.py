@@ -222,8 +222,15 @@ class OperationalPipeline:
         if date_col is None:
             return None
 
-        temporal_filter = build_temporal_filter_context(request, df, profile, constraint)
         filtered_df = apply_temporal_filter(df, date_col, constraint)
+        temporal_filter = build_temporal_filter_context(
+            request,
+            df,
+            filtered_df,
+            date_col,
+            constraint,
+            date_columns=date_columns,
+        )
         if filtered_df.empty:
             return {
                 "df": None,
