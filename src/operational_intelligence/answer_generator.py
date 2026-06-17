@@ -1,3 +1,4 @@
+from src.operational_intelligence.anomaly_direct_answer import build_anomaly_direct_answer
 from src.operational_intelligence.models import AnalysisRequest, ExecutiveReport, Finding
 from src.operational_intelligence.question_semantics import (
     CAUSATION_DISCLAIMER,
@@ -228,49 +229,7 @@ class AnswerGenerator:
         )
 
     def _direct_anomaly_answer(self, finding: Finding) -> str | None:
-        if not finding.evidence:
-            return None
-
-        evidence_count = len(finding.evidence)
-        metric_name = finding.evidence[0].metric_name or "metric"
-
-        if evidence_count == 1:
-            item = finding.evidence[0]
-            value = item.metric_value
-            if value is None:
-                return None
-
-            direction = item.supporting_context.get("anomaly_direction")
-            if direction:
-                return (
-                    f"An unusual {direction} value was detected for "
-                    f"{metric_name}: {value:g}."
-                )
-
-            return f"An unusual value was detected for {metric_name}: {value:g}."
-
-        numeric_items = [
-            item for item in finding.evidence
-            if isinstance(item.metric_value, (int, float))
-        ]
-        if not numeric_items:
-            return None
-
-        extreme_item = max(numeric_items, key=lambda item: item.metric_value)
-        extreme_value = extreme_item.metric_value
-        metric_name = extreme_item.metric_name or metric_name
-        direction = extreme_item.supporting_context.get("anomaly_direction")
-
-        if direction:
-            return (
-                f"{evidence_count} unusual {direction} values were detected for "
-                f"{metric_name}. The most extreme value was {extreme_value:g}."
-            )
-
-        return (
-            f"{evidence_count} unusual values were detected for {metric_name}. "
-            f"The most extreme value was {extreme_value:g}."
-        )
+        return build_anomaly_direct_answer(finding)
 
     def _extract_dimension_label(
         self,

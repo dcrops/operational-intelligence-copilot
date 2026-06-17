@@ -156,6 +156,81 @@ def make_trend_finding(
     )
 
 
+def make_anomaly_evidence_item(
+    *,
+    metric_name: str = "defects",
+    metric_value: float = 52.0,
+    row_index: int | None = 126,
+    z_score: float | None = 5.08,
+    anomaly_direction: str = "HIGH",
+    mean: float | None = None,
+    standard_deviation: float | None = None,
+    extra_context: dict | None = None,
+) -> EvidenceItem:
+    context: dict = {
+        "anomaly_direction": anomaly_direction,
+    }
+    if row_index is not None:
+        context["row_index"] = row_index
+    if z_score is not None:
+        context["z_score"] = z_score
+    if mean is not None:
+        context["mean"] = mean
+    if standard_deviation is not None:
+        context["standard_deviation"] = standard_deviation
+    if extra_context:
+        context.update(extra_context)
+
+    return EvidenceItem(
+        description="Anomalous value",
+        metric_name=metric_name,
+        metric_value=metric_value,
+        supporting_context=context,
+    )
+
+
+def make_anomaly_evidence_items(
+    count: int,
+    *,
+    metric_name: str = "defects",
+    anomaly_direction: str = "HIGH",
+    start_row_index: int = 126,
+    start_metric_value: float = 52.0,
+    start_z_score: float = 5.08,
+    mean: float | None = None,
+    standard_deviation: float | None = None,
+    extra_context: dict | None = None,
+) -> list[EvidenceItem]:
+    return [
+        make_anomaly_evidence_item(
+            metric_name=metric_name,
+            metric_value=start_metric_value + (index * 6),
+            row_index=start_row_index + index,
+            z_score=start_z_score + (index * 0.55),
+            anomaly_direction=anomaly_direction,
+            mean=mean,
+            standard_deviation=standard_deviation,
+            extra_context=extra_context,
+        )
+        for index in range(count)
+    ]
+
+
+def make_anomaly_finding_with_evidence(
+    evidence: list[EvidenceItem],
+) -> Finding:
+    return Finding(
+        title="Anomalies Detected by Anomaly Detection Tool",
+        description="Anomalies were detected.",
+        severity="HIGH",
+        confidence="HIGH",
+        evidence=evidence,
+        recommended_action=(
+            "Investigate the records identified as anomalous for potential operational issues."
+        ),
+    )
+
+
 def make_anomaly_finding(
     *,
     metric_name: str = "overtime_hours",

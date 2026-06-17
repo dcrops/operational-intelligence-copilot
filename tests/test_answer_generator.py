@@ -9,6 +9,8 @@ from src.operational_intelligence.question_semantics import (
 from src.operational_intelligence.reporting import ExecutiveReportGenerator
 from tests.support.assertions import assert_answer_contains_standard_sections
 from tests.support.builders import (
+    make_anomaly_evidence_item,
+    make_anomaly_finding_with_evidence,
     make_sample_findings,
     make_variance_evidence_item,
     make_variance_finding,
@@ -55,26 +57,25 @@ class TestAnswerGeneratorFullOutput:
 @pytest.mark.unit
 class TestAnswerGeneratorDirectAnswers:
     def test_direct_anomaly_answer_aligns_with_evidence_direction(self):
-        finding = Finding(
-            title="Anomalies Detected by Anomaly Detection Tool",
-            description="Anomalies were detected.",
-            severity="HIGH",
-            confidence="HIGH",
-            evidence=[
-                EvidenceItem(
-                    description="Anomalous value",
+        finding = make_anomaly_finding_with_evidence(
+            [
+                make_anomaly_evidence_item(
                     metric_name="overtime_hours",
                     metric_value=100.0,
-                    supporting_context={"anomaly_direction": "HIGH"},
+                    row_index=42,
+                    z_score=8.5,
+                    anomaly_direction="HIGH",
                 )
-            ],
+            ]
         )
         answer = AnswerGenerator()._direct_anomaly_answer(finding)
 
         assert answer is not None
-        assert "HIGH" in answer
-        assert "overtime_hours" in answer
-        assert "100" in answer
+        assert "1 unusual HIGH value was detected for overtime_hours." in answer
+        assert "Affected records:" in answer
+        assert "Row 42" in answer
+        assert "overtime_hours = 100" in answer
+        assert "(z-score 8.50)" in answer
 
     def test_direct_variance_answer_respects_top_direction_and_sum_aggregation(self):
         finding = make_variance_finding(
