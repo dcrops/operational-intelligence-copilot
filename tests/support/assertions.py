@@ -39,8 +39,10 @@ def pipeline_temporal_filter(result):
 
 
 def pipeline_snapshot_context(result):
-    """Return snapshot metadata from a pipeline outcome, if present."""
+    """Return snapshot metadata from a pipeline or UI analysis outcome, if present."""
     if isinstance(result, PipelineAnalysisResult):
+        return result.snapshot_context
+    if isinstance(result, AnalysisResult):
         return result.snapshot_context
     return None
 

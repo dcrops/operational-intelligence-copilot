@@ -1,4 +1,5 @@
 from src.operational_intelligence.anomaly_direct_answer import build_anomaly_direct_answer
+from src.operational_intelligence.snapshot_direct_answer import build_snapshot_direct_answer
 from src.operational_intelligence.models import AnalysisRequest, ExecutiveReport, Finding
 from src.operational_intelligence.question_semantics import (
     CAUSATION_DISCLAIMER,
@@ -101,6 +102,11 @@ class AnswerGenerator:
 
                 if "anomaly" in title:
                     answer = self._direct_anomaly_answer(finding)
+                    if answer:
+                        return answer
+
+                if "snapshot" in title:
+                    answer = self._direct_snapshot_answer(finding)
                     if answer:
                         return answer
 
@@ -230,6 +236,9 @@ class AnswerGenerator:
 
     def _direct_anomaly_answer(self, finding: Finding) -> str | None:
         return build_anomaly_direct_answer(finding)
+
+    def _direct_snapshot_answer(self, finding: Finding) -> str | None:
+        return build_snapshot_direct_answer(finding)
 
     def _extract_dimension_label(
         self,

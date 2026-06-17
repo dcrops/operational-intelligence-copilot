@@ -9,6 +9,8 @@ from ui.transparency import (
     format_auto_resolved_trail,
     format_clarification_trail,
     format_metrics_analysed_trail,
+    format_snapshot_contributors_trail,
+    format_snapshot_trail,
     format_temporal_filter_trail,
 )
 from ui.variance_presentation import variance_business_description
@@ -286,6 +288,18 @@ def render_results(result: AnalysisResult) -> None:
         if temporal_filter_lines:
             st.markdown("**Applied temporal filter:**")
             for line in temporal_filter_lines:
+                st.markdown(f"- {line}")
+
+        snapshot_lines = format_snapshot_trail(result.snapshot_context)
+        if snapshot_lines:
+            st.markdown("**Snapshot mode activated:**")
+            for line in snapshot_lines:
+                st.markdown(f"- {line}")
+
+        contributor_lines = format_snapshot_contributors_trail(result.findings)
+        if contributor_lines:
+            st.markdown("**Snapshot contributors:**")
+            for line in contributor_lines:
                 st.markdown(f"- {line}")
 
         clarifications = format_clarification_trail(result.request)

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from src.operational_intelligence.models import AnalysisRequest, Finding, TemporalFilterContext
+from src.operational_intelligence.models import AnalysisRequest, Finding, SnapshotContext, TemporalFilterContext
 from src.operational_intelligence.schema_resolution import resolve_metric_from_question
+from src.operational_intelligence.snapshot_analysis import extract_snapshot_contributors
 
 _TRANSPARENCY_METADATA_KEYS = frozenset(
     {
@@ -77,6 +78,40 @@ def format_temporal_filter_trail(
     if temporal_filter.date_column_inferred:
         lines.append(f"Date column inferred: {temporal_filter.date_column}")
     return lines
+
+
+def format_snapshot_trail(snapshot_context: SnapshotContext | None) -> list[str]:
+    """Return snapshot mode metadata for System Transparency."""
+    if snapshot_context is None or not snapshot_context.activated:
+        return []
+
+    return [
+        f"Period: {snapshot_context.period_label}",
+        "Reason: Single temporal period detected",
+        "Analysis: Snapshot Intelligence",
+    ]
+
+
+def format_snapshot_contributors_trail(findings: list[Finding]) -> list[str]:
+    """Return snapshot contributor metadata for System Transparency."""
+    for finding in findings:
+        if "snapshot" not in finding.title.lower():
+            continue
+        contributors = extract_snapshot_contributors(finding)
+        if contributors is None:
+            continue
+
+        dimension_name, highest, lowest = contributors
+        return [
+            f"Dimension: {dimension_name}",
+            f"Highest: {highest.entity_name} ({_format_contributor_value(float(highest.value))})",
+            f"Lowest: {lowest.entity_name} ({_format_contributor_value(float(lowest.value))})",
+        ]
+    return []
+
+
+def _format_contributor_value(value: float) -> str:
+    return f"{value:.2f}".rstrip("0").rstrip(".")
 
 
 def _collect_metric_names(findings: list[Finding]) -> list[str]:

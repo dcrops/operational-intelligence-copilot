@@ -126,6 +126,22 @@ class TemporalFilterContext(BaseModel):
         return v
 
 
+class SnapshotContributor(BaseModel):
+    """Highest or lowest group contributing to a snapshot metric."""
+
+    dimension_name: str = Field(..., description="Dimension column used for grouping.")
+    entity_name: str = Field(..., description="Dimension value for the contributor.")
+    value: float | int = Field(..., description="Aggregated metric value for the entity.")
+
+    @field_validator("dimension_name", "entity_name")
+    @classmethod
+    def non_empty_str(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Value must not be empty")
+        return v
+
+
 class SnapshotContext(BaseModel):
     """Metadata describing snapshot analytical mode activation."""
 

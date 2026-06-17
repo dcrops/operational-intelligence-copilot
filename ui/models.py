@@ -5,6 +5,7 @@ from src.operational_intelligence.models import (
     ClarificationRequest,
     ExecutiveReport,
     Finding,
+    SnapshotContext,
     TemporalFilterContext,
 )
 
@@ -22,3 +23,4 @@ class AnalysisResult:
     clarification: ClarificationRequest | None = None
     metrics_analysed: list[str] = field(default_factory=list)
     temporal_filter: TemporalFilterContext | None = None
+    snapshot_context: SnapshotContext | None = None

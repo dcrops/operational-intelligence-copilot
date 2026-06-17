@@ -141,3 +141,75 @@ class TestSnapshotAnalysisTool:
         assert float(snapshot_item.metric_value) == 110.0
         assert float(baseline_item.metric_value) == pytest.approx(52.5)
         assert float(baseline_item.supporting_context["delta_vs_baseline"]) == pytest.approx(57.5)
+
+    def test_contributor_calculation_with_mean_aggregation(self, monthly_df: pd.DataFrame):
+        scoped = monthly_df[monthly_df["month"] == "2026-04-01"]
+
+        result = SnapshotAnalysisTool().analyze(
+            scoped,
+            monthly_df,
+            "month",
+            "attendance_rate",
+            aggregation="mean",
+            period_label="April 2026",
+            dimension_column="school",
+        )
+
+        highest = next(
+            item
+            for item in result.evidence_items
+            if item.supporting_context.get("contributor_role") == "highest"
+        )
+        lowest = next(
+            item
+            for item in result.evidence_items
+            if item.supporting_context.get("contributor_role") == "lowest"
+        )
+
+        assert float(highest.metric_value) == 95.0
+        assert highest.supporting_context["entity_name"] == "A"
+        assert float(lowest.metric_value) == 72.0
+        assert lowest.supporting_context["entity_name"] == "B"
+        assert highest.supporting_context["aggregation"] == "mean"
+
+    def test_contributor_calculation_with_sum_aggregation(self, monthly_df: pd.DataFrame):
+        df = monthly_df.assign(units=[10, 20, 30, 40, 50, 60])
+        scoped = df[df["month"] == "2026-04-01"]
+
+        result = SnapshotAnalysisTool().analyze(
+            scoped,
+            df,
+            "month",
+            "units",
+            aggregation="sum",
+            period_label="April 2026",
+            dimension_column="school",
+        )
+
+        highest = next(
+            item
+            for item in result.evidence_items
+            if item.supporting_context.get("contributor_role") == "highest"
+        )
+        lowest = next(
+            item
+            for item in result.evidence_items
+            if item.supporting_context.get("contributor_role") == "lowest"
+        )
+
+        assert float(highest.metric_value) == 60.0
+        assert float(lowest.metric_value) == 50.0
+
+    def test_no_contributors_when_dimension_not_provided(self, monthly_df: pd.DataFrame):
+        scoped = monthly_df[monthly_df["month"] == "2026-04-01"]
+
+        result = SnapshotAnalysisTool().analyze(
+            scoped,
+            monthly_df,
+            "month",
+            "attendance_rate",
+            aggregation="mean",
+            period_label="April 2026",
+        )
+
+        assert len(result.evidence_items) == 2

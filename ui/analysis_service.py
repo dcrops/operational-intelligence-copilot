@@ -56,10 +56,12 @@ def run_analysis(
             clarification=pipeline_outcome,
             metrics_analysed=[],
             temporal_filter=None,
+            snapshot_context=None,
         )
 
     findings = pipeline_outcome.findings
     temporal_filter = pipeline_outcome.temporal_filter
+    snapshot_context = pipeline_outcome.snapshot_context
     metrics_analysed = resolve_metrics_analysed(
         request,
         routes,
@@ -87,4 +89,5 @@ def run_analysis(
         deterministic_answer=deterministic_answer,
         metrics_analysed=metrics_analysed,
         temporal_filter=temporal_filter,
+        snapshot_context=snapshot_context,
     )

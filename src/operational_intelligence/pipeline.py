@@ -130,6 +130,10 @@ class OperationalPipeline:
                 date_col = temporal_date_column or date_cols[0]
                 metric_col = self._resolve_metric(request, metrics)
                 aggregation = infer_aggregation_type(metric_col)
+                snapshot_dimension = self._resolve_snapshot_dimension(
+                    request,
+                    getattr(profile, "potential_dimensions", None) or [],
+                )
                 try:
                     if snapshot_context is not None:
                         result = self.snapshot_tool.analyze(
@@ -139,6 +143,7 @@ class OperationalPipeline:
                             metric_col,
                             aggregation=aggregation,
                             period_label=snapshot_context.period_label,
+                            dimension_column=snapshot_dimension,
                         )
                     else:
                         result = self.trend_tool.analyze(
@@ -332,6 +337,18 @@ class OperationalPipeline:
         raise ValueError(
             "Dimension could not be resolved from the question. Clarification should have been requested."
         )
+
+    @staticmethod
+    def _resolve_snapshot_dimension(
+        request: AnalysisRequest,
+        dimensions: list[str],
+    ) -> str | None:
+        if not dimensions:
+            return None
+        try:
+            return OperationalPipeline._resolve_variance_dimension(request, dimensions)
+        except ValueError:
+            return None
 
     @staticmethod
     def _resolve_anomaly_metrics(request: AnalysisRequest, metrics: list[str]) -> list[str]:

@@ -1,10 +1,12 @@
 import pytest
 
-from src.operational_intelligence.models import AnalysisRequest, EvidenceItem, Finding, TemporalFilterContext
+from src.operational_intelligence.models import AnalysisRequest, EvidenceItem, Finding, SnapshotContext, TemporalFilterContext
 from ui.transparency import (
     format_auto_resolved_trail,
     format_clarification_trail,
     format_metrics_analysed_trail,
+    format_snapshot_contributors_trail,
+    format_snapshot_trail,
     format_temporal_filter_trail,
     resolve_metrics_analysed,
 )
@@ -50,6 +52,21 @@ def test_format_temporal_filter_trail_omits_inferred_line_when_explicit():
         "Period: April 2026",
         "Date column: month",
         "Records analysed: 3 of 12",
+    ]
+
+
+def test_format_snapshot_trail_includes_period_reason_and_analysis_mode():
+    snapshot_context = SnapshotContext(
+        activated=True,
+        reason="Only one temporal period remained in the scoped dataset.",
+        period_label="April 2026",
+        bucket_count=1,
+    )
+
+    assert format_snapshot_trail(snapshot_context) == [
+        "Period: April 2026",
+        "Reason: Single temporal period detected",
+        "Analysis: Snapshot Intelligence",
     ]
 
 

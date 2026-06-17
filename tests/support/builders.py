@@ -260,3 +260,100 @@ def make_anomaly_finding(
             "Investigate the records identified as anomalous for potential operational issues."
         ),
     )
+
+
+def make_snapshot_finding(
+    *,
+    metric_name: str = "attendance_rate",
+    period_label: str = "April 2026",
+    period_value: float = 88.23,
+    baseline_value: float = 86.98,
+    delta_vs_baseline: float = 1.25,
+    dimension_name: str | None = None,
+    highest_entity: str | None = None,
+    highest_value: float | None = None,
+    lowest_entity: str | None = None,
+    lowest_value: float | None = None,
+) -> Finding:
+    evidence = [
+        EvidenceItem(
+            description=f"Snapshot value for {period_label}.",
+            metric_name=metric_name,
+            metric_value=period_value,
+            supporting_context={
+                "month": "2026-04-01",
+                "aggregation": "mean",
+                "analysis_mode": "snapshot",
+                "period_label": period_label,
+                "scoped_row_count": 2,
+                "baseline_scope": "full_dataset",
+                metric_name: period_value,
+            },
+        ),
+        EvidenceItem(
+            description="Full-dataset baseline comparison.",
+            metric_name=metric_name,
+            metric_value=baseline_value,
+            supporting_context={
+                "aggregation": "mean",
+                "analysis_mode": "snapshot",
+                "baseline_scope": "full_dataset",
+                "baseline_row_count": 6,
+                "baseline_period_count": 4,
+                "delta_vs_baseline": delta_vs_baseline,
+                metric_name: baseline_value,
+            },
+        ),
+    ]
+
+    if (
+        dimension_name
+        and highest_entity is not None
+        and highest_value is not None
+        and lowest_entity is not None
+        and lowest_value is not None
+    ):
+        evidence.extend(
+            [
+                EvidenceItem(
+                    description=f"Highest contributor for {period_label}.",
+                    metric_name=metric_name,
+                    metric_value=highest_value,
+                    supporting_context={
+                        "aggregation": "mean",
+                        "analysis_mode": "snapshot",
+                        "is_snapshot_contributor": True,
+                        "contributor_role": "highest",
+                        "dimension_name": dimension_name,
+                        "entity_name": highest_entity,
+                        metric_name: highest_value,
+                    },
+                ),
+                EvidenceItem(
+                    description=f"Lowest contributor for {period_label}.",
+                    metric_name=metric_name,
+                    metric_value=lowest_value,
+                    supporting_context={
+                        "aggregation": "mean",
+                        "analysis_mode": "snapshot",
+                        "is_snapshot_contributor": True,
+                        "contributor_role": "lowest",
+                        "dimension_name": dimension_name,
+                        "entity_name": lowest_entity,
+                        metric_name: lowest_value,
+                    },
+                ),
+            ]
+        )
+
+    return Finding(
+        title="Snapshot Summary from Snapshot Analysis Tool",
+        description="Snapshot analysis completed.",
+        severity="LOW",
+        confidence="MEDIUM",
+        evidence=evidence,
+        recommended_action=(
+            "Review the scoped period value against the dataset baseline "
+            "to assess operational performance."
+        ),
+    )
