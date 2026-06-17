@@ -21,16 +21,17 @@ Items recorded here are not necessarily defects. Many represent deliberate trade
 
 ## Prioritisation
 
-| Priority | Status             | Item                                             |
-| -------- | ------------------ | ------------------------------------------------ |
-| High     | Planned            | Adaptive Direct Answer Summarisation             |
-| High     | Planned            | Pipeline ↔ Transparency Contract Protection      |
-| Medium   | Deferred           | Capability-Aware Investigation Suggestions       |
-| Medium   | Planned            | Temporal Intelligence / Date Constraint Handling |
-| Medium   | Planned            | Metrics Analysed Presentation Improvements       |
-| Low      | Planned            | Deterministic Answer Transparency Alignment      |
-| Low      | Future Enhancement | Auto-Resolved Decision Transparency Expansion    |
-| Future   | Future Enhancement | Guided Drill-Down Investigations                 |
+| Priority  | Status                      | Item                                             |
+| --------- | --------------------------- | ------------------------------------------------ |
+| Completed | Implemented (Milestone 7.2) | Adaptive Direct Answer Summarisation             |
+| High      | Planned                     | Pipeline ↔ Transparency Contract Protection      |
+| Medium    | Planned                     | Temporal Intelligence / Date Constraint Handling |
+| Medium    | Deferred                    | Capability-Aware Investigation Suggestions       |
+| Medium    | Partially Implemented       | Metrics Analysed Presentation Improvements       |
+| Low       | Planned                     | Deterministic Answer Transparency Alignment      |
+| Low       | Future Enhancement          | Auto-Resolved Decision Transparency Expansion    |
+| Low       | Future Enhancement          | Contextual Baseline Intelligence                 |
+| Future    | Future Enhancement          | Guided Drill-Down Investigations                 |
 
 ---
 
@@ -145,35 +146,43 @@ Potential future capabilities include:
 
 # Adaptive Direct Answer Summarisation
 
-**Status:** Planned
+**Status:** Implemented (Milestone 7.2)
 
 ## Context
 
-Current direct answers summarise anomalies using only anomaly counts and the most extreme value.
+Early anomaly direct answers summarised findings using only anomaly counts and the most extreme value.
 
-### Example
+### Previous example
 
 > "5 unusual HIGH values were detected for defects. The most extreme value was 79."
 
-## Problem
+User testing demonstrated that this often forced users to inspect supporting evidence even when only a small number of anomalies existed.
 
-For small anomaly sets, users often want to know which specific records were affected without manually reviewing supporting evidence.
+## What was implemented
 
-## Desired future behaviour
-
-Adapt the level of detail in the Direct Answer based on the number of anomalies detected.
-
-## Proposed approach
+Milestone 7.2 introduced adaptive direct-answer behaviour for anomaly findings.
 
 | Anomaly Count | Behaviour                                      |
 | ------------- | ---------------------------------------------- |
 | 1–5           | Show all anomalous records                     |
-| 6–20          | Show a representative sample plus summary      |
+| 6–20          | Show representative examples plus summary      |
 | >20           | Show summary only and direct users to evidence |
 
-## Suggested future milestone
+The milestone also introduced contextual anomaly explanations.
 
-**Milestone 7.2 — Adaptive Direct Answer Summarisation**
+Examples include:
+
+> "Row 126: defects = 52, compared with an average of 8.22 (z-score 5.08)."
+
+This preserved statistical transparency while improving interpretability for non-technical users.
+
+## Notes
+
+Future enhancements may include:
+
+* contextual baselines,
+* audience-aware explanations,
+* executive versus analyst presentation modes.
 
 ---
 
@@ -233,7 +242,15 @@ Allow deterministic answers and future report exports to optionally include tran
 
 # Metrics Analysed Presentation Improvements
 
-**Status:** Planned
+**Status:** Partially Implemented
+
+## Current state
+
+Milestone 7.1 introduced a dedicated "Metrics analysed" section within System Transparency.
+
+However, users may still interpret all listed metrics as producing findings.
+
+Further UX improvements remain planned.
 
 ## Context
 
@@ -290,6 +307,67 @@ Potential examples include:
 ## Notes
 
 These should only be displayed when genuinely inferred and supported by deterministic logic.
+
+---
+
+# Contextual Baseline Intelligence
+
+**Status:** Future Enhancement
+
+## Context
+
+Current anomaly explanations compare anomalous values against overall dataset averages.
+
+Example:
+
+> "Row 126: defects = 52, compared with an average of 8.22."
+
+While statistically valid, the average currently represents the same population used to calculate z-scores rather than a context-specific peer group.
+
+## Problem
+
+Users may naturally interpret the comparison as representing:
+
+* the same school,
+* the same department,
+* the same production line,
+* the same time period.
+
+However, the current implementation uses global dataset baselines.
+
+This can limit interpretability for more sophisticated analytical scenarios.
+
+## Desired future behaviour
+
+Support contextual anomaly baselines where appropriate.
+
+Examples may include comparisons against:
+
+* the same dimension group,
+* the same department,
+* the same school,
+* the same production line,
+* the same time period.
+
+### Example
+
+Current:
+
+> "Line 2: defects = 52, compared with an average of 8.22."
+
+Potential future behaviour:
+
+> "Line 2: defects = 52, compared with the typical Line 2 value of 11."
+
+## Potential future milestone
+
+**Milestone 9+ — Context-Aware Anomaly Detection**
+
+## Notes
+
+The current implementation remains statistically correct and aligned with z-score calculations.
+
+This enhancement would improve explanatory power rather than analytical correctness.
 
 ---
 
