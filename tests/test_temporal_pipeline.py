@@ -11,6 +11,7 @@ from tests.support.assertions import (
     assert_no_clarification,
     assert_variance_outcome,
     pipeline_findings,
+    pipeline_snapshot_context,
     pipeline_temporal_filter,
 )
 from tests.support.factories import (
@@ -67,7 +68,9 @@ class TestTemporalPipelineFiltering:
         assert_no_clarification(full_findings)
         assert_no_clarification(april_findings)
         assert _trend_n_periods(full_findings) == 4
-        assert _trend_n_periods(april_findings) == 1
+        assert pipeline_snapshot_context(april_findings) is not None
+        assert pipeline_snapshot_context(april_findings).bucket_count == 1
+        assert _trend_n_periods(april_findings) is None
 
     def test_temporal_filter_applied_before_variance_analysis(self):
         df, profile = manufacturing_bundle()

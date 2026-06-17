@@ -126,6 +126,30 @@ class TemporalFilterContext(BaseModel):
         return v
 
 
+class SnapshotContext(BaseModel):
+    """Metadata describing snapshot analytical mode activation."""
+
+    activated: bool = Field(..., description="True when snapshot mode replaced trend analysis.")
+    reason: str = Field(..., description="Why snapshot mode was activated.")
+    period_label: str = Field(..., description="Human-readable label for the scoped period.")
+    bucket_count: int = Field(..., description="Distinct temporal buckets in the scoped dataset.")
+
+    @field_validator("reason", "period_label")
+    @classmethod
+    def non_empty_str(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Value must not be empty")
+        return v
+
+    @field_validator("bucket_count")
+    @classmethod
+    def bucket_count_positive(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("bucket_count must be at least 1 when snapshot mode is active")
+        return v
+
+
 class EvidenceItem(BaseModel):
     """
     Represents a discrete piece of evidence supporting a finding.
@@ -246,6 +270,10 @@ class PipelineAnalysisResult(BaseModel):
     temporal_filter: TemporalFilterContext | None = Field(
         None,
         description="Temporal filter metadata when explicit period filtering was applied.",
+    )
+    snapshot_context: SnapshotContext | None = Field(
+        None,
+        description="Snapshot mode metadata when single-bucket trend analysis was substituted.",
     )
 
 

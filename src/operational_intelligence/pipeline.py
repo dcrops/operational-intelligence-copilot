@@ -20,6 +20,10 @@ from src.operational_intelligence.question_semantics import (
     infer_aggregation_type,
     resolve_comparison_direction,
 )
+from src.operational_intelligence.snapshot_analysis import (
+    SnapshotAnalysisTool,
+    build_snapshot_context,
+)
 from src.operational_intelligence.trend_analysis import TrendAnalysisTool
 from src.operational_intelligence.variance_analysis import VarianceAnalysisTool
 from src.operational_intelligence.anomaly_detection import AnomalyDetectionTool
@@ -40,6 +44,7 @@ class OperationalPipeline:
     def __init__(self):
         self.intent_router = IntentRouter()
         self.trend_tool = TrendAnalysisTool()
+        self.snapshot_tool = SnapshotAnalysisTool()
         self.variance_tool = VarianceAnalysisTool()
         self.anomaly_tool = AnomalyDetectionTool()
         self.risk_tool = RiskAssessmentTool()
@@ -66,14 +71,36 @@ class OperationalPipeline:
 
         analysis_scope = self._prepare_analysis_scope(request, df, profile)
         if analysis_scope is None:
-            return PipelineAnalysisResult(findings=[], temporal_filter=None)
+            return PipelineAnalysisResult(
+                findings=[],
+                temporal_filter=None,
+                snapshot_context=None,
+            )
 
         temporal_filter = analysis_scope["temporal_filter"]
         if analysis_scope["df"] is None:
-            return PipelineAnalysisResult(findings=[], temporal_filter=temporal_filter)
+            return PipelineAnalysisResult(
+                findings=[],
+                temporal_filter=temporal_filter,
+                snapshot_context=None,
+            )
 
         working_df = analysis_scope["df"]
         temporal_date_column = analysis_scope["trend_date_column"]
+
+        snapshot_context = None
+        if "trend_analysis" in tool_names:
+            date_cols = getattr(profile, "date_columns", None) or []
+            if date_cols:
+                snapshot_date_col = temporal_date_column or date_cols[0]
+                temporal_label = (
+                    temporal_filter.label if temporal_filter is not None else None
+                )
+                snapshot_context = build_snapshot_context(
+                    working_df,
+                    snapshot_date_col,
+                    temporal_period_label=temporal_label,
+                )
 
         comparison_direction = self._resolve_comparison_direction(request)
         tool_results: List[ToolResult] = []
@@ -104,12 +131,22 @@ class OperationalPipeline:
                 metric_col = self._resolve_metric(request, metrics)
                 aggregation = infer_aggregation_type(metric_col)
                 try:
-                    result = self.trend_tool.analyze(
-                        working_df,
-                        date_col,
-                        metric_col,
-                        aggregation=aggregation,
-                    )
+                    if snapshot_context is not None:
+                        result = self.snapshot_tool.analyze(
+                            working_df,
+                            df,
+                            date_col,
+                            metric_col,
+                            aggregation=aggregation,
+                            period_label=snapshot_context.period_label,
+                        )
+                    else:
+                        result = self.trend_tool.analyze(
+                            working_df,
+                            date_col,
+                            metric_col,
+                            aggregation=aggregation,
+                        )
                 except Exception as ex:
                     tool_results.append(ToolResult(
                         tool_name="trend_analysis",
@@ -199,10 +236,18 @@ class OperationalPipeline:
             if getattr(t, "tool_name", "") != "risk_assessment"
         ]
         if not analysis_results:
-            return PipelineAnalysisResult(findings=[], temporal_filter=temporal_filter)
+            return PipelineAnalysisResult(
+                findings=[],
+                temporal_filter=temporal_filter,
+                snapshot_context=snapshot_context,
+            )
 
         findings = self.risk_tool.assess(analysis_results)
-        return PipelineAnalysisResult(findings=findings, temporal_filter=temporal_filter)
+        return PipelineAnalysisResult(
+            findings=findings,
+            temporal_filter=temporal_filter,
+            snapshot_context=snapshot_context,
+        )
 
     @staticmethod
     def _prepare_analysis_scope(

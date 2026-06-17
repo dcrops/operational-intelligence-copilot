@@ -82,6 +82,20 @@ class RiskAssessmentTool:
                         recommended_action="Review the drivers for the observed trend to evaluate operational implications."
                     )
                 )
+            elif tool_name == "snapshot_analysis":
+                findings.append(
+                    Finding(
+                        severity="LOW",
+                        confidence="MEDIUM",
+                        title="Snapshot Summary from Snapshot Analysis Tool",
+                        description=getattr(tool_result, "summary", "Snapshot analysis completed."),
+                        evidence=evidence_items,
+                        recommended_action=(
+                            "Review the scoped period value against the dataset baseline "
+                            "to assess operational performance."
+                        ),
+                    )
+                )
             # For other tool types with evidence, ignore per requirements
 
         return findings

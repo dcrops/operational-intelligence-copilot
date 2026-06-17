@@ -29,7 +29,9 @@ Items recorded here are not necessarily defects. Many represent deliberate trade
 | Medium    | Planned                     | Snapshot Intelligence                            |
 | Medium    | Planned                     | Month-only Cross-Year Ambiguity                  |
 | Medium    | Planned                     | Temporal Intent Without Applicable Date Columns  |
-| Medium    | Planned                     | Compare-Keyword Suppresses Temporal Parsing      |
+| Medium    | Planned                     | Unsupported Temporal Intent Transparency         |
+| Low       | Planned                     | Temporal Filter Deduplication                    |
+| Low       | Planned                     | Year-Only Temporal Parsing False Positives       |
 | Medium    | Deferred                    | Capability-Aware Investigation Suggestions       |
 | Medium    | Partially Implemented       | Metrics Analysed Presentation Improvements       |
 | Low       | Planned                     | Empty-Findings Answer Does Not Reference Temporal Scope |
@@ -66,6 +68,8 @@ The following are intentionally deferred:
 
 See the dedicated entries below for known Phase 1 limitations.
 
+Phase 1 should be considered functionally complete. Remaining Temporal Intelligence items represent capability expansion, user-experience improvements, or analytical trust enhancements rather than correctness defects.
+
 ---
 
 # Snapshot Intelligence
@@ -87,6 +91,8 @@ After filtering to April, trend analysis may compare April → April and report 
 ### Problem
 
 Trend analysis assumes multiple periods. Single-period questions are interpreted as trends, producing technically correct but potentially misleading "stable" outcomes.
+
+This becomes particularly visible when temporal filtering reduces the dataset to a single period, causing trend analysis to report stable or 0% movement despite the user seeking a point-in-time assessment.
 
 ### Desired future behaviour
 
@@ -130,6 +136,41 @@ When multiple years are present, prompt for year clarification before applying m
 
 ---
 
+# Year-Only Temporal Parsing False Positives
+
+**Status:** Planned
+
+## Context
+
+Phase 1 temporal intelligence supports explicit year parsing.
+
+### Example
+
+> "What happened in 2026?"
+
+## Problem
+
+The current parser may interpret standalone year values as temporal constraints even when the year is not being used as a time reference.
+
+Potential examples include:
+
+* identifiers,
+* codes,
+* free-text descriptions,
+* domain-specific labels.
+
+While uncommon in current datasets, this may become more relevant as dataset diversity increases.
+
+## Desired future behaviour
+
+Improve temporal parsing confidence by incorporating additional contextual validation around year references.
+
+## Suggested future milestone
+
+**Milestone 8 — Temporal Intelligence Phase 2+**
+
+---
+
 # Temporal Intent Without Applicable Date Columns
 
 **Status:** Planned
@@ -156,29 +197,40 @@ Provide a clear capability notice explaining that the dataset lacks a usable dat
 
 ---
 
-# Compare-Keyword Suppresses Temporal Parsing
+# Unsupported Temporal Intent Transparency
 
 **Status:** Planned
 
 ## Context
 
-Comparative phrasing is currently treated as out of scope for Phase 1 temporal parsing.
+Users may ask questions containing temporal intent that is currently outside the supported Phase 1 capability set.
 
-### Current behaviour
+Examples include:
 
-Questions containing comparative keywords such as "compare" do not parse explicit temporal constraints, even when a valid period is also present (e.g. "compare lines in Q1 2026"). Analysis may run on the full dataset without temporal filtering.
+* compare April to May
+* last month
+* since March
+* after April
 
-### Problem
+## Current behaviour
 
-Users may reasonably expect explicit periods to still apply when comparative language is present.
+Temporal parsing intentionally ignores unsupported temporal constructs and analytical execution proceeds without temporal filtering.
 
-### Desired future behaviour
+## Problem
 
-Support comparative temporal intelligence safely, applying explicit period constraints where deterministically parseable.
+Users may incorrectly assume that temporal filtering was applied when it was not.
+
+## Desired future behaviour
+
+Provide explicit transparency indicating:
+
+* temporal intent was detected,
+* the requested temporal construct is not currently supported,
+* analysis proceeded without temporal filtering.
 
 ## Suggested future milestone
 
-**Milestone 8 — Temporal Intelligence (Phase 3)**
+**Milestone 8 — Temporal Intelligence Phase 2**
 
 ---
 
@@ -355,6 +407,46 @@ Allow deterministic answers and future report exports to optionally include tran
 ## Suggested future milestone
 
 **Milestone 9 — Audit and Export Enhancements**
+
+---
+
+# Temporal Filter Deduplication
+
+**Status:** Planned
+
+## Context
+
+Milestone 8.1 introduced temporal filtering and temporal transparency.
+
+During review, it was identified that temporal filtering logic may be executed in multiple locations when constructing both:
+
+* the filtered analytical dataset,
+* the temporal transparency metadata.
+
+## Problem
+
+If temporal filtering logic evolves independently in different code paths, transparency metadata could drift from the actual dataset analysed.
+
+Examples include:
+
+* filtered row counts,
+* temporal scope boundaries,
+* invalid date handling.
+
+This would undermine user trust because System Transparency may no longer accurately describe analytical execution.
+
+## Desired future behaviour
+
+Temporal filtering should be applied once and reused by:
+
+* analytical execution,
+* temporal transparency reporting.
+
+This guarantees a single source of truth for temporal scope.
+
+## Suggested future milestone
+
+**Milestone 8 — Temporal Intelligence Hardening**
 
 ---
 

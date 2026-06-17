@@ -38,6 +38,13 @@ def pipeline_temporal_filter(result):
     return None
 
 
+def pipeline_snapshot_context(result):
+    """Return snapshot metadata from a pipeline outcome, if present."""
+    if isinstance(result, PipelineAnalysisResult):
+        return result.snapshot_context
+    return None
+
+
 def assert_clarification(
     result,
     clarification_type: str,
