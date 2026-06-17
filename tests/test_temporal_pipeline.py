@@ -7,7 +7,12 @@ import pytest
 
 from src.operational_intelligence.models import AnalysisRequest
 from src.operational_intelligence.pipeline import OperationalPipeline
-from tests.support.assertions import assert_no_clarification, assert_variance_outcome
+from tests.support.assertions import (
+    assert_no_clarification,
+    assert_variance_outcome,
+    pipeline_findings,
+    pipeline_temporal_filter,
+)
 from tests.support.factories import (
     MANUFACTURING_HIGHEST_DEFECTS_LINE,
     manufacturing_bundle,
@@ -17,6 +22,7 @@ pytestmark = pytest.mark.integration
 
 
 def _trend_n_periods(findings) -> int | None:
+    findings = pipeline_findings(findings)
     for finding in findings:
         if "trend" not in finding.title.lower():
             continue
@@ -28,6 +34,7 @@ def _trend_n_periods(findings) -> int | None:
 
 
 def _anomaly_evidence_count(findings) -> int:
+    findings = pipeline_findings(findings)
     return sum(
         len(finding.evidence)
         for finding in findings
@@ -146,7 +153,9 @@ class TestTemporalPipelineFiltering:
         )
 
         assert_no_clarification(findings)
-        assert findings == []
+        assert pipeline_findings(findings) == []
+        assert pipeline_temporal_filter(findings) is not None
+        assert pipeline_temporal_filter(findings).filtered_row_count == 0
 
     def test_temporal_question_without_date_columns_returns_no_findings(self):
         df, profile = manufacturing_bundle()
@@ -160,4 +169,5 @@ class TestTemporalPipelineFiltering:
             [profile],
         )
 
-        assert findings == []
+        assert pipeline_findings(findings) == []
+        assert pipeline_temporal_filter(findings) is None

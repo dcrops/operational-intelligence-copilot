@@ -6,6 +6,7 @@ from src.operational_intelligence.models import (
     AnalysisRequest,
     ClarificationRequest,
     DatasetProfile,
+    PipelineAnalysisResult,
 )
 from src.operational_intelligence.pipeline import OperationalPipeline
 from src.operational_intelligence.reporting import ExecutiveReportGenerator
@@ -54,9 +55,11 @@ def run_analysis(
             deterministic_answer="",
             clarification=pipeline_outcome,
             metrics_analysed=[],
+            temporal_filter=None,
         )
 
-    findings = pipeline_outcome
+    findings = pipeline_outcome.findings
+    temporal_filter = pipeline_outcome.temporal_filter
     metrics_analysed = resolve_metrics_analysed(
         request,
         routes,
@@ -83,4 +86,5 @@ def run_analysis(
         direct_answer=direct_answer,
         deterministic_answer=deterministic_answer,
         metrics_analysed=metrics_analysed,
+        temporal_filter=temporal_filter,
     )

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.operational_intelligence.models import AnalysisRequest, Finding
+from src.operational_intelligence.models import AnalysisRequest, Finding, TemporalFilterContext
 from src.operational_intelligence.schema_resolution import resolve_metric_from_question
 
 _TRANSPARENCY_METADATA_KEYS = frozenset(
@@ -56,6 +56,26 @@ def format_clarification_trail(request: AnalysisRequest) -> list[str]:
         )
     if request.selected_date_column:
         lines.append(f"Date column selected: {request.selected_date_column}")
+    return lines
+
+
+def format_temporal_filter_trail(
+    temporal_filter: TemporalFilterContext | None,
+) -> list[str]:
+    """Return temporal filtering metadata for System Transparency."""
+    if temporal_filter is None:
+        return []
+
+    lines = [
+        f"Period: {temporal_filter.label}",
+        f"Date column: {temporal_filter.date_column}",
+        (
+            "Records analysed: "
+            f"{temporal_filter.filtered_row_count} of {temporal_filter.original_row_count}"
+        ),
+    ]
+    if temporal_filter.date_column_inferred:
+        lines.append(f"Date column inferred: {temporal_filter.date_column}")
     return lines
 
 

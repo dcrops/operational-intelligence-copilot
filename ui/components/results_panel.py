@@ -9,6 +9,7 @@ from ui.transparency import (
     format_auto_resolved_trail,
     format_clarification_trail,
     format_metrics_analysed_trail,
+    format_temporal_filter_trail,
 )
 from ui.variance_presentation import variance_business_description
 
@@ -280,6 +281,12 @@ def render_results(result: AnalysisResult) -> None:
         st.markdown(f"**Question:** {result.request.question}")
         st.markdown(f"**Routed tools:** {', '.join(result.routes) or 'None'}")
         st.markdown(f"**Findings returned:** {len(result.findings)}")
+
+        temporal_filter_lines = format_temporal_filter_trail(result.temporal_filter)
+        if temporal_filter_lines:
+            st.markdown("**Applied temporal filter:**")
+            for line in temporal_filter_lines:
+                st.markdown(f"- {line}")
 
         clarifications = format_clarification_trail(result.request)
         st.markdown("**Clarifications:**")

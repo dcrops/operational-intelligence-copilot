@@ -5,6 +5,7 @@ from src.operational_intelligence.models import (
     ClarificationRequest,
     ExecutiveReport,
     Finding,
+    TemporalFilterContext,
 )
 
 
@@ -20,3 +21,4 @@ class AnalysisResult:
     deterministic_answer: str
     clarification: ClarificationRequest | None = None
     metrics_analysed: list[str] = field(default_factory=list)
+    temporal_filter: TemporalFilterContext | None = None

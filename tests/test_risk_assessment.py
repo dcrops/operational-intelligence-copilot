@@ -1,6 +1,6 @@
 import pytest
 
-from src.operational_intelligence.models import AnalysisRequest, EvidenceItem, ToolResult
+from src.operational_intelligence.models import AnalysisRequest, PipelineAnalysisResult, EvidenceItem, ToolResult
 from src.operational_intelligence.pipeline import OperationalPipeline
 from src.operational_intelligence.risk_assessment import RiskAssessmentTool
 from tests.support.factories import manufacturing_bundle
@@ -122,9 +122,9 @@ class TestRiskAssessmentPipelineSmoke:
             [profile],
         )
 
-        assert isinstance(findings, list)
-        assert len(findings) == 1
-        assert findings[0].severity == "MEDIUM"
-        assert findings[0].recommended_action == (
+        assert isinstance(findings, PipelineAnalysisResult)
+        assert len(findings.findings) == 1
+        assert findings.findings[0].severity == "MEDIUM"
+        assert findings.findings[0].recommended_action == (
             "Review discrepancies between highest and lowest categories to determine impact."
         )

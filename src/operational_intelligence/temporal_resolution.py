@@ -227,6 +227,51 @@ def resolve_date_column(
     return None
 
 
+def date_column_was_inferred(
+    request: AnalysisRequest,
+    date_columns: list[str],
+) -> bool:
+    """Return True when the date column was auto-selected for temporal filtering."""
+    if request.selected_date_column:
+        return False
+    if any(
+        has_explicit_column_mention(request.question, column)
+        for column in date_columns
+    ):
+        return False
+    return len(date_columns) == 1
+
+
+def build_temporal_filter_context(
+    request: AnalysisRequest,
+    df: pd.DataFrame,
+    profile,
+    constraint: TemporalConstraint,
+) -> TemporalFilterContext | None:
+    """Build temporal filter metadata when a date column can be resolved."""
+    from src.operational_intelligence.models import DatasetProfile, TemporalFilterContext
+
+    if not isinstance(profile, DatasetProfile):
+        raise ValueError("profile must be a DatasetProfile")
+
+    date_columns = list(profile.date_columns or [])
+    if not date_columns:
+        return None
+
+    date_col = resolve_date_column(request, date_columns)
+    if date_col is None:
+        return None
+
+    filtered_df = apply_temporal_filter(df, date_col, constraint)
+    return TemporalFilterContext(
+        label=constraint.label,
+        date_column=date_col,
+        original_row_count=len(df),
+        filtered_row_count=len(filtered_df),
+        date_column_inferred=date_column_was_inferred(request, date_columns),
+    )
+
+
 def needs_date_column_clarification(
     request: AnalysisRequest,
     date_columns: list[str],

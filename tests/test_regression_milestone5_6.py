@@ -10,7 +10,7 @@ import pytest
 
 from src.operational_intelligence.ambiguity_detection import detect_clarification
 from src.operational_intelligence.answer_generator import AnswerGenerator
-from src.operational_intelligence.models import AnalysisRequest, ClarificationRequest
+from src.operational_intelligence.models import AnalysisRequest, ClarificationRequest, PipelineAnalysisResult
 from src.operational_intelligence.pipeline import OperationalPipeline
 from src.operational_intelligence.schema_resolution import non_identifier_dimensions
 from ui.analysis_service import run_analysis
@@ -42,7 +42,7 @@ class TestPipelineMetricAndDimensionResolution:
             [profile],
         )
 
-        assert isinstance(findings, list)
+        assert isinstance(findings, PipelineAnalysisResult)
         assert_trend_outcome(
             findings,
             expected_metric="downtime_minutes",
@@ -60,7 +60,7 @@ class TestPipelineMetricAndDimensionResolution:
             [profile],
         )
 
-        assert isinstance(findings, list)
+        assert isinstance(findings, PipelineAnalysisResult)
         assert_variance_outcome(
             findings,
             expected_metric="hours",

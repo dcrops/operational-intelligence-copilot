@@ -1,10 +1,11 @@
 import pytest
 
-from src.operational_intelligence.models import AnalysisRequest, EvidenceItem, Finding
+from src.operational_intelligence.models import AnalysisRequest, EvidenceItem, Finding, TemporalFilterContext
 from ui.transparency import (
     format_auto_resolved_trail,
     format_clarification_trail,
     format_metrics_analysed_trail,
+    format_temporal_filter_trail,
     resolve_metrics_analysed,
 )
 from tests.support.builders import make_anomaly_finding, make_variance_evidence_item, make_variance_finding
@@ -15,6 +16,41 @@ pytestmark = pytest.mark.unit
 
 def _request(question: str = "Sample question", **kwargs) -> AnalysisRequest:
     return AnalysisRequest(question=question, dataset_names=["sample"], **kwargs)
+
+
+def test_format_temporal_filter_trail_includes_inferred_date_column():
+    temporal_filter = TemporalFilterContext(
+        label="Q1 2026",
+        date_column="month",
+        original_row_count=180,
+        filtered_row_count=90,
+        date_column_inferred=True,
+    )
+
+    lines = format_temporal_filter_trail(temporal_filter)
+
+    assert lines == [
+        "Period: Q1 2026",
+        "Date column: month",
+        "Records analysed: 90 of 180",
+        "Date column inferred: month",
+    ]
+
+
+def test_format_temporal_filter_trail_omits_inferred_line_when_explicit():
+    temporal_filter = TemporalFilterContext(
+        label="April 2026",
+        date_column="month",
+        original_row_count=12,
+        filtered_row_count=3,
+        date_column_inferred=False,
+    )
+
+    assert format_temporal_filter_trail(temporal_filter) == [
+        "Period: April 2026",
+        "Date column: month",
+        "Records analysed: 3 of 12",
+    ]
 
 
 def test_format_clarification_trail_metric_only():

@@ -6,7 +6,7 @@ from src.operational_intelligence.models import (
     ClarificationRequest,
     DatasetProfile,
     ToolResult,
-    Finding,
+    PipelineAnalysisResult,
 )
 from src.operational_intelligence.intent_router import IntentRouter
 from src.operational_intelligence.ambiguity_detection import detect_clarification
@@ -26,6 +26,7 @@ from src.operational_intelligence.anomaly_detection import AnomalyDetectionTool
 from src.operational_intelligence.risk_assessment import RiskAssessmentTool
 from src.operational_intelligence.temporal_resolution import (
     apply_temporal_filter,
+    build_temporal_filter_context,
     parse_temporal_constraint,
     resolve_date_column,
 )
@@ -48,7 +49,7 @@ class OperationalPipeline:
         request: AnalysisRequest,
         df: pd.DataFrame,
         dataset_profiles: List[DatasetProfile],
-    ) -> Union[ClarificationRequest, List[Finding]]:
+    ) -> Union[ClarificationRequest, PipelineAnalysisResult]:
         if not isinstance(request, AnalysisRequest):
             raise ValueError("request must be an instance of AnalysisRequest")
         if not isinstance(df, pd.DataFrame) or df.empty:
@@ -65,7 +66,11 @@ class OperationalPipeline:
 
         analysis_scope = self._prepare_analysis_scope(request, df, profile)
         if analysis_scope is None:
-            return []
+            return PipelineAnalysisResult(findings=[], temporal_filter=None)
+
+        temporal_filter = analysis_scope["temporal_filter"]
+        if analysis_scope["df"] is None:
+            return PipelineAnalysisResult(findings=[], temporal_filter=temporal_filter)
 
         working_df = analysis_scope["df"]
         temporal_date_column = analysis_scope["trend_date_column"]
@@ -194,10 +199,10 @@ class OperationalPipeline:
             if getattr(t, "tool_name", "") != "risk_assessment"
         ]
         if not analysis_results:
-            return []
+            return PipelineAnalysisResult(findings=[], temporal_filter=temporal_filter)
 
         findings = self.risk_tool.assess(analysis_results)
-        return findings
+        return PipelineAnalysisResult(findings=findings, temporal_filter=temporal_filter)
 
     @staticmethod
     def _prepare_analysis_scope(
@@ -207,7 +212,7 @@ class OperationalPipeline:
     ) -> dict[str, object] | None:
         constraint = parse_temporal_constraint(request.question)
         if constraint is None:
-            return {"df": df, "trend_date_column": None}
+            return {"df": df, "trend_date_column": None, "temporal_filter": None}
 
         date_columns = list(profile.date_columns or [])
         if not date_columns:
@@ -217,11 +222,20 @@ class OperationalPipeline:
         if date_col is None:
             return None
 
+        temporal_filter = build_temporal_filter_context(request, df, profile, constraint)
         filtered_df = apply_temporal_filter(df, date_col, constraint)
         if filtered_df.empty:
-            return None
+            return {
+                "df": None,
+                "trend_date_column": date_col,
+                "temporal_filter": temporal_filter,
+            }
 
-        return {"df": filtered_df, "trend_date_column": date_col}
+        return {
+            "df": filtered_df,
+            "trend_date_column": date_col,
+            "temporal_filter": temporal_filter,
+        }
 
     @staticmethod
     def _resolve_comparison_direction(request: AnalysisRequest) -> ComparisonDirection:
@@ -277,4 +291,3 @@ class OperationalPipeline:
             return [metric_col]
 
         return list(metrics)
-

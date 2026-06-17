@@ -10,10 +10,10 @@ import pytest
 
 from src.operational_intelligence.ambiguity_detection import detect_clarification
 from src.operational_intelligence.intent_router import IntentRouter
-from src.operational_intelligence.models import AnalysisRequest, ClarificationRequest
+from src.operational_intelligence.models import AnalysisRequest, ClarificationRequest, PipelineAnalysisResult
 from src.operational_intelligence.pipeline import OperationalPipeline
 from src.operational_intelligence.profiling import DatasetProfiler
-from tests.support.assertions import assert_clarification, assert_trend_outcome, assert_variance_outcome
+from tests.support.assertions import assert_clarification, assert_trend_outcome, assert_variance_outcome, pipeline_findings
 from tests.support.factories import (
     EDUCATION_LOWEST_ATTENDANCE_SCHOOL,
     MANUFACTURING_HIGHEST_DEFECTS_LINE,
@@ -81,7 +81,7 @@ def test_education_lowest_attendance_returns_bottom_school():
         df,
         [profile],
     )
-    assert isinstance(findings, list)
+    assert isinstance(findings, PipelineAnalysisResult)
     assert_variance_outcome(
         findings,
         expected_metric="attendance_rate",
@@ -110,7 +110,7 @@ def test_education_attendance_trend_uses_mean_not_sum():
     )
     period_values = [
         item.metric_value
-        for finding in findings
+        for finding in pipeline_findings(findings)
         if "trend" in finding.title.lower()
         for item in finding.evidence
         if item.metric_value is not None
@@ -144,7 +144,7 @@ def test_manufacturing_dual_comparison_runs_without_direction_clarification():
         df,
         [profile],
     )
-    assert isinstance(outcome, list)
+    assert isinstance(outcome, PipelineAnalysisResult)
     assert_variance_outcome(
         outcome,
         expected_metric="defects",

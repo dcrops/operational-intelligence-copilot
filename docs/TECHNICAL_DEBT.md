@@ -405,3 +405,13 @@ Selecting the investigation could automatically execute an appropriate analytica
 ## Suggested future milestone
 
 **Milestone 9 — Guided Drill-Down Investigations**
+
+
+Snapshot Intelligence
+
+Single-period temporal trend questions may produce
+stable 0% trends because TrendAnalysisTool expects
+multiple periods.
+
+Future capability:
+snapshot-oriented analytical reasoning.

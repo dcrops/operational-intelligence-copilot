@@ -98,6 +98,34 @@ class AnalysisRequest(BaseModel):
         return v
 
 
+class TemporalFilterContext(BaseModel):
+    """Metadata describing a temporal filter applied before analysis."""
+
+    label: str = Field(..., description="Human-readable period label, e.g. April 2026.")
+    date_column: str = Field(..., description="Date column used for temporal filtering.")
+    original_row_count: int = Field(..., description="Rows in the dataset before filtering.")
+    filtered_row_count: int = Field(..., description="Rows remaining after filtering.")
+    date_column_inferred: bool = Field(
+        ...,
+        description="True when the date column was auto-selected rather than explicit.",
+    )
+
+    @field_validator("label", "date_column")
+    @classmethod
+    def non_empty_str(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Value must not be empty")
+        return v
+
+    @field_validator("original_row_count", "filtered_row_count")
+    @classmethod
+    def counts_non_negative(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("Value must not be negative")
+        return v
+
+
 class EvidenceItem(BaseModel):
     """
     Represents a discrete piece of evidence supporting a finding.
@@ -210,6 +238,16 @@ class Finding(BaseModel):
                 raise ValueError('recommended_action must not be empty if provided')
             return v2
         return v
+
+class PipelineAnalysisResult(BaseModel):
+    """Outcome of a completed pipeline run with optional temporal metadata."""
+
+    findings: list[Finding] = Field(default_factory=list)
+    temporal_filter: TemporalFilterContext | None = Field(
+        None,
+        description="Temporal filter metadata when explicit period filtering was applied.",
+    )
+
 
 class ExecutiveReport(BaseModel):
     """

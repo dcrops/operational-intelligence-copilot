@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.operational_intelligence.models import ClarificationRequest, Finding
+from src.operational_intelligence.models import ClarificationRequest, Finding, PipelineAnalysisResult
 from ui.models import AnalysisResult
 
 
@@ -13,6 +13,28 @@ def _unwrap_clarification(result) -> ClarificationRequest | None:
         return result
     if isinstance(result, AnalysisResult):
         return result.clarification
+    return None
+
+
+def pipeline_findings(result) -> list[Finding]:
+    """Return findings from a pipeline or UI analysis outcome."""
+    if isinstance(result, ClarificationRequest):
+        pytest.fail("Expected analysis findings, got ClarificationRequest")
+    if isinstance(result, PipelineAnalysisResult):
+        return result.findings
+    if isinstance(result, AnalysisResult):
+        return result.findings
+    if isinstance(result, list):
+        return result
+    pytest.fail(f"Unexpected analysis outcome type: {type(result)!r}")
+
+
+def pipeline_temporal_filter(result):
+    """Return temporal filter metadata from a pipeline outcome, if present."""
+    if isinstance(result, PipelineAnalysisResult):
+        return result.temporal_filter
+    if isinstance(result, AnalysisResult):
+        return result.temporal_filter
     return None
 
 
@@ -35,7 +57,11 @@ def assert_no_clarification(result) -> None:
     if isinstance(result, AnalysisResult):
         assert result.clarification is None
         return
-    assert isinstance(result, list), "Expected findings list or AnalysisResult"
+    if isinstance(result, PipelineAnalysisResult):
+        return
+    if isinstance(result, list):
+        return
+    pytest.fail(f"Unexpected analysis outcome type: {type(result)!r}")
 
 
 def _variance_finding(findings: list[Finding]) -> Finding:
@@ -55,7 +81,7 @@ def _variance_targets(finding: Finding):
 
 
 def assert_variance_outcome(
-    findings: list[Finding],
+    findings,
     *,
     expected_metric: str,
     expected_dimension: str,
@@ -63,6 +89,7 @@ def assert_variance_outcome(
     expected_direction: str,
     expected_targets: list[str] | None = None,
 ) -> None:
+    findings = pipeline_findings(findings)
     finding = _variance_finding(findings)
     targets = _variance_targets(finding)
     assert targets, "Expected comparison target evidence rows"
@@ -91,11 +118,12 @@ def assert_variance_outcome(
 
 
 def assert_trend_outcome(
-    findings: list[Finding],
+    findings,
     *,
     expected_metric: str,
     expected_aggregation: str,
 ) -> None:
+    findings = pipeline_findings(findings)
     finding = _trend_finding(findings)
     period_items = [
         item
