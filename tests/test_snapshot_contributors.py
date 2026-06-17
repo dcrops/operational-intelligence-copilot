@@ -31,7 +31,10 @@ class TestSnapshotContributorDirectAnswer:
         answer = build_snapshot_direct_answer(finding)
 
         assert answer is not None
-        assert "Attendance rate in April 2026 was 88.23, compared with a dataset average of 86.98 (-0.05 below baseline)." in answer
+        assert (
+            "Attendance rate in April 2026 was 88.23, broadly in line with "
+            "the dataset average of 86.98." in answer
+        )
         assert "Highest contributor:\nSchool A (95.2)" in answer
         assert "Lowest contributor:\nSchool D (72.1)" in answer
 
@@ -41,7 +44,7 @@ class TestSnapshotContributorDirectAnswer:
         answer = build_snapshot_direct_answer(finding)
 
         assert answer == (
-            "Attendance rate in April 2026 was 88.23, compared with a dataset "
+            "Attendance rate in April 2026 was 88.23, above the dataset "
             "average of 86.98 (+1.25 above baseline)."
         )
 

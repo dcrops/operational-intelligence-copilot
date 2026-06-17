@@ -29,8 +29,50 @@ class TestSnapshotDirectAnswer:
         answer = build_snapshot_direct_answer(finding)
 
         assert answer == (
-            "Attendance rate in April 2026 was 88.23, compared with a dataset "
+            "Attendance rate in April 2026 was 88.23, above the dataset "
             "average of 86.98 (+1.25 above baseline)."
+        )
+
+    def test_snapshot_answer_broadly_in_line_when_delta_is_small(self):
+        finding = make_snapshot_finding(
+            baseline_value=88.28,
+            delta_vs_baseline=-0.05,
+        )
+
+        answer = build_snapshot_direct_answer(finding)
+
+        assert answer == (
+            "Attendance rate in April 2026 was 88.23, broadly in line with "
+            "the dataset average of 88.28."
+        )
+
+    def test_snapshot_answer_above_baseline_when_delta_is_meaningfully_positive(self):
+        finding = make_snapshot_finding(
+            metric_name="defects",
+            period_value=52.0,
+            baseline_value=8.22,
+            delta_vs_baseline=43.78,
+        )
+
+        answer = build_snapshot_direct_answer(finding)
+
+        assert answer == (
+            "Defects in April 2026 was 52, above the dataset average of 8.22 "
+            "(+43.78 above baseline)."
+        )
+
+    def test_snapshot_answer_below_baseline_when_delta_is_meaningfully_negative(self):
+        finding = make_snapshot_finding(
+            period_value=80.0,
+            baseline_value=90.0,
+            delta_vs_baseline=-10.0,
+        )
+
+        answer = build_snapshot_direct_answer(finding)
+
+        assert answer == (
+            "Attendance rate in April 2026 was 80, below the dataset average "
+            "of 90 (-10 below baseline)."
         )
 
     def test_snapshot_answer_without_delta_metadata(self):
@@ -39,7 +81,8 @@ class TestSnapshotDirectAnswer:
         answer = build_snapshot_direct_answer(finding)
 
         assert answer == (
-            "Attendance rate in April 2026 was 88.23, compared with a dataset average of 86.98."
+            "Attendance rate in April 2026 was 88.23, broadly in line with "
+            "the dataset average of 86.98."
         )
 
     def test_snapshot_answer_avoids_trend_language(self):
@@ -64,7 +107,7 @@ class TestSnapshotDirectAnswer:
             report,
         )
 
-        assert "compared with a dataset average" in direct
+        assert "above the dataset average" in direct
         assert "remained stable" not in direct.lower()
 
 
@@ -119,7 +162,7 @@ class TestSnapshotPresentationPropagation:
         assert "0%" not in lowered
         assert "changed" not in lowered
         assert "April 2026" in result.direct_answer
-        assert "compared with a dataset average" in result.direct_answer
+        assert "dataset average" in result.direct_answer
 
     def test_snapshot_and_temporal_transparency_metadata_both_available(self):
         df, profile = manufacturing_bundle()

@@ -5,6 +5,9 @@ from __future__ import annotations
 from src.operational_intelligence.models import EvidenceItem, Finding
 from src.operational_intelligence.snapshot_analysis import extract_snapshot_contributors
 
+# Absolute delta below this threshold is described as broadly in line with baseline.
+SNAPSHOT_DELTA_IN_LINE_THRESHOLD = 0.1
+
 
 def _format_metric_label(metric_name: str) -> str:
     label = metric_name.replace("_", " ").strip()
@@ -37,6 +40,51 @@ def _baseline_item(evidence: list[EvidenceItem]) -> EvidenceItem | None:
     return None
 
 
+def _resolve_delta_vs_baseline(
+    period_value: float,
+    baseline_value: float,
+    baseline_item: EvidenceItem,
+) -> float:
+    delta = baseline_item.supporting_context.get("delta_vs_baseline")
+    if isinstance(delta, (int, float)):
+        return float(delta)
+    return period_value - baseline_value
+
+
+def _is_delta_broadly_in_line(delta: float) -> bool:
+    return abs(delta) < SNAPSHOT_DELTA_IN_LINE_THRESHOLD
+
+
+def _format_baseline_comparison(
+    metric_label: str,
+    period_label: str,
+    period_value: float,
+    baseline_value: float,
+    delta: float,
+) -> str:
+    period_text = (
+        f"{metric_label} in {period_label} was {_format_number(period_value)}"
+    )
+    baseline_text = _format_number(baseline_value)
+
+    if _is_delta_broadly_in_line(delta):
+        return (
+            f"{period_text}, broadly in line with the dataset average of "
+            f"{baseline_text}."
+        )
+
+    delta_text = _format_number(abs(delta))
+    if delta > 0:
+        return (
+            f"{period_text}, above the dataset average of {baseline_text} "
+            f"(+{delta_text} above baseline)."
+        )
+    return (
+        f"{period_text}, below the dataset average of {baseline_text} "
+        f"(-{delta_text} below baseline)."
+    )
+
+
 def build_snapshot_direct_answer(finding: Finding) -> str | None:
     """Build a snapshot direct answer from finding evidence metadata."""
     if not finding.evidence:
@@ -55,30 +103,21 @@ def build_snapshot_direct_answer(finding: Finding) -> str | None:
     metric_label = _format_metric_label(metric_name)
     period_value = float(snapshot_item.metric_value)
 
-    answer = (
-        f"{metric_label} in {period_label} was {_format_number(period_value)}"
-    )
-
     baseline_item = _baseline_item(finding.evidence)
     if baseline_item is None or not isinstance(baseline_item.metric_value, (int, float)):
-        base_answer = f"{answer}."
+        base_answer = (
+            f"{metric_label} in {period_label} was {_format_number(period_value)}."
+        )
     else:
         baseline_value = float(baseline_item.metric_value)
-        answer = (
-            f"{answer}, compared with a dataset average of "
-            f"{_format_number(baseline_value)}"
+        delta = _resolve_delta_vs_baseline(period_value, baseline_value, baseline_item)
+        base_answer = _format_baseline_comparison(
+            metric_label,
+            period_label,
+            period_value,
+            baseline_value,
+            delta,
         )
-
-        delta = baseline_item.supporting_context.get("delta_vs_baseline")
-        if isinstance(delta, (int, float)) and float(delta) != 0:
-            delta_value = float(delta)
-            delta_text = _format_number(abs(delta_value))
-            if delta_value > 0:
-                base_answer = f"{answer} (+{delta_text} above baseline)."
-            else:
-                base_answer = f"{answer} (-{delta_text} below baseline)."
-        else:
-            base_answer = f"{answer}."
 
     contributors = extract_snapshot_contributors(finding)
     if contributors is None:
