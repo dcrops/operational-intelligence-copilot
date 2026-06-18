@@ -1,5 +1,6 @@
 import pytest
 
+from src.operational_intelligence.executive_reasoning import ExecutiveReasoningEngine
 from src.operational_intelligence.models import Finding
 from src.operational_intelligence.reporting import ExecutiveReportGenerator
 from tests.support.builders import make_sample_findings
@@ -90,3 +91,56 @@ class TestExecutiveReportGenerator:
     def test_rejects_non_list_input(self):
         with pytest.raises(ValueError, match="findings must be a list"):
             ExecutiveReportGenerator().generate("not a list")  # type: ignore[arg-type]
+
+    def test_accepts_reasoning_result_and_populates_report_fields(self):
+        findings = make_sample_findings()
+        reasoning = ExecutiveReasoningEngine().reason(findings)
+
+        report = ExecutiveReportGenerator().generate(findings, reasoning=reasoning)
+
+        assert report.executive_themes == reasoning.themes
+        assert report.operational_assessment == reasoning.operational_assessment
+        assert report.executive_conclusions == reasoning.conclusions
+        assert report.priority_actions == reasoning.priority_actions
+
+    def test_reasoning_preserves_legacy_severity_buckets_and_summary(self):
+        findings = make_sample_findings()
+        reasoning = ExecutiveReasoningEngine().reason(findings)
+
+        legacy_report = ExecutiveReportGenerator().generate(findings)
+        integrated_report = ExecutiveReportGenerator().generate(findings, reasoning=reasoning)
+
+        assert integrated_report.executive_summary == legacy_report.executive_summary
+        assert integrated_report.high_priority_findings == legacy_report.high_priority_findings
+        assert integrated_report.medium_priority_findings == legacy_report.medium_priority_findings
+        assert integrated_report.low_priority_findings == legacy_report.low_priority_findings
+        assert (
+            integrated_report.suggested_follow_up_investigations
+            == legacy_report.suggested_follow_up_investigations
+        )
+
+    def test_reasoning_recommended_next_steps_mirror_priority_actions(self):
+        findings = make_sample_findings()
+        reasoning = ExecutiveReasoningEngine().reason(findings)
+
+        report = ExecutiveReportGenerator().generate(findings, reasoning=reasoning)
+
+        assert reasoning.priority_actions
+        assert report.recommended_next_steps == [
+            action.action for action in reasoning.priority_actions
+        ]
+
+    def test_without_reasoning_falls_back_to_finding_recommended_actions(self):
+        findings = make_sample_findings()
+
+        report = ExecutiveReportGenerator().generate(findings)
+
+        assert report.recommended_next_steps == [
+            "Investigate the records identified as anomalous for potential operational issues.",
+            "Review discrepancies between highest and lowest categories to determine impact.",
+            "Review the drivers for the observed trend to evaluate operational implications.",
+        ]
+        assert report.operational_assessment is None
+        assert report.executive_conclusions == []
+        assert report.priority_actions == []
+        assert report.executive_themes == []

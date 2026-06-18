@@ -340,6 +340,22 @@ class ExecutiveReport(BaseModel):
         default_factory=list,
         description="Suggested follow-up investigations derived from findings.",
     )
+    operational_assessment: "OperationalAssessment | None" = Field(
+        None,
+        description="Overall operational assessment from executive reasoning.",
+    )
+    executive_conclusions: list["ExecutiveConclusion"] = Field(
+        default_factory=list,
+        description="Structured executive conclusions by theme.",
+    )
+    priority_actions: list["PriorityAction"] = Field(
+        default_factory=list,
+        description="Ranked priority actions from executive reasoning.",
+    )
+    executive_themes: list["ExecutiveTheme"] = Field(
+        default_factory=list,
+        description="Executive themes grouped from findings.",
+    )
 
     @field_validator('executive_summary')
     @classmethod

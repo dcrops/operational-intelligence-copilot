@@ -319,3 +319,62 @@ class TestExecutiveReasoningEngine:
         spec = importlib.util.find_spec("src.operational_intelligence.executive_reasoning")
         assert spec is not None
         assert spec.origin is not None
+
+
+class TestExecutiveReasoningOrchestration:
+    def test_empty_findings_returns_empty_reasoning_artifacts(self):
+        result = ExecutiveReasoningEngine().reason([])
+
+        assert result.themes == []
+        assert result.operational_assessment.assessment_level == "Healthy"
+        assert result.conclusions == []
+        assert result.priority_actions == []
+
+    def test_rejects_non_list_input(self):
+        with pytest.raises(ValueError, match="findings must be a list"):
+            ExecutiveReasoningEngine().reason("not a list")  # type: ignore[arg-type]
+
+    def test_single_finding_populates_all_artifacts(self):
+        finding = _make_finding(
+            finding_id="finding-0",
+            finding_type="anomaly",
+            metric_name="attendance_rate",
+        )
+        finding = finding.model_copy(update={"severity": "HIGH"})
+
+        result = ExecutiveReasoningEngine().reason([finding])
+
+        assert len(result.themes) == 1
+        assert result.themes[0].theme_id == "theme-metric-attendance_rate"
+        assert result.operational_assessment.assessment_level == "Critical"
+        assert len(result.conclusions) == 1
+        assert result.conclusions[0].primary_theme == "theme-metric-attendance_rate"
+        assert len(result.priority_actions) == 1
+        assert result.priority_actions[0].linked_theme_ids == ["theme-metric-attendance_rate"]
+
+    def test_multiple_findings_populate_themes_assessment_conclusions_and_actions(self):
+        findings = [
+            _make_finding(
+                finding_id="finding-0",
+                finding_type="trend",
+                metric_name="attendance_rate",
+            ),
+            _make_finding(
+                finding_id="finding-1",
+                finding_type="variance",
+                metric_name="defects",
+            ),
+        ]
+        findings[1] = findings[1].model_copy(update={"severity": "HIGH"})
+
+        result = ExecutiveReasoningEngine().reason(findings)
+
+        assert [theme.theme_id for theme in result.themes] == [
+            "theme-metric-attendance_rate",
+            "theme-metric-defects",
+        ]
+        assert result.operational_assessment.assessment_level == "Critical"
+        assert len(result.conclusions) == 2
+        assert len(result.priority_actions) == 2
+        assert result.priority_actions[0].rank == 1
+        assert result.priority_actions[1].rank == 2

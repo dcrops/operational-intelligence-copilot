@@ -1,6 +1,7 @@
 import pandas as pd
 
 from src.operational_intelligence.answer_generator import AnswerGenerator
+from src.operational_intelligence.executive_reasoning import ExecutiveReasoningEngine
 from src.operational_intelligence.intent_router import IntentRouter
 from src.operational_intelligence.models import (
     AnalysisRequest,
@@ -67,7 +68,8 @@ def run_analysis(
         routes,
         profile.potential_metrics,
     )
-    report = ExecutiveReportGenerator().generate(findings)
+    reasoning = ExecutiveReasoningEngine().reason(findings)
+    report = ExecutiveReportGenerator().generate(findings, reasoning=reasoning)
 
     answer_generator = AnswerGenerator()
     deterministic_answer = answer_generator.generate(request, findings, report)

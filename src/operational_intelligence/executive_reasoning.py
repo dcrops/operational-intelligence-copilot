@@ -2,9 +2,16 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from src.operational_intelligence.models import EvidenceItem, Finding
+
+if TYPE_CHECKING:
+    from src.operational_intelligence.executive_conclusions import ExecutiveConclusion
+    from src.operational_intelligence.operational_assessment import OperationalAssessment
+    from src.operational_intelligence.priority_actions import PriorityAction
 
 FINDING_TYPE_ORDER = ("anomaly", "variance", "trend", "snapshot", "failure")
 
@@ -33,6 +40,15 @@ class ExecutiveTheme(BaseModel):
         if len(self.finding_ids) != len(self.findings):
             raise ValueError("finding_ids and findings must have the same length")
         return self
+
+
+class ExecutiveReasoningResult(BaseModel):
+    """Orchestrated output of the executive reasoning stack."""
+
+    themes: list[ExecutiveTheme] = Field(default_factory=list)
+    operational_assessment: OperationalAssessment
+    conclusions: list[ExecutiveConclusion] = Field(default_factory=list)
+    priority_actions: list[PriorityAction] = Field(default_factory=list)
 
 
 def _resolve_metric(finding: Finding) -> str | None:
@@ -142,6 +158,26 @@ class ExecutiveReasoningEngine:
             )
 
         return themes
+
+    def reason(self, findings: list[Finding]) -> ExecutiveReasoningResult:
+        from src.operational_intelligence.executive_conclusions import ExecutiveConclusionEngine
+        from src.operational_intelligence.operational_assessment import OperationalAssessmentEngine
+        from src.operational_intelligence.priority_actions import PriorityActionEngine
+
+        if not isinstance(findings, list):
+            raise ValueError("findings must be a list")
+
+        themes = self.group_findings(findings)
+        assessment = OperationalAssessmentEngine().assess(themes)
+        conclusions = ExecutiveConclusionEngine().build(themes, assessment)
+        priority_actions = PriorityActionEngine().build(themes, assessment, conclusions)
+
+        return ExecutiveReasoningResult(
+            themes=themes,
+            operational_assessment=assessment,
+            conclusions=conclusions,
+            priority_actions=priority_actions,
+        )
 
 
 def _finding_type_sort_key(finding_type: str) -> tuple[int, str]:

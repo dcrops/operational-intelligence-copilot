@@ -1,17 +1,36 @@
+from src.operational_intelligence.executive_reasoning import ExecutiveReasoningResult
 from src.operational_intelligence.investigation_suggestions import InvestigationSuggestionGenerator
 from src.operational_intelligence.models import ExecutiveReport, Finding
+
+
+def _recommended_next_steps_from_findings(findings: list[Finding]) -> list[str]:
+    recommended_next_steps: list[str] = []
+    seen: set[str] = set()
+    for finding in findings:
+        action = finding.recommended_action
+        if action and action not in seen:
+            recommended_next_steps.append(action)
+            seen.add(action)
+    return recommended_next_steps
+
 
 class ExecutiveReportGenerator:
     """
     Transforms a list of Finding objects into an ExecutiveReport.
     """
 
-    def generate(self, findings: list[Finding]) -> ExecutiveReport:
+    def generate(
+        self,
+        findings: list[Finding],
+        reasoning: ExecutiveReasoningResult | None = None,
+    ) -> ExecutiveReport:
         """
         Generate an executive-ready report from findings.
 
         Args:
             findings (list[Finding]): List of findings to include in the report.
+            reasoning (ExecutiveReasoningResult | None): Optional executive reasoning
+                artifacts to attach and derive priority actions from.
 
         Returns:
             ExecutiveReport: The generated executive report.
@@ -44,23 +63,41 @@ class ExecutiveReportGenerator:
             f"{n_high} high priority, {n_medium} medium priority, and {n_low} low priority."
         )
 
-        recommended_next_steps: list[str] = []
-        seen: set[str] = set()
-        for finding in findings:
-            action = finding.recommended_action
-            if action and action not in seen:
-                recommended_next_steps.append(action)
-                seen.add(action)
+        if reasoning is not None and reasoning.priority_actions:
+            recommended_next_steps = [
+                action.action for action in reasoning.priority_actions
+            ]
+        else:
+            recommended_next_steps = _recommended_next_steps_from_findings(findings)
 
         suggested_follow_up_investigations = InvestigationSuggestionGenerator().generate_for_findings(
             findings
         )
 
-        return ExecutiveReport(
-            executive_summary=executive_summary,
-            high_priority_findings=high_priority_findings,
-            medium_priority_findings=medium_priority_findings,
-            low_priority_findings=low_priority_findings,
-            recommended_next_steps=recommended_next_steps,
-            suggested_follow_up_investigations=suggested_follow_up_investigations,
-        )
+        report_kwargs = {
+            "executive_summary": executive_summary,
+            "high_priority_findings": high_priority_findings,
+            "medium_priority_findings": medium_priority_findings,
+            "low_priority_findings": low_priority_findings,
+            "recommended_next_steps": recommended_next_steps,
+            "suggested_follow_up_investigations": suggested_follow_up_investigations,
+        }
+
+        if reasoning is not None:
+            report_kwargs.update(
+                operational_assessment=reasoning.operational_assessment,
+                executive_conclusions=reasoning.conclusions,
+                priority_actions=reasoning.priority_actions,
+                executive_themes=reasoning.themes,
+            )
+
+        return ExecutiveReport(**report_kwargs)
+
+
+from src.operational_intelligence.executive_conclusions import ExecutiveConclusion
+from src.operational_intelligence.executive_reasoning import ExecutiveReasoningResult, ExecutiveTheme
+from src.operational_intelligence.operational_assessment import OperationalAssessment
+from src.operational_intelligence.priority_actions import PriorityAction
+
+ExecutiveReport.model_rebuild()
+ExecutiveReasoningResult.model_rebuild()
