@@ -234,6 +234,18 @@ class Finding(BaseModel):
     confidence: str = Field(..., description="Confidence: LOW, MEDIUM, HIGH.")
     evidence: list[EvidenceItem] = Field(default_factory=list, description="Evidence supporting this finding.")
     recommended_action: str | None = Field(None, description="Follow-up or actionable recommendation, if any.")
+    finding_id: str | None = Field(
+        None,
+        description="Stable identifier for executive reasoning references.",
+    )
+    finding_type: str | None = Field(
+        None,
+        description="Provenance type: anomaly, variance, trend, snapshot, or failure.",
+    )
+    source_tool: str | None = Field(
+        None,
+        description="Originating analytical tool name.",
+    )
 
     @field_validator('title')
     @classmethod
@@ -278,6 +290,27 @@ class Finding(BaseModel):
                 raise ValueError('recommended_action must not be empty if provided')
             return v2
         return v
+
+    @field_validator('finding_id', 'source_tool')
+    @classmethod
+    def optional_provenance_str_nonempty_if_present(cls, v: str | None) -> str | None:
+        if v is not None:
+            v2 = v.strip()
+            if not v2:
+                raise ValueError('Value must not be empty if provided')
+            return v2
+        return v
+
+    @field_validator('finding_type')
+    @classmethod
+    def finding_type_check(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        allowed = {"anomaly", "variance", "trend", "snapshot", "failure"}
+        v_lower = v.strip().lower()
+        if v_lower not in allowed:
+            raise ValueError(f"finding_type must be one of {allowed}")
+        return v_lower
 
 class PipelineAnalysisResult(BaseModel):
     """Outcome of a completed pipeline run with optional temporal metadata."""

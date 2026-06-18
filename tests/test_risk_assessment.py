@@ -63,10 +63,19 @@ class TestRiskAssessmentTool:
         assert findings[0].severity == "HIGH"
         assert findings[0].recommended_action
         assert "Anomalies Detected" in findings[0].title
+        assert findings[0].finding_id == "finding-0"
+        assert findings[0].finding_type == "anomaly"
+        assert findings[0].source_tool == "anomaly_detection"
         assert findings[1].severity == "MEDIUM"
         assert "Variance" in findings[1].title
+        assert findings[1].finding_id == "finding-1"
+        assert findings[1].finding_type == "variance"
+        assert findings[1].source_tool == "variance_analysis"
         assert findings[2].severity == "LOW"
         assert "Trend" in findings[2].title
+        assert findings[2].finding_id == "finding-2"
+        assert findings[2].finding_type == "trend"
+        assert findings[2].source_tool == "trend_analysis"
         assert all(finding.recommended_action for finding in findings)
 
     def test_assess_records_failed_tool_as_medium_finding(self):
@@ -85,6 +94,9 @@ class TestRiskAssessmentTool:
         assert findings[0].severity == "MEDIUM"
         assert "failed to execute successfully" in findings[0].title
         assert "Review data quality" in findings[0].recommended_action
+        assert findings[0].finding_id == "finding-0"
+        assert findings[0].finding_type == "failure"
+        assert findings[0].source_tool == "trend_analysis"
 
     def test_assess_rejects_empty_tool_results(self):
         with pytest.raises(ValueError, match="tool_results must be a non-empty list"):
@@ -125,6 +137,9 @@ class TestRiskAssessmentPipelineSmoke:
         assert isinstance(findings, PipelineAnalysisResult)
         assert len(findings.findings) == 1
         assert findings.findings[0].severity == "MEDIUM"
+        assert findings.findings[0].finding_id == "finding-0"
+        assert findings.findings[0].finding_type == "variance"
+        assert findings.findings[0].source_tool == "variance_analysis"
         assert findings.findings[0].recommended_action == (
             "Review discrepancies between highest and lowest categories to determine impact."
         )
