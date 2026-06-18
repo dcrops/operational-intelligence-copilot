@@ -163,8 +163,33 @@ def assert_operational_assessment(app: AppTest) -> None:
     assert_section_visible(app, SECTION_OPERATIONAL_ASSESSMENT)
 
 
+def assert_executive_reasoning(app: AppTest) -> None:
+    from tests.app.golden_expectations import EXECUTIVE_REASONING_HEADING
+
+    assert_section_visible(app, EXECUTIVE_REASONING_HEADING)
+
+
+def assert_executive_conclusions(app: AppTest) -> None:
+    from tests.app.golden_expectations import SECTION_EXECUTIVE_CONCLUSIONS
+
+    assert_section_visible(app, SECTION_EXECUTIVE_CONCLUSIONS)
+
+
+def assert_clarification_resolved(app: AppTest) -> None:
+    """Assert clarification workflow is no longer blocking results."""
+    assert_section_hidden(app, SECTION_CLARIFICATION)
+
+
+def assert_snapshot_transparency(app: AppTest) -> None:
+    from tests.app.golden_expectations import SNAPSHOT_TRANSPARENCY_MARKER
+
+    assert SNAPSHOT_TRANSPARENCY_MARKER in user_visible_text(app)
+
+
 def assert_priority_actions(app: AppTest) -> None:
-    assert_section_visible(app, "Priority Actions")
+    from tests.app.golden_expectations import SECTION_PRIORITY_ACTIONS
+
+    assert_section_visible(app, SECTION_PRIORITY_ACTIONS)
 
 
 def assert_transparency(app: AppTest) -> None:
@@ -193,11 +218,7 @@ def execute_golden_question(app: AppTest, golden_question: GoldenQuestion) -> Ap
     ask_question(app, golden_question.question)
     run_analysis(app)
 
-    if golden_question.expected_outcome is ExpectedOutcome.CLARIFICATION:
-        if not golden_question.clarification_steps:
-            assert_clarification_visible(app, clarification_type=golden_question.clarification_type)
-            return app
-
+    if golden_question.clarification_steps:
         for step in golden_question.clarification_steps:
             assert_clarification_visible(app, clarification_type=step.clarification_type)
             if step.option is not None:
@@ -207,11 +228,43 @@ def execute_golden_question(app: AppTest, golden_question: GoldenQuestion) -> Ap
                     clarification_type=step.clarification_type,
                 )
             continue_clarification(app)
+        assert_clarification_resolved(app)
+        assert_results_visible(app)
+    elif golden_question.expected_outcome is ExpectedOutcome.CLARIFICATION:
+        assert_clarification_visible(app, clarification_type=golden_question.clarification_type)
+        return app
+    else:
+        assert_results_visible(app)
+        assert_clarification_resolved(app)
+
+    if golden_question.expects_snapshot:
+        assert_snapshot_transparency(app)
 
     if golden_question.visible_sections:
         assert_expected_sections(app, golden_question.visible_sections)
 
     return app
+
+
+def assert_journey_outcome(app: AppTest, scenario_id: str) -> None:
+    """Assert the registered behavioural outcome for a golden user journey."""
+    scenario = get_scenario(scenario_id)
+    question = scenario.question
+
+    assert_no_app_exception(app)
+
+    if question.clarification_steps:
+        assert_clarification_resolved(app)
+        assert_results_visible(app)
+    elif question.expected_outcome is ExpectedOutcome.RESULTS:
+        assert_results_visible(app)
+        assert_clarification_resolved(app)
+
+    if question.expects_snapshot:
+        assert_snapshot_transparency(app)
+
+    if question.visible_sections:
+        assert_expected_sections(app, question.visible_sections)
 
 
 def run_golden_scenario(app: AppTest, scenario_id: str) -> AppTest:

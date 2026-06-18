@@ -45,6 +45,17 @@ EXECUTIVE_REASONING_SECTIONS: tuple[str, ...] = (
     SECTION_OPERATIONAL_ASSESSMENT,
 )
 
+SECTION_EXECUTIVE_CONCLUSIONS = "Executive Conclusions"
+SECTION_PRIORITY_ACTIONS = "Priority Actions"
+
+FULL_EXECUTIVE_REASONING_SECTIONS: tuple[str, ...] = (
+    *EXECUTIVE_REASONING_SECTIONS,
+    SECTION_EXECUTIVE_CONCLUSIONS,
+    SECTION_PRIORITY_ACTIONS,
+)
+
+SNAPSHOT_TRANSPARENCY_MARKER = "Snapshot mode activated:"
+
 
 @dataclass(frozen=True)
 class GoldenDataset:
@@ -75,6 +86,7 @@ class GoldenQuestion:
     visible_sections: tuple[str, ...] = ()
     clarification_type: str | None = None
     clarification_steps: tuple[ClarificationStep, ...] = ()
+    expects_snapshot: bool = False
     notes: str = ""
 
 
@@ -132,12 +144,24 @@ GOLDEN_DATASETS: dict[str, GoldenDataset] = {
 }
 
 
-def _manufacturing_executive_sections() -> tuple[str, ...]:
+def _manufacturing_full_journey_sections() -> tuple[str, ...]:
     return (
         *STANDARD_RESULTS_SECTIONS,
-        *EXECUTIVE_REASONING_SECTIONS,
+        *FULL_EXECUTIVE_REASONING_SECTIONS,
         SECTION_SYSTEM_TRANSPARENCY,
     )
+
+
+def _education_snapshot_journey_sections() -> tuple[str, ...]:
+    return (
+        SECTION_DIRECT_ANSWER,
+        EXECUTIVE_REASONING_HEADING,
+        SECTION_SYSTEM_TRANSPARENCY,
+    )
+
+
+def _workforce_clarification_journey_sections() -> tuple[str, ...]:
+    return (EXECUTIVE_REASONING_HEADING,)
 
 
 GOLDEN_SCENARIOS: dict[str, GoldenScenario] = {
@@ -152,7 +176,7 @@ GOLDEN_SCENARIOS: dict[str, GoldenScenario] = {
         question=GoldenQuestion(
             question="Which production line has the highest defects and what is the risk?",
             expected_outcome=ExpectedOutcome.RESULTS,
-            visible_sections=_manufacturing_executive_sections(),
+            visible_sections=_manufacturing_full_journey_sections(),
             notes=(
                 "Completes without clarification on the manufacturing golden CSV. "
                 "Used for the first AppTest smoke while broader journeys are added "
@@ -160,10 +184,13 @@ GOLDEN_SCENARIOS: dict[str, GoldenScenario] = {
             ),
         ),
     ),
-    "manufacturing_analyse_dataset": GoldenScenario(
-        scenario_id="manufacturing_analyse_dataset",
+    "manufacturing_analysis_journey": GoldenScenario(
+        scenario_id="manufacturing_analysis_journey",
         dataset=GOLDEN_DATASETS["manufacturing_demo"],
-        description="Broad analysis question requiring clarification before results.",
+        description=(
+            "Manufacturing golden journey: broad analysis with metric and dimension "
+            "clarification before a full executive report is rendered."
+        ),
         question=GoldenQuestion(
             question="Analyse this dataset",
             expected_outcome=ExpectedOutcome.CLARIFICATION,
@@ -172,8 +199,51 @@ GOLDEN_SCENARIOS: dict[str, GoldenScenario] = {
                 ClarificationStep(clarification_type="metric", option="defects"),
                 ClarificationStep(clarification_type="dimension", option="production_line"),
             ),
-            visible_sections=_manufacturing_executive_sections(),
-            notes="Future Milestone 10e clarification journey.",
+            visible_sections=_manufacturing_full_journey_sections(),
+        ),
+    ),
+    "manufacturing_analyse_dataset": GoldenScenario(
+        scenario_id="manufacturing_analyse_dataset",
+        dataset=GOLDEN_DATASETS["manufacturing_demo"],
+        description="Alias retained for registry compatibility.",
+        question=GoldenQuestion(
+            question="Analyse this dataset",
+            expected_outcome=ExpectedOutcome.CLARIFICATION,
+            clarification_type="metric",
+            clarification_steps=(
+                ClarificationStep(clarification_type="metric", option="defects"),
+                ClarificationStep(clarification_type="dimension", option="production_line"),
+            ),
+            visible_sections=_manufacturing_full_journey_sections(),
+        ),
+    ),
+    "education_snapshot_journey": GoldenScenario(
+        scenario_id="education_snapshot_journey",
+        dataset=GOLDEN_DATASETS["education_demo"],
+        description=(
+            "Education golden journey: April snapshot question completes without "
+            "clarification and activates snapshot transparency."
+        ),
+        question=GoldenQuestion(
+            question="How has attendance changed in April 2026?",
+            expected_outcome=ExpectedOutcome.RESULTS,
+            visible_sections=_education_snapshot_journey_sections(),
+            expects_snapshot=True,
+        ),
+    ),
+    "workforce_clarification_journey": GoldenScenario(
+        scenario_id="workforce_clarification_journey",
+        dataset=GOLDEN_DATASETS["workforce_demo_v2"],
+        description=(
+            "Workforce golden journey: ambiguous performance question requires metric "
+            "clarification before executive reasoning is shown."
+        ),
+        question=GoldenQuestion(
+            question="How has performance changed?",
+            expected_outcome=ExpectedOutcome.CLARIFICATION,
+            clarification_type="metric",
+            clarification_steps=(ClarificationStep(clarification_type="metric", option="hours"),),
+            visible_sections=_workforce_clarification_journey_sections(),
         ),
     ),
     "education_performance_clarification": GoldenScenario(
@@ -195,7 +265,7 @@ GOLDEN_SCENARIOS: dict[str, GoldenScenario] = {
             question="Analyse this dataset",
             expected_outcome=ExpectedOutcome.CLARIFICATION,
             clarification_type="metric",
-            notes="Future Milestone 10d/10e workforce journey.",
+            notes="Future workforce broad-analysis journey.",
         ),
     ),
 }
