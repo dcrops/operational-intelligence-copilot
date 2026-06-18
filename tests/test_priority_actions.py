@@ -298,6 +298,60 @@ class TestPriorityActionEngine:
         ]
         assert [action.rank for action in actions] == [1, 2]
 
+    def test_ranking_prioritises_medium_theme_above_low_theme(self):
+        themes = [
+            _make_theme(
+                theme_id="theme-metric-attendance_rate",
+                theme_label="attendance_rate",
+                findings=[
+                    _make_finding(
+                        finding_id="finding-0",
+                        finding_type="trend",
+                        severity="LOW",
+                    )
+                ],
+            ),
+            _make_theme(
+                theme_id="theme-metric-defects",
+                theme_label="defects",
+                findings=[
+                    _make_finding(
+                        finding_id="finding-1",
+                        finding_type="variance",
+                        severity="MEDIUM",
+                        metric_name="defects",
+                    )
+                ],
+            ),
+        ]
+
+        actions = _build_actions(themes)
+
+        assert [action.linked_theme_ids[0] for action in actions] == [
+            "theme-metric-defects",
+            "theme-metric-attendance_rate",
+        ]
+
+    def test_high_severity_rationale_uses_high_not_info(self):
+        themes = [
+            _make_theme(
+                theme_id="theme-metric-attendance_rate",
+                theme_label="attendance_rate",
+                findings=[
+                    _make_finding(
+                        finding_id="finding-0",
+                        finding_type="anomaly",
+                        severity="HIGH",
+                    )
+                ],
+            )
+        ]
+
+        actions = _build_actions(themes)
+
+        assert "Based on HIGH severity anomaly finding(s)" in actions[0].rationale
+        assert "INFO severity" not in actions[0].rationale
+
     def test_output_capped_at_five_actions(self):
         themes = [
             _make_theme(

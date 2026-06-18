@@ -129,7 +129,10 @@ def _finding_type_sort_key(finding_type: str) -> int:
 def _theme_max_severity_rank(theme: ExecutiveTheme) -> int:
     if not theme.findings:
         return len(SEVERITY_RANK)
-    return min(_normalized_severity(finding) for finding in theme.findings)
+    return min(
+        SEVERITY_RANK.get(_normalized_severity(finding), len(SEVERITY_RANK))
+        for finding in theme.findings
+    )
 
 
 def _primary_finding_type(theme: ExecutiveTheme) -> str:
