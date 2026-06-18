@@ -5,6 +5,7 @@ from __future__ import annotations
 from src.operational_intelligence.models import AnalysisRequest, Finding, SnapshotContext, TemporalFilterContext
 from src.operational_intelligence.schema_resolution import resolve_metric_from_question
 from src.operational_intelligence.snapshot_analysis import extract_snapshot_contributors
+from ui.metric_presentation import humanise_metric_name
 
 _TRANSPARENCY_METADATA_KEYS = frozenset(
     {
@@ -46,7 +47,8 @@ def format_clarification_trail(request: AnalysisRequest) -> list[str]:
     """Return user clarification selections from the final analysis request."""
     lines: list[str] = []
     if request.selected_metrics:
-        lines.append(f"Metric selected: {', '.join(request.selected_metrics)}")
+        labels = ", ".join(humanise_metric_name(metric) for metric in request.selected_metrics)
+        lines.append(f"Metric selected: {labels}")
     if request.selected_dimensions:
         lines.append(f"Dimension selected: {', '.join(request.selected_dimensions)}")
     if request.requested_analysis_type:
@@ -157,7 +159,7 @@ def _is_multi_metric_anomaly_analysis(
 def format_metrics_analysed_trail(metrics_analysed: list[str]) -> list[str]:
     """Return metrics analysed across the run (multi-metric anomaly scans)."""
     if len(metrics_analysed) > 1:
-        return list(metrics_analysed)
+        return [humanise_metric_name(metric) for metric in metrics_analysed]
     return []
 
 
@@ -220,7 +222,7 @@ def format_auto_resolved_trail(
     if not request.selected_metrics and not multi_metric_anomaly:
         metrics = _collect_metric_names(findings)
         if len(metrics) == 1:
-            lines.append(f"Metric inferred: {metrics[0]}")
+            lines.append(f"Metric inferred: {humanise_metric_name(metrics[0])}")
 
     if not request.selected_dimensions:
         dimension = _first_dimension_column(findings, routes)

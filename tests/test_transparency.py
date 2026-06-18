@@ -75,7 +75,7 @@ def test_format_clarification_trail_metric_only():
         _request(selected_metrics=["hours"])
     )
 
-    assert lines == ["Metric selected: hours"]
+    assert lines == ["Metric selected: Hours"]
 
 
 def test_format_clarification_trail_multi_step_selections():
@@ -89,7 +89,7 @@ def test_format_clarification_trail_multi_step_selections():
     )
 
     assert lines == [
-        "Metric selected: units_produced",
+        "Metric selected: Units Produced",
         "Dimension selected: production_line",
         "Analysis type selected: variance_analysis",
         "Comparison direction selected: bottom",
@@ -127,7 +127,7 @@ def test_format_auto_resolved_trail_single_metric_inferred_and_aggregation_infer
     )
 
     assert lines == [
-        "Metric inferred: attendance_rate",
+        "Metric inferred: Attendance Rate",
         "Aggregation inferred: mean",
     ]
 
@@ -152,7 +152,7 @@ def test_format_auto_resolved_trail_variance_dimension_and_comparison_inferred()
         ["variance_analysis"],
     )
 
-    assert "Metric inferred: attendance_rate" in lines
+    assert "Metric inferred: Attendance Rate" in lines
     assert "Dimension inferred: school" in lines
     assert "Aggregation inferred: mean" in lines
     assert "Comparison direction inferred: bottom" in lines
@@ -194,7 +194,7 @@ def test_format_metrics_analysed_trail_lists_multi_metric_anomaly_metrics():
         ["defects", "downtime_minutes", "units_produced"]
     )
 
-    assert metrics == ["defects", "downtime_minutes", "units_produced"]
+    assert metrics == ["Defects", "Downtime Minutes", "Units Produced"]
 
 
 def test_multi_metric_anomaly_does_not_show_metrics_under_auto_resolved():
@@ -223,7 +223,7 @@ def test_single_metric_anomaly_still_shows_metric_inferred():
     )
     metrics_analysed = format_metrics_analysed_trail(["overtime_hours"])
 
-    assert auto_resolved == ["Metric inferred: overtime_hours"]
+    assert auto_resolved == ["Metric inferred: Overtime Hours"]
     assert metrics_analysed == []
 
 

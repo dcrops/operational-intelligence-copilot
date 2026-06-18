@@ -162,7 +162,7 @@ class TestTransparencyIntegration:
             result.routes,
             metrics_analysed=result.metrics_analysed,
         )
-        assert any(line.startswith("Metric inferred: attendance_rate") for line in trail)
+        assert any(line.startswith("Metric inferred: Attendance Rate") for line in trail)
         assert "Aggregation inferred: mean" in trail
 
     def test_multi_metric_anomaly_shows_metrics_analysed_not_auto_resolved(self):
@@ -204,7 +204,7 @@ class TestTransparencyIntegration:
 
         trail = format_clarification_trail(result.request)
         assert trail == [
-            "Metric selected: downtime_minutes",
+            "Metric selected: Downtime Minutes",
             "Dimension selected: production_line",
         ]
 
