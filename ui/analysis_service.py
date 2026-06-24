@@ -1,4 +1,5 @@
 import pandas as pd
+from dataclasses import replace
 
 from src.operational_intelligence.answer_generator import AnswerGenerator
 from src.operational_intelligence.executive_reasoning import ExecutiveReasoningEngine
@@ -12,6 +13,7 @@ from src.operational_intelligence.models import (
 from src.operational_intelligence.pipeline import OperationalPipeline
 from src.operational_intelligence.reporting import ExecutiveReportGenerator
 from ui.models import AnalysisResult
+from ui.narrative_service import maybe_generate_narrative
 from ui.transparency import resolve_metrics_analysed
 
 
@@ -82,7 +84,7 @@ def run_analysis(
             report=report,
         )
 
-    return AnalysisResult(
+    result = AnalysisResult(
         request=request,
         routes=routes,
         findings=findings,
@@ -93,3 +95,4 @@ def run_analysis(
         temporal_filter=temporal_filter,
         snapshot_context=snapshot_context,
     )
+    return replace(result, narrative=maybe_generate_narrative(result))

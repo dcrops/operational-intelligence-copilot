@@ -1,3 +1,11 @@
+"""Legacy LLM answer generator superseded by the Phase 4 narrative boundary.
+
+This module predates Milestone 11a. Do not wire it into new Phase 4 work.
+Use ``src.operational_intelligence.llm`` narrative types
+(``NarrativeRequestBuilder``, ``NarrativeGenerator``, ``DeterministicNarrativeGenerator``)
+instead. Real LLM integration belongs behind the narrative boundary in later milestones.
+"""
+
 from src.operational_intelligence.llm.prompts import SYSTEM_PROMPT, build_user_prompt
 from src.operational_intelligence.llm.protocol import LLMClient
 from src.operational_intelligence.models import AnalysisRequest, ExecutiveReport, Finding

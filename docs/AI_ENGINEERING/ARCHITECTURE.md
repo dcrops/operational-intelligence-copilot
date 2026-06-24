@@ -219,6 +219,60 @@ Presentation should never contain business logic.
 
 ---
 
+## AI Narrative Layer
+
+Phase 4 introduces an optional AI narrative layer that sits **after** deterministic analysis completes.
+
+**Core principle:** the deterministic platform owns truth; the AI layer owns communication.
+
+The narrative layer may:
+
+* summarise deterministic findings
+* improve readability
+* create executive narrative
+* adapt tone
+* explain deterministic evidence
+
+The narrative layer must not:
+
+* calculate metrics
+* invent findings
+* change risk levels
+* override deterministic conclusions
+* select analytical tools
+* perform routing
+* resolve clarification
+* mutate pipeline results
+* become the source of truth
+
+### Boundary flow (Milestone 11a)
+
+```
+AnalysisResult / ExecutiveReport snapshot
+        ↓
+NarrativeRequest
+        ↓
+NarrativeRequestBuilder
+        ↓
+NarrativeGenerator
+        ↓
+NarrativeResponse
+```
+
+Implementation lives under `src/operational_intelligence/llm/`:
+
+* `narrative_models.py` — frozen `NarrativeRequest` and `NarrativeResponse`
+* `narrative_builder.py` — pure transformer from deterministic snapshots
+* `narrative_protocol.py` — `NarrativeGenerator` interface
+* `deterministic_narrative_generator.py` — deterministic placeholder (no LLM)
+* `narrative_config.py` — `OIC_NARRATIVE_ENABLED` feature flag (default off)
+
+Milestone 11a establishes this contract only. It does not call OpenAI, render narrative in the UI, or replace Direct Answer or Executive Reasoning sections.
+
+When enabled, `AnalysisResult.narrative` may hold a `NarrativeResponse`. Deterministic fields remain unchanged.
+
+---
+
 ## Testing Layer
 
 Testing is treated as a first-class architectural component.

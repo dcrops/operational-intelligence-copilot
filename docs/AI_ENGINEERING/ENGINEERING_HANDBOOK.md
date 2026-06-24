@@ -4,7 +4,7 @@
 **Version:** 1.0  
 **Last Updated:** June 2026  
 **Project Status:** Phase 3 complete — engineering-ready for Phase 4  
-**Current Milestone:** Phase 4 — LLM Narrative Generation (planned)
+**Current Milestone:** Phase 4 — Milestone 11a — AI Integration Boundary
 
 ---
 
@@ -356,9 +356,19 @@ Completed in Phase 3:
 
 The deterministic platform is **engineering-ready** for Phase 4.
 
+Phase 4 principle: **deterministic platform owns truth; AI layer owns communication.**
+
+Completed in Phase 4 (Milestone 11a):
+
+- AI narrative integration boundary under `src/operational_intelligence/llm/`
+- Frozen `NarrativeRequest` / `NarrativeResponse` contract
+- `DeterministicNarrativeGenerator` placeholder (no LLM calls)
+- `OIC_NARRATIVE_ENABLED` feature flag (default off)
+- Boundary tests in `tests/test_narrative_boundary.py`
+
 Next planned work:
 
-Phase 4 — LLM Narrative Generation
+Phase 4 — LLM narrative generation and UI rendering (post-11a)
 
 See [REGRESSION.md](REGRESSION.md) for regression execution and [ROADMAP.md](ROADMAP.md) for milestone history.
 

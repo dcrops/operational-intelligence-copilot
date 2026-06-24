@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+from src.operational_intelligence.llm.narrative_models import NarrativeResponse
 from src.operational_intelligence.models import (
     AnalysisRequest,
     ClarificationRequest,
@@ -24,3 +25,4 @@ class AnalysisResult:
     metrics_analysed: list[str] = field(default_factory=list)
     temporal_filter: TemporalFilterContext | None = None
     snapshot_context: SnapshotContext | None = None
+    narrative: NarrativeResponse | None = None

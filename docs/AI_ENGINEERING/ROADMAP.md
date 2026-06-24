@@ -5,7 +5,7 @@
 **Version:** 1.0
 **Last Updated:** June 2026
 **Current Phase:** Phase 3 complete — Application Quality Engineering  
-**Current Milestone:** Phase 4 — LLM Narrative Generation (planned)
+**Current Milestone:** Phase 4 — Milestone 11a — AI Integration Boundary
 
 ---
 
@@ -228,20 +228,47 @@ Highlights:
 
 Status:
 
-📋 Planned
+🚧 In progress
 
 Objective:
 
 Introduce Large Language Models to improve report narration while preserving deterministic reasoning.
 
-Potential capabilities:
-
-* Executive summaries
-* Narrative enhancement
-* Natural language explanations
-* Report refinement
+**Core principle:** the deterministic platform owns truth; the AI layer owns communication.
 
 Deterministic analytics and executive reasoning remain the source of truth.
+
+### Milestone 11a — AI Integration Boundary
+
+Status:
+
+✅ Completed
+
+Objective:
+
+Establish the architectural contract between deterministic analysis output and future LLM narrative generation.
+
+Delivered:
+
+* Frozen `NarrativeRequest` and `NarrativeResponse` models
+* `NarrativeRequestBuilder` pure transformer
+* `NarrativeGenerator` protocol
+* `DeterministicNarrativeGenerator` placeholder (no external services)
+* `OIC_NARRATIVE_ENABLED` feature flag (default off)
+* Optional `AnalysisResult.narrative` attachment via `ui/narrative_service.py`
+* Boundary tests in `tests/test_narrative_boundary.py`
+
+Explicitly out of scope for 11a:
+
+* OpenAI API calls, prompts, streaming, UI narrative rendering
+* Changes to routing, clarification, analytics, or pipeline orchestration
+
+Future milestones (planned):
+
+* Executive summaries via LLM
+* Narrative enhancement in the UI
+* Natural language explanations
+* Report refinement
 
 ---
 

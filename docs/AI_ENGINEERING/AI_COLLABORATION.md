@@ -247,6 +247,18 @@ Future AI integration should extend the platform rather than replace determinist
 
 ---
 
+# Phase 4 Guidance — AI Narrative Layer
+
+Phase 4 work follows a **boundary-first** approach:
+
+1. Define the narrative contract before enabling real LLM calls.
+2. Preserve the deterministic pipeline — routing, clarification, analytics, and report generation remain unchanged.
+3. Narrative code consumes completed deterministic output only; it must not mutate findings, routes, clarification, direct answers, or executive report sections.
+4. Do not wire legacy `llm_answer_generator.py` into new Phase 4 paths; use the narrative boundary under `src/operational_intelligence/llm/`.
+5. Milestone 11a introduces the boundary and `DeterministicNarrativeGenerator` only — no OpenAI integration, prompts, or UI narrative rendering until later milestones.
+
+---
+
 # Continuous Improvement
 
 Engineering processes should evolve as the project matures.

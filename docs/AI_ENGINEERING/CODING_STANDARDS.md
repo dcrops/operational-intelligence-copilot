@@ -329,6 +329,19 @@ Fixed bug
 
 ---
 
+# Narrative Boundary Convention
+
+Phase 4 narrative code lives under `src/operational_intelligence/llm/`.
+
+Rules:
+
+* Narrative generation must not import or call the operational pipeline, intent router, or clarification engine.
+* `NarrativeRequestBuilder` is a pure transformer from deterministic snapshots — no analytics, no LLM calls.
+* Narrative output (`NarrativeResponse`) must not replace deterministic report sections (Direct Answer, Executive Reasoning, transparency).
+* Enable optional narrative via `OIC_NARRATIVE_ENABLED`; default behaviour remains unchanged when disabled.
+
+---
+
 # Definition of Done
 
 A feature is considered complete when:

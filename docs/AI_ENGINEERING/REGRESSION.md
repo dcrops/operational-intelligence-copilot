@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Last Updated:** June 2026  
-**Milestone:** 10h — Engineering Readiness & Regression
+**Milestone:** 11a — AI Integration Boundary (Phase 4 narrative boundary tests may set `OIC_NARRATIVE_ENABLED`)
 
 This document is the canonical guide for running the Operational Intelligence Copilot regression suite. It describes the three execution tiers established during Phase 3 (Milestones 10c–10g) and the criteria for declaring a regression run successful.
 
@@ -155,6 +155,7 @@ The project is structured for future continuous integration without requiring CI
 | API keys | None required |
 | `.env` files | None required |
 | Network | Not required for tests |
+| Environment variables | Optional — narrative boundary tests may set `OIC_NARRATIVE_ENABLED=1`; default suite runs with narrative disabled |
 | Repeatable install | `pip install -r requirements.txt` |
 | Entry command | `python -m pytest -q` |
 
