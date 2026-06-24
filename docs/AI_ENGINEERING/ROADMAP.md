@@ -5,7 +5,7 @@
 **Version:** 1.0
 **Last Updated:** June 2026
 **Current Phase:** Application Quality Engineering
-**Current Milestone:** Milestone 10g — Upload & Dataset Workflow Testing
+**Current Milestone:** 10h — Performance & Regression Testing
 
 ---
 
@@ -189,15 +189,18 @@ Behavioural AppTests expanded
 
 ---
 
-### 10g — Upload & Dataset Workflow Testing
+### Milestone 10g
 
-Validate:
+Status
 
-* CSV uploads
-* Invalid datasets
-* Missing columns
-* Error handling
-* Dataset lifecycle
+✅ Completed
+
+Highlights
+
+• Dataset onboarding validated
+• Dataset replacement validated
+• Invalid dataset recovery validated
+• Dataset lifecycle behavioural testing completed
 
 ---
 
@@ -366,3 +369,25 @@ This roadmap should be read alongside:
 * AI_COLLABORATION.md
 
 Together these documents describe the engineering standards, architecture, collaboration model, and future direction of the Operational Intelligence Copilot.
+
+# Future Considerations
+
+The following items have been identified as potential future enhancements.
+They are intentionally outside the current engineering roadmap and will be
+prioritised once the core application reaches MVP.
+
+## Dataset Management
+
+- Support Excel (.xlsx) upload through a dedicated Dataset Loader abstraction.
+- Support multiple uploaded datasets within a workspace.
+- Enable cross-dataset analytical comparisons.
+- Introduce dataset versioning and dataset identity management.
+- Support saved analysis sessions.
+
+## Future Analytics
+
+(Add future ideas here as they arise.)
+
+## Future Engineering
+
+(Add engineering improvements here.)

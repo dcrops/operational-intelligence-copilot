@@ -57,6 +57,33 @@ def user_visible_text(app: AppTest) -> str:
     return "\n".join(parts)
 
 
+def sidebar_visible_text(app: AppTest) -> str:
+    """Aggregate user-visible sidebar text for lifecycle assertions."""
+    parts: list[str] = []
+    sidebar = app.sidebar
+    for element in sidebar.markdown:
+        if element.value:
+            parts.append(element.value)
+    for element in sidebar.subheader:
+        if element.value:
+            parts.append(element.value)
+    for element in sidebar.caption:
+        if element.value:
+            parts.append(element.value)
+    for element in sidebar.error:
+        if element.value:
+            parts.append(element.value)
+    for element in sidebar.success:
+        if element.value:
+            parts.append(element.value)
+    for element in sidebar.metric:
+        if element.label:
+            parts.append(element.label)
+        if element.value is not None:
+            parts.append(str(element.value))
+    return "\n".join(parts)
+
+
 def assert_section_visible(app: AppTest, section_title: str) -> None:
     """Assert a user-visible report section heading is present."""
     visible = user_visible_text(app)
@@ -79,6 +106,44 @@ def assert_bootstrap_prompt_visible(app: AppTest) -> None:
     )
 
 
+def assert_bootstrap_prompt_hidden(app: AppTest) -> None:
+    """Assert the bootstrap dataset prompt is not shown."""
+    assert not any(
+        "Upload a CSV in the sidebar or load a sample dataset" in (info.value or "")
+        for info in app.info
+    )
+
+
+def assert_dataset_preview_visible(app: AppTest) -> None:
+    from tests.app.golden_expectations import SECTION_DATASET_PREVIEW
+
+    assert_section_visible(app, SECTION_DATASET_PREVIEW)
+
+
+def assert_profile_summary_visible(app: AppTest) -> None:
+    from tests.app.golden_expectations import PROFILE_SUMMARY_HEADING
+
+    sidebar = sidebar_visible_text(app)
+    assert PROFILE_SUMMARY_HEADING in sidebar, (
+        f"Expected {PROFILE_SUMMARY_HEADING!r} in sidebar."
+    )
+    assert "Rows" in sidebar, "Expected Rows profile indicator in sidebar."
+    assert "Columns" in sidebar, "Expected Columns profile indicator in sidebar."
+
+
+def assert_load_success_visible(app: AppTest) -> None:
+    from tests.app.golden_expectations import LOAD_SUCCESS_MARKER
+
+    assert LOAD_SUCCESS_MARKER in sidebar_visible_text(app)
+
+
+def assert_sidebar_error_contains(app: AppTest, marker: str) -> None:
+    sidebar = sidebar_visible_text(app).lower()
+    assert marker.lower() in sidebar, (
+        f"Expected sidebar error marker {marker!r}. Sidebar text: {sidebar_visible_text(app)!r}"
+    )
+
+
 def assert_dataset_loaded(app: AppTest) -> None:
     """Assert a dataset is present in session state."""
     assert app.session_state["df"] is not None
@@ -98,10 +163,25 @@ def upload_dataset(app: AppTest, csv_path: Path, *, filename: str | None = None)
     """Upload a CSV through the sidebar file uploader (future upload journeys)."""
     upload_name = filename or csv_path.name
     with csv_path.open("rb") as handle:
-        app.sidebar.file_uploader[0].upload({upload_name: handle.read()}).run()
+        app.sidebar.file_uploader[0].upload(upload_name, handle.read()).run()
     assert_no_app_exception(app)
     assert_dataset_loaded(app)
+    assert_load_success_visible(app)
     return app
+
+
+def attempt_invalid_upload(app: AppTest, csv_path: Path, *, filename: str | None = None) -> AppTest:
+    """Upload a CSV without asserting that a dataset was loaded."""
+    upload_name = filename or csv_path.name
+    with csv_path.open("rb") as handle:
+        app.sidebar.file_uploader[0].upload(upload_name, handle.read()).run()
+    assert_no_app_exception(app)
+    return app
+
+
+def replace_sample_dataset(app: AppTest, sample_label: str) -> AppTest:
+    """Load a different sidebar sample dataset, replacing the active dataset."""
+    return load_sample_dataset(app, sample_label)
 
 
 def ask_question(app: AppTest, question: str) -> AppTest:
@@ -147,7 +227,14 @@ def assert_clarification_visible(app: AppTest, *, clarification_type: str | None
 def assert_results_visible(app: AppTest) -> None:
     """Assert the results panel is shown."""
     assert_section_visible(app, SECTION_RESULTS)
-    assert not app.error, f"Unexpected app error: {[item.value for item in app.error]}"
+    blocking_errors = [
+        item.value
+        for item in app.error
+        if item.value
+        and "uploaded CSV is empty" not in item.value
+        and "Could not read CSV" not in item.value
+    ]
+    assert not blocking_errors, f"Unexpected app error: {blocking_errors}"
 
 
 def assert_direct_answer(app: AppTest) -> None:
@@ -294,12 +381,29 @@ def execute_golden_question(app: AppTest, golden_question: GoldenQuestion) -> Ap
     return app
 
 
+def _final_golden_question(scenario: GoldenScenario) -> GoldenQuestion:
+    if scenario.replacement_question is not None:
+        return scenario.replacement_question
+    if scenario.follow_up_question is not None:
+        return scenario.follow_up_question
+    return scenario.question
+
+
 def assert_journey_outcome(app: AppTest, scenario_id: str) -> None:
     """Assert the registered behavioural outcome for a golden user journey."""
     scenario = get_scenario(scenario_id)
-    question = scenario.question
+    question = _final_golden_question(scenario)
 
     assert_no_app_exception(app)
+
+    if scenario_id == "dataset_onboarding_journey":
+        assert_bootstrap_prompt_hidden(app)
+        assert_dataset_preview_visible(app)
+        assert_profile_summary_visible(app)
+
+    if scenario.invalid_fixture_path is not None:
+        assert_sidebar_error_contains(app, scenario.invalid_error_marker)
+        assert_dataset_preview_visible(app)
 
     if question.clarification_steps:
         assert_clarification_resolved(app)
@@ -360,6 +464,19 @@ def run_golden_scenario(app: AppTest, scenario_id: str) -> AppTest:
         upload_dataset(app, dataset.csv_path)
 
     execute_golden_question(app, scenario.question)
+
+    if scenario.replacement_dataset is not None:
+        assert scenario.replacement_dataset.sidebar_label is not None
+        replace_sample_dataset(app, scenario.replacement_dataset.sidebar_label)
+        assert_section_hidden(app, SECTION_RESULTS)
+        assert_dataset_preview_visible(app)
+        assert_profile_summary_visible(app)
+        if scenario.replacement_question is not None:
+            execute_golden_question(app, scenario.replacement_question)
+
+    if scenario.invalid_fixture_path is not None:
+        attempt_invalid_upload(app, scenario.invalid_fixture_path)
+        execute_golden_question(app, scenario.question)
 
     if scenario.follow_up_question is not None:
         run_follow_up_question(app, scenario.follow_up_question)

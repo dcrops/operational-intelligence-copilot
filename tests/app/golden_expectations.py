@@ -58,6 +58,11 @@ SNAPSHOT_TRANSPARENCY_MARKER = "Snapshot mode activated:"
 TEMPORAL_FILTER_MARKER = "Applied temporal filter:"
 SNAPSHOT_CONTRIBUTORS_MARKER = "Snapshot contributors:"
 
+SECTION_DATASET_PREVIEW = "Dataset Preview"
+PROFILE_SUMMARY_HEADING = "Profile summary"
+LOAD_SUCCESS_MARKER = "Loaded"
+INVALID_EMPTY_CSV_MARKER = "uploaded CSV is empty"
+
 
 @dataclass(frozen=True)
 class GoldenDataset:
@@ -103,6 +108,10 @@ class GoldenScenario:
     question: GoldenQuestion
     description: str = ""
     follow_up_question: GoldenQuestion | None = None
+    replacement_dataset: GoldenDataset | None = None
+    replacement_question: GoldenQuestion | None = None
+    invalid_fixture_path: Path | None = None
+    invalid_error_marker: str = ""
 
 
 GOLDEN_DATASETS: dict[str, GoldenDataset] = {
@@ -394,6 +403,52 @@ GOLDEN_SCENARIOS: dict[str, GoldenScenario] = {
             expects_snapshot=True,
             expects_snapshot_contributors=True,
         ),
+    ),
+    "dataset_onboarding_journey": GoldenScenario(
+        scenario_id="dataset_onboarding_journey",
+        dataset=GOLDEN_DATASETS["workforce_demo"],
+        description=(
+            "Milestone 10g: upload path loads a valid CSV, profiles it, and "
+            "supports analysis."
+        ),
+        question=GoldenQuestion(
+            question="Which department has the highest hours?",
+            expected_outcome=ExpectedOutcome.RESULTS,
+            visible_sections=(SECTION_DIRECT_ANSWER,),
+        ),
+    ),
+    "dataset_replacement_journey": GoldenScenario(
+        scenario_id="dataset_replacement_journey",
+        dataset=GOLDEN_DATASETS["manufacturing_demo"],
+        description=(
+            "Milestone 10g: loading a second dataset clears stale analysis "
+            "results and supports a new analysis."
+        ),
+        question=GoldenQuestion(
+            question="Which production line has the highest defects?",
+            expected_outcome=ExpectedOutcome.RESULTS,
+        ),
+        replacement_dataset=GOLDEN_DATASETS["education_demo"],
+        replacement_question=GoldenQuestion(
+            question="Which school has the highest behaviour incidents?",
+            expected_outcome=ExpectedOutcome.RESULTS,
+            visible_sections=(SECTION_DIRECT_ANSWER,),
+        ),
+    ),
+    "dataset_invalid_recovery_journey": GoldenScenario(
+        scenario_id="dataset_invalid_recovery_journey",
+        dataset=GOLDEN_DATASETS["manufacturing_demo"],
+        description=(
+            "Milestone 10g: reject an empty upload while preserving the active "
+            "dataset and recovery analysis."
+        ),
+        question=GoldenQuestion(
+            question="Which production line has the highest defects?",
+            expected_outcome=ExpectedOutcome.RESULTS,
+            visible_sections=(SECTION_DIRECT_ANSWER,),
+        ),
+        invalid_fixture_path=SAMPLE_DATA_DIR / "fixtures" / "empty.csv",
+        invalid_error_marker=INVALID_EMPTY_CSV_MARKER,
     ),
 }
 
