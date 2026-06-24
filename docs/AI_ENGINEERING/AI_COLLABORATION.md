@@ -1,338 +1,256 @@
-# Operational Intelligence Copilot
-
 # AI Collaboration Guide
 
-**Version:** 1.0
-**Last Updated:** June 2026
+**Project:** Operational Intelligence Copilot
+
+**Purpose:** Define the engineering workflow used when collaborating with AI assistants throughout the project.
+
+This document is part of the Engineering Knowledge Base and should evolve alongside the codebase.
 
 ---
 
-# Purpose
+# Philosophy
 
-This document describes how AI tools are used during the development of the Operational Intelligence Copilot.
+This project is an AI Engineering apprenticeship rather than simply an application.
 
-The objective is not to replace software engineering with AI.
+The objective is not only to build software, but also to demonstrate professional engineering practices suitable for an AI Engineering portfolio.
 
-The objective is to combine human engineering judgement with AI-assisted development to produce higher-quality software.
+AI assistants are treated as engineering collaborators rather than autonomous code generators.
 
-This document serves as the standard operating procedure for collaboration between the human engineer, ChatGPT, Cursor, and future AI development tools.
-
----
-
-# Guiding Philosophy
-
-AI is treated as an engineering partner, not an autonomous developer.
-
-Human judgement remains responsible for:
-
-* Architecture
-* Engineering decisions
-* Trade-off analysis
-* Testing
-* Product direction
-* Final approval
-
-AI accelerates implementation, documentation, review, and learning.
+Engineering judgement always remains the responsibility of the human engineer.
 
 ---
 
-# Roles and Responsibilities
+# Primary Engineering Principles
 
-## Human Engineer
+Throughout the project we prioritise:
 
-The human engineer owns the project.
+* maintainability over cleverness
+* readability over brevity
+* deterministic behaviour over hidden magic
+* reusable infrastructure over duplication
+* engineering discipline over rapid feature delivery
 
-Responsibilities include:
-
-* Defining project goals
-* Approving architecture
-* Making engineering decisions
-* Reviewing AI-generated code
-* Running tests
-* Committing code
-* Learning and understanding the implementation
-
-The human engineer remains accountable for all code committed to the repository.
+The objective is to build software that another engineer could confidently maintain.
 
 ---
+
+# Engineering Knowledge Base
+
+The Engineering Knowledge Base is the authoritative source of truth for the project.
+
+It currently consists of:
+
+* ENGINEERING_HANDBOOK.md
+* ARCHITECTURE.md
+* ROADMAP.md
+* CODING_STANDARDS.md
+* REGRESSION.md
+* PERFORMANCE_BASELINES.md
+* PHASE_3_ENGINEERING_REVIEW.md
+* AI_COLLABORATION.md
+
+If previous conversation context conflicts with these documents, the Engineering Knowledge Base takes precedence.
+
+These documents are living documents and should evolve alongside the implementation.
+
+---
+
+# Engineering Workflow
+
+Development follows a disciplined engineering workflow.
+
+1. Discuss architecture.
+
+2. Challenge assumptions.
+
+3. Design a milestone.
+
+4. Create an implementation plan.
+
+5. Review the plan.
+
+6. Use Cursor PLAN Mode.
+
+7. Review the PLAN.
+
+8. Use Cursor AGENT Mode.
+
+9. Review implementation.
+
+10. Execute automated testing.
+
+11. Perform manual validation where appropriate.
+
+12. Review engineering outcomes.
+
+13. Commit to Git.
+
+14. Update engineering documentation.
+
+Engineering decisions should be made before implementation whenever practical.
+
+---
+
+# Roles
 
 ## ChatGPT
 
-ChatGPT acts as a Senior AI Engineering Advisor.
+Primary responsibilities:
 
-Primary responsibilities include:
+* architecture guidance
+* engineering reviews
+* trade-off analysis
+* milestone design
+* documentation
+* engineering education
+* portfolio strategy
+* challenging assumptions
 
-* Architecture design
-* Milestone planning
-* Engineering reviews
-* Trade-off analysis
-* Code critique
-* Testing strategy
-* Documentation
-* Project planning
-* Explaining engineering concepts
-* Challenging assumptions
-
-ChatGPT should prioritise engineering quality over implementation speed.
-
-It should critically review proposed solutions rather than automatically accepting them.
+ChatGPT reviews implementation but does not automatically approve design decisions.
 
 ---
 
 ## Cursor
 
-Cursor is responsible for implementation.
+Primary responsibilities:
 
-It is used in two distinct modes.
+* implementation
+* repository analysis
+* PLAN Mode
+* AGENT Mode
+* repository-wide engineering review
+* code generation
+* refactoring within approved scope
 
-### PLAN Mode
-
-PLAN Mode is used before implementation.
-
-Objectives include:
-
-* Reviewing proposed architecture
-* Planning implementation
-* Identifying affected files
-* Estimating scope
-* Highlighting risks
-
-No code should be written until the plan has been reviewed.
+Cursor is responsible for implementation rather than architectural direction.
 
 ---
 
-### AGENT Mode
+## Human Engineer
 
-AGENT Mode performs implementation.
+Final responsibility always remains with the project owner.
 
-Typical responsibilities include:
+Responsibilities include:
 
-* Writing production code
-* Refactoring
-* Creating tests
-* Updating documentation
-* Applying agreed architectural changes
+* approving architecture
+* accepting or rejecting recommendations
+* validating behaviour
+* deciding milestone scope
+* maintaining engineering quality
 
-Each Agent task should implement only a single milestone wherever practical.
-
----
-
-# Standard Development Workflow
-
-Every feature follows the same engineering workflow.
-
-```text
-Idea
-
-↓
-
-Architecture Discussion (ChatGPT)
-
-↓
-
-Milestone Definition
-
-↓
-
-Cursor PLAN Mode
-
-↓
-
-Human Review
-
-↓
-
-Cursor AGENT Mode
-
-↓
-
-Implementation
-
-↓
-
-Human Review
-
-↓
-
-Testing
-
-↓
-
-Architecture Review
-
-↓
-
-Git Commit
-
-↓
-
-Update Documentation
-
-↓
-
-Next Milestone
-```
-
-This workflow intentionally favours small, incremental progress over large, difficult-to-review changes.
+AI recommendations are considered inputs rather than requirements.
 
 ---
 
-# Milestone Strategy
+# Milestone Philosophy
 
-Every milestone should:
+Milestones should remain intentionally small.
 
-* Have a single responsibility
-* Be independently reviewable
-* Be independently testable
-* Produce a meaningful Git commit
+Each milestone should:
 
-Large architectural changes should be broken into multiple milestones.
+* have one responsibility
+* be independently reviewable
+* be independently testable
+* produce a meaningful Git commit
+* improve the engineering quality of the project
 
-Examples:
-
-Instead of:
-
-> Build Executive Reasoning
-
-The work was divided into:
-
-* Executive Themes
-* Operational Assessment
-* Executive Conclusions
-* Priority Actions
-* Integration
-
-This approach improves review quality and reduces implementation risk.
+Avoid combining unrelated work into a single milestone.
 
 ---
 
-# Code Review Process
+# Review Process
 
-AI-generated code is never assumed to be correct.
+Every milestone should include:
 
-Every milestone should be reviewed before acceptance.
+* implementation review
+* automated testing
+* manual validation (where appropriate)
+* Git review
+* documentation review
 
-Reviews should consider:
+Major project phases should additionally include:
 
-* Architecture
-* Maintainability
-* Readability
-* Reusability
-* Testability
-* Future extensibility
+* repository-wide engineering review
+* architecture review
+* engineering readiness assessment
 
-The goal is to improve engineering quality rather than simply confirm correctness.
-
----
-
-# Testing Workflow
-
-Testing is performed continuously throughout development.
-
-Typical workflow:
-
-1. Unit tests
-2. Integration tests
-3. Streamlit AppTests
-4. Manual application review
-5. Full regression suite
-6. Git commit
-
-Application behaviour is verified before new development begins.
+The completion of Phase 3 established this as the standard approach for future major phases.
 
 ---
 
-# Learning Philosophy
+# Testing Philosophy
 
-This project is intentionally treated as an AI Engineering apprenticeship.
+The project prioritises behavioural confidence over implementation detail.
 
-The objective is not simply to build software.
+Testing strategy includes:
 
-The objective is to understand:
+* unit tests
+* integration tests
+* behavioural Streamlit AppTests
+* Golden Dataset Registry
+* Golden Scenario Registry
+* manual smoke testing
+* regression execution
 
-* Why architectural decisions were made
-* Why one design is preferable to another
-* Engineering trade-offs
-* Production-quality practices
-* Modern AI Engineering workflows
+Behavioural tests should validate user-visible outcomes rather than implementation details.
 
-Where appropriate:
+Regression execution is documented in:
 
-* ask questions
-* request explanations
-* challenge assumptions
-* review alternatives
+* REGRESSION.md
 
-Understanding is considered more valuable than rapid implementation.
+Performance reference measurements are documented in:
 
----
-
-# Engineering Principles
-
-Throughout development, the following principles should be maintained:
-
-* Deterministic reasoning before LLM reasoning
-* Evidence before conclusions
-* Infrastructure before features
-* Reuse before duplication
-* Architecture before implementation
-* Behaviour over implementation details
-* Small milestones
-* Continuous testing
-* Continuous review
+* PERFORMANCE_BASELINES.md
 
 ---
 
-# Documentation Workflow
+# Documentation Philosophy
 
-Documentation evolves alongside the codebase.
+Documentation is treated as part of the software.
 
-Major architectural changes should update:
+Engineering documentation should remain synchronised with implementation.
 
-* Engineering Handbook
-* Architecture
-* Roadmap
-
-where appropriate.
-
-Documentation is considered part of the deliverable rather than an afterthought.
+Changes affecting architecture, engineering workflow or development practices should update the relevant engineering documents as part of the same milestone whenever practical.
 
 ---
 
-# AI Tool Evolution
+# Architecture First
 
-The project currently uses:
+Before implementation, engineering discussions should focus on:
 
-* ChatGPT
-* Cursor
+* architectural boundaries
+* engineering trade-offs
+* maintainability
+* future extensibility
+* testing implications
 
-Future tools (such as Codex or other AI engineering assistants) may be incorporated if they provide measurable improvements in quality, productivity, or review capability.
-
-New tools should complement the existing workflow rather than replace engineering judgement.
-
----
-
-# Definition of Success
-
-AI collaboration is considered successful when it results in:
-
-* Better engineering decisions
-* Cleaner architecture
-* Improved documentation
-* Higher-quality testing
-* Increased understanding
-* Faster implementation without sacrificing maintainability
-
-Success is measured by engineering quality rather than the amount of AI-generated code.
+Implementation should follow architecture rather than drive it.
 
 ---
 
-# Related Documentation
+# AI Integration Philosophy
 
-This guide should be read alongside:
+The project deliberately separates deterministic reasoning from probabilistic AI.
 
-* ENGINEERING_HANDBOOK.md
-* ARCHITECTURE.md
-* ROADMAP.md
+Deterministic systems establish analytical facts.
 
-Together these documents describe the engineering philosophy, system architecture, project roadmap, and AI-assisted development workflow for the Operational Intelligence Copilot.
+Future AI capabilities communicate those facts.
+
+This distinction preserves:
+
+* explainability
+* governance
+* engineering confidence
+* regression stability
+
+Future AI integration should extend the platform rather than replace deterministic reasoning.
+
+---
+
+# Continuous Improvement
+
+Engineering processes should evolve as the project matures.
+
+If a workflow proves beneficial during development, it should be incorporated into this document so future collaboration remains consistent.
+
+The Engineering Knowledge Base should accurately describe how the project is engineered at every stage of its evolution.
