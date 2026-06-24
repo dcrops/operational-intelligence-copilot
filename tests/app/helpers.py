@@ -175,6 +175,16 @@ def assert_executive_conclusions(app: AppTest) -> None:
     assert_section_visible(app, SECTION_EXECUTIVE_CONCLUSIONS)
 
 
+def assert_clarification_options_available(app: AppTest, *, clarification_type: str) -> None:
+    """Assert the user can choose from multiple clarification options."""
+    radio = app.radio(key=f"clarification_{clarification_type}")
+    assert radio is not None, f"Expected clarification radio for {clarification_type!r}"
+    assert len(radio.options) >= 2, (
+        f"Expected multiple clarification options for {clarification_type!r}, "
+        f"got {len(radio.options)}"
+    )
+
+
 def assert_clarification_resolved(app: AppTest) -> None:
     """Assert clarification workflow is no longer blocking results."""
     assert_section_hidden(app, SECTION_CLARIFICATION)
@@ -221,6 +231,10 @@ def execute_golden_question(app: AppTest, golden_question: GoldenQuestion) -> Ap
     if golden_question.clarification_steps:
         for step in golden_question.clarification_steps:
             assert_clarification_visible(app, clarification_type=step.clarification_type)
+            assert_clarification_options_available(
+                app,
+                clarification_type=step.clarification_type,
+            )
             if step.option is not None:
                 select_clarification_option(
                     app,
@@ -232,6 +246,10 @@ def execute_golden_question(app: AppTest, golden_question: GoldenQuestion) -> Ap
         assert_results_visible(app)
     elif golden_question.expected_outcome is ExpectedOutcome.CLARIFICATION:
         assert_clarification_visible(app, clarification_type=golden_question.clarification_type)
+        assert_clarification_options_available(
+            app,
+            clarification_type=golden_question.clarification_type,
+        )
         return app
     else:
         assert_results_visible(app)
@@ -267,6 +285,32 @@ def assert_journey_outcome(app: AppTest, scenario_id: str) -> None:
         assert_expected_sections(app, question.visible_sections)
 
 
+def run_follow_up_question(app: AppTest, golden_question: GoldenQuestion) -> AppTest:
+    """Ask a follow-up question and verify analysis completes without clarification."""
+    ask_question(app, golden_question.question)
+    run_analysis(app)
+    assert_clarification_resolved(app)
+    assert_results_visible(app)
+
+    if golden_question.visible_sections:
+        assert_expected_sections(app, golden_question.visible_sections)
+
+    return app
+
+
+def assert_clarification_journey_outcome(app: AppTest, scenario_id: str) -> None:
+    """Assert clarification resolved and final report behaviour for a journey."""
+    scenario = get_scenario(scenario_id)
+    final_question = scenario.follow_up_question or scenario.question
+
+    assert_no_app_exception(app)
+    assert_clarification_resolved(app)
+    assert_results_visible(app)
+
+    if final_question.visible_sections:
+        assert_expected_sections(app, final_question.visible_sections)
+
+
 def run_golden_scenario(app: AppTest, scenario_id: str) -> AppTest:
     """Load a golden dataset and execute its registered question journey."""
     scenario = get_scenario(scenario_id)
@@ -278,4 +322,8 @@ def run_golden_scenario(app: AppTest, scenario_id: str) -> AppTest:
         upload_dataset(app, dataset.csv_path)
 
     execute_golden_question(app, scenario.question)
+
+    if scenario.follow_up_question is not None:
+        run_follow_up_question(app, scenario.follow_up_question)
+
     return app

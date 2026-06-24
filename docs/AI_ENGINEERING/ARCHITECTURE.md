@@ -1,0 +1,383 @@
+# Operational Intelligence Copilot
+
+# Architecture
+
+**Version:** 1.0
+**Last Updated:** June 2026
+**Current Milestone:** 10d – Golden User Journeys (In Progress)
+
+---
+
+# Purpose
+
+This document describes the current software architecture of the Operational Intelligence Copilot.
+
+It provides a high-level overview of the major components, their responsibilities, and the flow of information through the system.
+
+This document intentionally focuses on architecture rather than implementation details.
+
+---
+
+# Architectural Goals
+
+The architecture has been designed around the following principles:
+
+* Domain agnostic
+* Explainable
+* Deterministic
+* Modular
+* Testable
+* Extensible
+* Production-oriented
+
+The application separates analytical reasoning from presentation and future LLM capabilities.
+
+---
+
+# High-Level Pipeline
+
+```text
+Dataset
+    │
+    ▼
+Dataset Profiling
+    │
+    ▼
+Intent Routing
+    │
+    ▼
+Clarification Detection
+    │
+    ▼
+Analytical Tool Selection
+    │
+    ▼
+┌──────────────────────────────┐
+│ Analytical Tools             │
+│                              │
+│ • Trend Analysis             │
+│ • Variance Analysis          │
+│ • Anomaly Detection          │
+│ • Snapshot Analysis          │
+└──────────────────────────────┘
+    │
+    ▼
+Evidence Generation
+    │
+    ▼
+Risk Assessment
+    │
+    ▼
+Executive Reasoning
+    │
+    ▼
+Executive Report
+    │
+    ▼
+Presentation Layer
+    │
+    ▼
+Application Testing
+```
+
+---
+
+# Layer Responsibilities
+
+## Dataset Layer
+
+Responsible for:
+
+* Loading CSV datasets
+* Dataset validation
+* Dataset selection
+* Future multi-dataset support
+
+The dataset layer should remain independent of analytical logic.
+
+---
+
+## Dataset Profiling
+
+Automatically analyses uploaded datasets.
+
+Produces:
+
+* potential metrics
+* potential dimensions
+* date columns
+* identifier columns
+* suggested analytical tools
+
+The remainder of the application depends upon the generated profile rather than hardcoded schemas.
+
+---
+
+## Intent Routing
+
+Determines what analytical task the user is requesting.
+
+Examples include:
+
+* trend analysis
+* variance analysis
+* anomaly detection
+* snapshot analysis
+
+Intent routing determines which analytical tool should execute.
+
+---
+
+## Clarification Engine
+
+Detects ambiguity before analysis begins.
+
+Examples include:
+
+* missing metric
+* missing dimension
+* ambiguous terminology
+
+The objective is to avoid making unsupported assumptions.
+
+---
+
+## Analytical Layer
+
+The analytical layer performs deterministic calculations.
+
+Current analytical tools include:
+
+* Trend Analysis
+* Variance Analysis
+* Anomaly Detection
+* Snapshot Analysis
+
+Analytical tools do not generate conclusions.
+
+They generate evidence only.
+
+---
+
+## Evidence Layer
+
+Evidence represents structured analytical output.
+
+Evidence should remain deterministic and traceable.
+
+Evidence forms the input to later reasoning layers.
+
+---
+
+## Risk Assessment
+
+Converts analytical evidence into structured findings.
+
+Findings provide a common representation that can be consumed by the reasoning layer.
+
+---
+
+## Executive Reasoning
+
+The Executive Reasoning layer transforms findings into executive-level reasoning.
+
+Current components include:
+
+* Executive Themes
+* Operational Assessment
+* Executive Conclusions
+* Priority Actions
+
+This layer performs deterministic reasoning.
+
+It does not perform analytical calculations.
+
+---
+
+## Executive Report
+
+Aggregates all report content into a single structured object.
+
+This report becomes the contract between backend reasoning and presentation.
+
+The presentation layer should not perform additional reasoning.
+
+---
+
+## Presentation Layer
+
+Implemented using Streamlit.
+
+Responsible only for:
+
+* rendering reports
+* displaying reasoning
+* displaying transparency
+* accepting user interaction
+
+Presentation should never contain business logic.
+
+---
+
+## Testing Layer
+
+Testing is treated as a first-class architectural component.
+
+Current testing layers include:
+
+* Unit Tests
+* Integration Tests
+* Streamlit AppTests
+* Golden Dataset Registry
+* Golden User Journeys
+
+Future additions include:
+
+* Playwright browser tests
+* LLM evaluation
+* Performance regression
+
+---
+
+# Architectural Boundaries
+
+The project deliberately separates responsibilities.
+
+```
+Analytics
+
+↓
+
+Evidence
+
+↓
+
+Reasoning
+
+↓
+
+Presentation
+```
+
+These boundaries should remain intact.
+
+Avoid introducing presentation logic into analytical components.
+
+Avoid introducing analytical behaviour into presentation components.
+
+---
+
+# Current Major Components
+
+Current high-level modules include:
+
+* Dataset Profiler
+* Intent Router
+* Clarification Engine
+* Trend Analysis Tool
+* Variance Analysis Tool
+* Anomaly Detection Tool
+* Snapshot Analysis Tool
+* Risk Assessment Engine
+* Executive Reasoning Engine
+* Executive Report Generator
+* Answer Generator
+* Transparency Engine
+
+---
+
+# Current Repository Organisation
+
+The repository is organised into logical engineering areas.
+
+Examples include:
+
+```text
+src/
+    operational_intelligence/
+
+tests/
+
+ui/
+
+docs/
+
+data/
+```
+
+Future architectural changes should preserve this modular organisation.
+
+---
+
+# Current Testing Architecture
+
+The project currently follows a layered testing strategy.
+
+```
+Unit Tests
+
+↓
+
+Integration Tests
+
+↓
+
+Application Tests
+
+↓
+
+Future Browser Tests
+
+↓
+
+Future LLM Evaluation
+```
+
+Testing infrastructure should remain reusable.
+
+Golden datasets and golden scenarios should be reused across multiple testing layers.
+
+---
+
+# Future Architecture
+
+The current architecture intentionally leaves room for future capabilities.
+
+Planned architectural additions include:
+
+* Multi-dataset workspaces
+* Historical dataset collections
+* LLM narrative generation
+* LLM evaluation framework
+* Agentic workflow orchestration
+* Production deployment
+* Multi-organisation support
+
+These capabilities should extend the existing architecture rather than replace it.
+
+---
+
+# Architectural Principles
+
+The following principles should guide future development.
+
+* Maintain deterministic reasoning.
+* Separate analytics from reasoning.
+* Separate reasoning from presentation.
+* Reuse infrastructure before adding features.
+* Protect module boundaries.
+* Prefer composition over duplication.
+* Optimise for maintainability.
+* Build for explainability.
+
+---
+
+# Related Documentation
+
+This document should be read alongside:
+
+* ENGINEERING_HANDBOOK.md
+* ROADMAP.md
+* AI_COLLABORATION.md
+
+Together these documents describe how the Operational Intelligence Copilot is engineered, implemented, and evolved.

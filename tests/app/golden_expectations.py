@@ -98,6 +98,7 @@ class GoldenScenario:
     dataset: GoldenDataset
     question: GoldenQuestion
     description: str = ""
+    follow_up_question: GoldenQuestion | None = None
 
 
 GOLDEN_DATASETS: dict[str, GoldenDataset] = {
@@ -162,6 +163,13 @@ def _education_snapshot_journey_sections() -> tuple[str, ...]:
 
 def _workforce_clarification_journey_sections() -> tuple[str, ...]:
     return (EXECUTIVE_REASONING_HEADING,)
+
+
+CLARIFICATION_COMPLETE_SECTIONS: tuple[str, ...] = (
+    SECTION_DIRECT_ANSWER,
+    EXECUTIVE_REASONING_HEADING,
+    SECTION_SYSTEM_TRANSPARENCY,
+)
 
 
 GOLDEN_SCENARIOS: dict[str, GoldenScenario] = {
@@ -246,15 +254,71 @@ GOLDEN_SCENARIOS: dict[str, GoldenScenario] = {
             visible_sections=_workforce_clarification_journey_sections(),
         ),
     ),
-    "education_performance_clarification": GoldenScenario(
-        scenario_id="education_performance_clarification",
+    "education_metric_clarification_journey": GoldenScenario(
+        scenario_id="education_metric_clarification_journey",
         dataset=GOLDEN_DATASETS["education_demo"],
-        description="Ambiguous performance question requires metric clarification.",
+        description=(
+            "Milestone 10e: ambiguous performance question requires metric "
+            "clarification before results are shown."
+        ),
         question=GoldenQuestion(
             question="How has performance changed?",
             expected_outcome=ExpectedOutcome.CLARIFICATION,
             clarification_type="metric",
-            notes="Future Milestone 10e education clarification journey.",
+            clarification_steps=(
+                ClarificationStep(clarification_type="metric", option="attendance_rate"),
+            ),
+            visible_sections=CLARIFICATION_COMPLETE_SECTIONS,
+        ),
+    ),
+    "education_dimension_clarification_journey": GoldenScenario(
+        scenario_id="education_dimension_clarification_journey",
+        dataset=GOLDEN_DATASETS["education_demo"],
+        description=(
+            "Milestone 10e: causal question requires dimension clarification "
+            "before analysis completes."
+        ),
+        question=GoldenQuestion(
+            question="What caused attendance to drop?",
+            expected_outcome=ExpectedOutcome.CLARIFICATION,
+            clarification_type="dimension",
+            clarification_steps=(
+                ClarificationStep(clarification_type="dimension", option="school"),
+            ),
+            visible_sections=CLARIFICATION_COMPLETE_SECTIONS,
+        ),
+    ),
+    "workforce_clarification_recovery_journey": GoldenScenario(
+        scenario_id="workforce_clarification_recovery_journey",
+        dataset=GOLDEN_DATASETS["workforce_demo_v2"],
+        description=(
+            "Milestone 10e: resolve metric clarification, then run a second "
+            "question without stale clarification UI."
+        ),
+        question=GoldenQuestion(
+            question="How has performance changed?",
+            expected_outcome=ExpectedOutcome.CLARIFICATION,
+            clarification_type="metric",
+            clarification_steps=(ClarificationStep(clarification_type="metric", option="hours"),),
+        ),
+        follow_up_question=GoldenQuestion(
+            question="Which department has the highest hours?",
+            expected_outcome=ExpectedOutcome.RESULTS,
+            visible_sections=CLARIFICATION_COMPLETE_SECTIONS,
+        ),
+    ),
+    "education_performance_clarification": GoldenScenario(
+        scenario_id="education_performance_clarification",
+        dataset=GOLDEN_DATASETS["education_demo"],
+        description="Registry alias for education_metric_clarification_journey.",
+        question=GoldenQuestion(
+            question="How has performance changed?",
+            expected_outcome=ExpectedOutcome.CLARIFICATION,
+            clarification_type="metric",
+            clarification_steps=(
+                ClarificationStep(clarification_type="metric", option="attendance_rate"),
+            ),
+            visible_sections=CLARIFICATION_COMPLETE_SECTIONS,
         ),
     ),
     "workforce_analyse_dataset": GoldenScenario(

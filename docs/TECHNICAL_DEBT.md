@@ -615,3 +615,18 @@ Selecting the investigation could automatically execute an appropriate analytica
 ## Suggested future milestone
 
 **Milestone 9 — Guided Drill-Down Investigations**
+
+
+# Dimension Synonym Resolution
+
+**Status:** Future Enhancement
+
+Users may refer to dataset dimensions using natural business language that does not directly match column names.
+
+Example:
+
+> "by class"
+
+In the education dataset, the closest available dimension is `year_level`, but the system does not currently map `class` to `year_level`.
+
+Future behaviour should support controlled synonym mapping or clarification when a user refers to an unmapped dimension.
