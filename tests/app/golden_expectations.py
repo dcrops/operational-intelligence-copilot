@@ -55,6 +55,8 @@ FULL_EXECUTIVE_REASONING_SECTIONS: tuple[str, ...] = (
 )
 
 SNAPSHOT_TRANSPARENCY_MARKER = "Snapshot mode activated:"
+TEMPORAL_FILTER_MARKER = "Applied temporal filter:"
+SNAPSHOT_CONTRIBUTORS_MARKER = "Snapshot contributors:"
 
 
 @dataclass(frozen=True)
@@ -87,6 +89,8 @@ class GoldenQuestion:
     clarification_type: str | None = None
     clarification_steps: tuple[ClarificationStep, ...] = ()
     expects_snapshot: bool = False
+    expects_temporal_filter: bool = False
+    expects_snapshot_contributors: bool = False
     notes: str = ""
 
 
@@ -163,6 +167,22 @@ def _education_snapshot_journey_sections() -> tuple[str, ...]:
 
 def _workforce_clarification_journey_sections() -> tuple[str, ...]:
     return (EXECUTIVE_REASONING_HEADING,)
+
+
+def _manufacturing_temporal_filter_journey_sections() -> tuple[str, ...]:
+    return (SECTION_DIRECT_ANSWER, SECTION_SYSTEM_TRANSPARENCY)
+
+
+def _manufacturing_snapshot_analysis_journey_sections() -> tuple[str, ...]:
+    return (
+        SECTION_DIRECT_ANSWER,
+        EXECUTIVE_REASONING_HEADING,
+        SECTION_SYSTEM_TRANSPARENCY,
+    )
+
+
+def _manufacturing_snapshot_contributors_journey_sections() -> tuple[str, ...]:
+    return (SECTION_DIRECT_ANSWER, SECTION_SYSTEM_TRANSPARENCY)
 
 
 CLARIFICATION_COMPLETE_SECTIONS: tuple[str, ...] = (
@@ -330,6 +350,49 @@ GOLDEN_SCENARIOS: dict[str, GoldenScenario] = {
             expected_outcome=ExpectedOutcome.CLARIFICATION,
             clarification_type="metric",
             notes="Future workforce broad-analysis journey.",
+        ),
+    ),
+    "manufacturing_temporal_filter_journey": GoldenScenario(
+        scenario_id="manufacturing_temporal_filter_journey",
+        dataset=GOLDEN_DATASETS["manufacturing_demo"],
+        description=(
+            "Milestone 10f: Q1 variance question applies a temporal filter and "
+            "completes without snapshot mode."
+        ),
+        question=GoldenQuestion(
+            question="Which production line has the highest defects in Q1 2026?",
+            expected_outcome=ExpectedOutcome.RESULTS,
+            visible_sections=_manufacturing_temporal_filter_journey_sections(),
+            expects_temporal_filter=True,
+        ),
+    ),
+    "manufacturing_snapshot_analysis_journey": GoldenScenario(
+        scenario_id="manufacturing_snapshot_analysis_journey",
+        dataset=GOLDEN_DATASETS["manufacturing_demo"],
+        description=(
+            "Milestone 10f: April snapshot question completes without clarification "
+            "and activates snapshot transparency."
+        ),
+        question=GoldenQuestion(
+            question="How has defects changed in April 2026?",
+            expected_outcome=ExpectedOutcome.RESULTS,
+            visible_sections=_manufacturing_snapshot_analysis_journey_sections(),
+            expects_snapshot=True,
+        ),
+    ),
+    "manufacturing_snapshot_contributors_journey": GoldenScenario(
+        scenario_id="manufacturing_snapshot_contributors_journey",
+        dataset=GOLDEN_DATASETS["manufacturing_demo"],
+        description=(
+            "Milestone 10f: April snapshot question with an explicit dimension "
+            "surfaces snapshot contributor transparency."
+        ),
+        question=GoldenQuestion(
+            question="How has defects changed in April 2026 by production line?",
+            expected_outcome=ExpectedOutcome.RESULTS,
+            visible_sections=_manufacturing_snapshot_contributors_journey_sections(),
+            expects_snapshot=True,
+            expects_snapshot_contributors=True,
         ),
     ),
 }

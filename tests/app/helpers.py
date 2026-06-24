@@ -196,6 +196,28 @@ def assert_snapshot_transparency(app: AppTest) -> None:
     assert SNAPSHOT_TRANSPARENCY_MARKER in user_visible_text(app)
 
 
+def assert_temporal_filter_transparency(app: AppTest) -> None:
+    from tests.app.golden_expectations import TEMPORAL_FILTER_MARKER
+
+    assert TEMPORAL_FILTER_MARKER in user_visible_text(app)
+
+
+def assert_snapshot_not_active(app: AppTest) -> None:
+    from tests.app.golden_expectations import SNAPSHOT_TRANSPARENCY_MARKER
+
+    assert SNAPSHOT_TRANSPARENCY_MARKER not in user_visible_text(app)
+
+
+def assert_snapshot_contributors_transparency(app: AppTest) -> None:
+    from tests.app.golden_expectations import SNAPSHOT_CONTRIBUTORS_MARKER
+
+    visible = user_visible_text(app)
+    assert SNAPSHOT_CONTRIBUTORS_MARKER in visible
+    assert "Dimension:" in visible
+    assert "Highest:" in visible
+    assert "Lowest:" in visible
+
+
 def assert_priority_actions(app: AppTest) -> None:
     from tests.app.golden_expectations import SECTION_PRIORITY_ACTIONS
 
@@ -255,8 +277,16 @@ def execute_golden_question(app: AppTest, golden_question: GoldenQuestion) -> Ap
         assert_results_visible(app)
         assert_clarification_resolved(app)
 
+    if golden_question.expects_temporal_filter:
+        assert_temporal_filter_transparency(app)
+
     if golden_question.expects_snapshot:
         assert_snapshot_transparency(app)
+    elif golden_question.expects_temporal_filter:
+        assert_snapshot_not_active(app)
+
+    if golden_question.expects_snapshot_contributors:
+        assert_snapshot_contributors_transparency(app)
 
     if golden_question.visible_sections:
         assert_expected_sections(app, golden_question.visible_sections)
@@ -278,8 +308,16 @@ def assert_journey_outcome(app: AppTest, scenario_id: str) -> None:
         assert_results_visible(app)
         assert_clarification_resolved(app)
 
+    if question.expects_temporal_filter:
+        assert_temporal_filter_transparency(app)
+
     if question.expects_snapshot:
         assert_snapshot_transparency(app)
+    elif question.expects_temporal_filter:
+        assert_snapshot_not_active(app)
+
+    if question.expects_snapshot_contributors:
+        assert_snapshot_contributors_transparency(app)
 
     if question.visible_sections:
         assert_expected_sections(app, question.visible_sections)

@@ -5,7 +5,7 @@
 **Version:** 1.0
 **Last Updated:** June 2026
 **Current Phase:** Application Quality Engineering
-**Current Milestone:** Milestone 10f — Temporal & Snapshot Testing
+**Current Milestone:** Milestone 10g — Upload & Dataset Workflow Testing
 
 ---
 
@@ -174,14 +174,18 @@ Highlights:
 
 ---
 
-### 10f — Temporal & Snapshot Testing
+### Milestone 10f
 
-Validate:
+Status
 
-* Time filtering
-* Snapshot analysis
-* Snapshot contributors
-* Temporal comparisons
+✅ Completed
+
+Highlights:
+
+Temporal filtering validated
+Snapshot behaviour validated
+Snapshot contributor transparency validated
+Behavioural AppTests expanded
 
 ---
 

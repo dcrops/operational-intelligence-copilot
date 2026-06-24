@@ -4,7 +4,7 @@
 **Version:** 1.0  
 **Last Updated:** June 2026  
 **Project Status:** Active Development  
-**Current Milestone:** Current work: Current work: Milestone 10f — Temporal & Snapshot Testing
+**Current Milestone:** Current work: Milestone 10g — Upload & Dataset Workflow Testing
 
 ---
 
