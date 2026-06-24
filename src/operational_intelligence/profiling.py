@@ -98,7 +98,7 @@ class DatasetProfiler:
             if sample.empty:
                 return False
 
-            parsed = pd.to_datetime(sample, errors="coerce")
+            parsed = pd.to_datetime(sample, format="mixed", errors="coerce")
             success_ratio = parsed.notna().mean()
 
             return bool(success_ratio >= success_threshold)

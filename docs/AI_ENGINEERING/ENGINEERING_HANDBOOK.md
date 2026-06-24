@@ -3,8 +3,8 @@
 
 **Version:** 1.0  
 **Last Updated:** June 2026  
-**Project Status:** Active Development  
-**Current Milestone:** Current work: 10h — Performance & Regression Testing
+**Project Status:** Phase 3 complete — engineering-ready for Phase 4  
+**Current Milestone:** Phase 4 — LLM Narrative Generation (planned)
 
 ---
 
@@ -341,26 +341,26 @@ Engineering decisions should be explained.
 
 # Current Project Status
 
-Completed:
+Phase 1 (Deterministic Analytics), Phase 2 (Executive Reasoning), and Phase 3 (Application Quality Engineering) are complete.
 
-- Dataset Profiling
-- Intent Routing
-- Clarification Engine
-- Trend Analysis
-- Variance Analysis
-- Anomaly Detection
-- Snapshot Intelligence
-- Executive Reporting
-- Executive Reasoning
-- Operational Assessment
-- Executive Conclusions
-- Priority Actions
-- Golden Dataset Registry
-- Application Testing Framework
+Completed in Phase 3:
 
-Current work:
+- Application Testing Framework (Milestone 10c)
+- Golden User Journeys (Milestone 10d)
+- Clarification Workflow Testing (Milestone 10e)
+- Temporal & Snapshot Testing (Milestone 10f)
+- Dataset Lifecycle Testing (Milestone 10g)
+- Engineering Readiness & Regression (Milestone 10h)
+- Golden Dataset Registry (Milestone 10b)
+- Executive Reasoning Experience (Milestone 10a)
 
-Milestone 10d — Golden User Journeys
+The deterministic platform is **engineering-ready** for Phase 4.
+
+Next planned work:
+
+Phase 4 — LLM Narrative Generation
+
+See [REGRESSION.md](REGRESSION.md) for regression execution and [ROADMAP.md](ROADMAP.md) for milestone history.
 
 ---
 
@@ -402,5 +402,7 @@ This handbook should be read alongside:
 - ARCHITECTURE.md
 - ROADMAP.md
 - AI_COLLABORATION.md
+- REGRESSION.md
+- PERFORMANCE_BASELINES.md
 
 Together these documents form the Operational Intelligence Copilot Engineering Knowledge Base.

@@ -25,8 +25,8 @@ Items recorded here are not necessarily defects. Many represent deliberate trade
 | --------- | --------------------------- | ------------------------------------------------ |
 | Completed | Implemented (Milestone 8.1) | Temporal Intelligence — Phase 1 (explicit periods) |
 | Completed | Implemented (Milestone 7.2) | Adaptive Direct Answer Summarisation             |
+| Completed | Implemented (Milestone 8.5) | Snapshot Intelligence                            |
 | High      | Planned                     | Pipeline ↔ Transparency Contract Protection      |
-| Medium    | Planned                     | Snapshot Intelligence                            |
 | Medium    | Planned                     | Month-only Cross-Year Ambiguity                  |
 | Medium    | Planned                     | Temporal Intent Without Applicable Date Columns  |
 | Medium    | Planned                     | Unsupported Temporal Intent Transparency         |
@@ -74,41 +74,24 @@ Phase 1 should be considered functionally complete. Remaining Temporal Intellige
 
 # Snapshot Intelligence
 
-**Status:** Planned
+**Status:** Implemented (Milestone 8.5)
 
-## Context
+## What was implemented
 
-Temporal filtering can reduce a dataset to a single period.
+Snapshot Intelligence activates when temporal filtering reduces a dataset to a single period. Instead of misleading single-bucket trend analysis, the pipeline produces snapshot findings with baseline comparison, direct answers, and optional contributor transparency.
 
-**Example question:**
+Capabilities include:
 
-> "How has attendance changed in April 2026?"
+* Single-period detection after temporal filtering
+* Snapshot direct answers with baseline comparison language
+* Snapshot contributor analysis when a dimension resolves
+* System Transparency trails for snapshot mode and contributors
 
-### Current behaviour
+Application behavioural coverage exists in Milestone 10f AppTests.
 
-After filtering to April, trend analysis may compare April → April and report a stable 0% trend.
+## Remaining scope
 
-### Problem
-
-Trend analysis assumes multiple periods. Single-period questions are interpreted as trends, producing technically correct but potentially misleading "stable" outcomes.
-
-This becomes particularly visible when temporal filtering reduces the dataset to a single period, causing trend analysis to report stable or 0% movement despite the user seeking a point-in-time assessment.
-
-### Desired future behaviour
-
-Detect when temporal filtering results in a single period and transition into snapshot-style reasoning.
-
-**Potential examples:**
-
-* How did attendance perform in April 2026?
-* What was attendance in January?
-* How many defects occurred in Q2?
-
-## Suggested future milestone
-
-**Milestone 8.5 — Snapshot Intelligence**
-
----
+Future snapshot enhancements (cross-period comparison, richer contributor UX) remain deferred. See other Temporal Intelligence Phase 2+ entries below.
 
 # Month-only Cross-Year Ambiguity
 

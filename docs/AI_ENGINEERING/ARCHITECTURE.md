@@ -3,8 +3,8 @@
 # Architecture
 
 **Version:** 1.0
-**Last Updated:** June 2026
-**Current Milestone:** 10d – Golden User Journeys (In Progress)
+**Last Updated:** June 2026  
+**Current Milestone:** Phase 3 complete — Application Quality Engineering
 
 ---
 

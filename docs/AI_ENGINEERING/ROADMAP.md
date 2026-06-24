@@ -4,8 +4,8 @@
 
 **Version:** 1.0
 **Last Updated:** June 2026
-**Current Phase:** Application Quality Engineering
-**Current Milestone:** 10h — Performance & Regression Testing
+**Current Phase:** Phase 3 complete — Application Quality Engineering  
+**Current Milestone:** Phase 4 — LLM Narrative Generation (planned)
 
 ---
 
@@ -91,11 +91,15 @@ Status:
 
 ---
 
-# Phase 3 — Application Quality Engineering 🚧 In Progress
+# Phase 3 — Application Quality Engineering ✅ Completed
 
 Objective:
 
 Develop a production-quality testing strategy and application validation framework.
+
+Status:
+
+**Completed** (Milestone 10h — June 2026)
 
 ## Milestone 10a — Executive Reasoning Experience
 
@@ -204,14 +208,19 @@ Highlights
 
 ---
 
-### 10h — Performance & Regression Testing
+### Milestone 10h — Engineering Readiness & Regression
 
-Validate:
+Status:
 
-* Performance baselines
-* Regression execution
-* Test suite optimisation
-* Future CI readiness
+✅ Completed
+
+Highlights:
+
+* Regression runbook published (`docs/AI_ENGINEERING/REGRESSION.md`)
+* Performance baselines documented (`docs/AI_ENGINEERING/PERFORMANCE_BASELINES.md`)
+* Engineering documentation synchronised across Handbook, Architecture, Roadmap, and Technical Debt
+* Profiling date-inference warning resolved at source (`format="mixed"`)
+* Phase 3 declared engineering-ready for Phase 4
 
 ---
 

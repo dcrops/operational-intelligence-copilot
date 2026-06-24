@@ -1,7 +1,5 @@
 import pytest
 
-import pytest
-
 from src.operational_intelligence.schema_resolution import (
     is_identifier_column,
     non_identifier_dimensions,
