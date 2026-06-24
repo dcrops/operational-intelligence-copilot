@@ -1,3 +1,10 @@
+"""Legacy prompt templates superseded by the PromptArtifact layer.
+
+This module predates Milestone 11b. PromptArtifact is the preferred Phase 4
+architecture for assembling deterministic evidence. These helpers remain
+legacy and dormant — do not wire them into the narrative path.
+"""
+
 import json
 
 SYSTEM_PROMPT = """You are an operational intelligence assistant. You explain pre-computed analysis results to business users.

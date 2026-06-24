@@ -245,14 +245,18 @@ The narrative layer must not:
 * mutate pipeline results
 * become the source of truth
 
-### Boundary flow (Milestone 11a)
+### Boundary flow (Milestones 11a–11b)
 
 ```
 AnalysisResult / ExecutiveReport snapshot
         ↓
+NarrativeRequestBuilder
+        ↓
 NarrativeRequest
         ↓
-NarrativeRequestBuilder
+PromptArtifactBuilder
+        ↓
+PromptArtifact
         ↓
 NarrativeGenerator
         ↓
@@ -261,13 +265,23 @@ NarrativeResponse
 
 Implementation lives under `src/operational_intelligence/llm/`:
 
-* `narrative_models.py` — frozen `NarrativeRequest` and `NarrativeResponse`
-* `narrative_builder.py` — pure transformer from deterministic snapshots
-* `narrative_protocol.py` — `NarrativeGenerator` interface
+* `narrative_models.py` — frozen `NarrativeRequest`, `NarrativeResponse`, `PromptArtifact`, `EvidenceReference`, `GroundingConstraints`
+* `narrative_builder.py` — pure transformer from deterministic snapshots to `NarrativeRequest`
+* `prompt_artifact_builder.py` — pure transformer from `NarrativeRequest` to `PromptArtifact`
+* `narrative_governance.py` — grounding rules, narrative objectives, artifact version
+* `narrative_protocol.py` — `NarrativeGenerator` interface (consumes `PromptArtifact`)
 * `deterministic_narrative_generator.py` — deterministic placeholder (no LLM)
 * `narrative_config.py` — `OIC_NARRATIVE_ENABLED` feature flag (default off)
 
-Milestone 11a establishes this contract only. It does not call OpenAI, render narrative in the UI, or replace Direct Answer or Executive Reasoning sections.
+### PromptArtifact layer (Milestone 11b)
+
+`PromptArtifact` is the vendor-neutral, AI-ready representation of deterministic evidence. It contains structured `EvidenceReference` entries, `GroundingConstraints`, and a narrative objective — but no API provider details, model names, routing metadata, or pipeline internals.
+
+**Future generators must treat PromptArtifact evidence as the complete set of citeable facts.**
+
+`GroundingConstraints.closed_world = True` encodes the closed-world evidence contract. Prohibited behaviours include calculating metrics, infering causation, changing risk levels, introducing new findings, and overriding the direct answer.
+
+Milestone 11b does not call OpenAI, execute prompts, or render narrative in the UI.
 
 When enabled, `AnalysisResult.narrative` may hold a `NarrativeResponse`. Deterministic fields remain unchanged.
 

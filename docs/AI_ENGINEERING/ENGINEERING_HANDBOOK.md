@@ -4,7 +4,7 @@
 **Version:** 1.0  
 **Last Updated:** June 2026  
 **Project Status:** Phase 3 complete — engineering-ready for Phase 4  
-**Current Milestone:** Phase 4 — Milestone 11a — AI Integration Boundary
+**Current Milestone:** Phase 4 — Milestone 11b — Prompt Construction & Narrative Assembly
 
 ---
 
@@ -366,9 +366,17 @@ Completed in Phase 4 (Milestone 11a):
 - `OIC_NARRATIVE_ENABLED` feature flag (default off)
 - Boundary tests in `tests/test_narrative_boundary.py`
 
+Completed in Phase 4 (Milestone 11b):
+
+- `PromptArtifact` vendor-neutral AI-ready evidence package
+- `PromptArtifactBuilder` with structured `EvidenceReference` assembly
+- `GroundingConstraints` with closed-world evidence contract
+- Evidence → Artifact → Generator flow in `ui/narrative_service.py`
+- Prompt construction tests in `tests/test_prompt_construction.py`
+
 Next planned work:
 
-Phase 4 — LLM narrative generation and UI rendering (post-11a)
+Phase 4 — OpenAI adapter and UI narrative rendering (post-11b)
 
 See [REGRESSION.md](REGRESSION.md) for regression execution and [ROADMAP.md](ROADMAP.md) for milestone history.
 

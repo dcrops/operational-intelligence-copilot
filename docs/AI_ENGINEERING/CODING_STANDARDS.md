@@ -342,6 +342,21 @@ Rules:
 
 ---
 
+# Prompt Construction Convention
+
+Phase 4 prompt construction lives under `src/operational_intelligence/llm/`.
+
+Rules:
+
+* `PromptArtifactBuilder` transforms `NarrativeRequest` into `PromptArtifact` — evidence assembly belongs here, not in `NarrativeRequest`.
+* `PromptArtifact` is vendor-neutral: no model names, temperatures, API provider details, or OpenAI message structures.
+* `EvidenceReference` entries must be traceable (`evidence_id`, `section`, `label`, `content`).
+* `GroundingConstraints.closed_world = True` — future generators must treat artifact evidence as the complete set of citeable facts.
+* Prompt construction must not import pipeline modules, perform analytics, or call LLMs.
+* Legacy `prompts.py` remains dormant; do not wire it into the narrative path.
+
+---
+
 # Definition of Done
 
 A feature is considered complete when:

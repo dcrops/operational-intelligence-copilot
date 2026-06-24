@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Last Updated:** June 2026  
-**Milestone:** 11a — AI Integration Boundary (Phase 4 narrative boundary tests may set `OIC_NARRATIVE_ENABLED`)
+**Milestone:** 11b — Prompt Construction & Narrative Assembly (Phase 4 tests may set `OIC_NARRATIVE_ENABLED`)
 
 This document is the canonical guide for running the Operational Intelligence Copilot regression suite. It describes the three execution tiers established during Phase 3 (Milestones 10c–10g) and the criteria for declaring a regression run successful.
 
@@ -31,9 +31,11 @@ python -m pytest tests/app/test_golden_journeys.py -m app -q
 python -m pytest tests/app/test_clarification_journeys.py -m app -q
 python -m pytest tests/app/test_temporal_snapshot_journeys.py -m app -q
 python -m pytest tests/app/test_dataset_lifecycle_journeys.py -m app -q
+python -m pytest tests/test_prompt_construction.py -q
+python -m pytest tests/test_narrative_boundary.py -q
 ```
 
-**When to use:** After changing helpers, golden scenarios, or a single AppTest module.
+**When to use:** After changing helpers, golden scenarios, a single AppTest module, prompt artifact models, or narrative generator protocol.
 
 **Expected result:** All tests in the targeted file pass with zero failures.
 

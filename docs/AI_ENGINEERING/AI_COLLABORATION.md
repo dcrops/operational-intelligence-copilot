@@ -256,6 +256,8 @@ Phase 4 work follows a **boundary-first** approach:
 3. Narrative code consumes completed deterministic output only; it must not mutate findings, routes, clarification, direct answers, or executive report sections.
 4. Do not wire legacy `llm_answer_generator.py` into new Phase 4 paths; use the narrative boundary under `src/operational_intelligence/llm/`.
 5. Milestone 11a introduces the boundary and `DeterministicNarrativeGenerator` only — no OpenAI integration, prompts, or UI narrative rendering until later milestones.
+6. Milestone 11b introduces `PromptArtifact` — use a **PromptArtifact-first** workflow: `NarrativeRequest` → `PromptArtifactBuilder` → `PromptArtifact` → `NarrativeGenerator`. Evidence assembly belongs in `PromptArtifactBuilder`, not in `NarrativeRequest`.
+7. Do not wire legacy `prompts.py` into the narrative path; it predates `PromptArtifact`.
 
 ---
 

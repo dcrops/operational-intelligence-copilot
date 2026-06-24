@@ -5,7 +5,7 @@
 **Version:** 1.0
 **Last Updated:** June 2026
 **Current Phase:** Phase 3 complete — Application Quality Engineering  
-**Current Milestone:** Phase 4 — Milestone 11a — AI Integration Boundary
+**Current Milestone:** Phase 4 — Milestone 11b — Prompt Construction & Narrative Assembly
 
 ---
 
@@ -263,12 +263,34 @@ Explicitly out of scope for 11a:
 * OpenAI API calls, prompts, streaming, UI narrative rendering
 * Changes to routing, clarification, analytics, or pipeline orchestration
 
+### Milestone 11b — Prompt Construction & Narrative Assembly
+
+Status:
+
+✅ Completed
+
+Objective:
+
+Introduce a governed `PromptArtifact` layer as the vendor-neutral, AI-ready representation of deterministic evidence.
+
+Delivered:
+
+* `PromptArtifact`, `EvidenceReference`, and `GroundingConstraints` models
+* `PromptArtifactBuilder` pure transformer from `NarrativeRequest`
+* `narrative_governance.py` — grounding rules, objectives, artifact version
+* `NarrativeGenerator` updated to consume `PromptArtifact`
+* Prompt construction tests in `tests/test_prompt_construction.py`
+
+Explicitly out of scope for 11b:
+
+* OpenAI integration, prompt execution, UI narrative rendering
+* Additional narrative objectives beyond `executive_narrative` and `executive_summary`
+
 Future milestones (planned):
 
-* Executive summaries via LLM
-* Narrative enhancement in the UI
-* Natural language explanations
-* Report refinement
+* OpenAI adapter behind `NarrativeGenerator`
+* Narrative rendering in the UI
+* LLM evaluation framework
 
 ---
 

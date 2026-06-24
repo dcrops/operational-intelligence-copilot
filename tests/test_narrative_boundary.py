@@ -18,6 +18,7 @@ from src.operational_intelligence.llm.narrative_models import (
     DeterministicAnalysisSnapshot,
     NarrativeRequest,
 )
+from src.operational_intelligence.llm.prompt_artifact_builder import PromptArtifactBuilder
 from tests.support.assertions import assert_run_analysis_complete
 from tests.support.factories import manufacturing_bundle
 from ui.analysis_service import run_analysis
@@ -87,20 +88,23 @@ class TestNarrativeModels:
             request.question = "changed"  # type: ignore[misc]
 
 
+def _sample_artifact():
+    request = NarrativeRequestBuilder().build(_sample_snapshot())
+    return PromptArtifactBuilder().build(request)
+
+
 class TestDeterministicNarrativeGenerator:
     def test_returns_same_response_for_same_request(self) -> None:
-        request = NarrativeRequestBuilder().build(_sample_snapshot())
+        artifact = _sample_artifact()
         generator = DeterministicNarrativeGenerator()
 
-        first = generator.generate(request)
-        second = generator.generate(request)
+        first = generator.generate(artifact)
+        second = generator.generate(artifact)
 
         assert first == second
 
     def test_identifies_as_deterministic_not_llm(self) -> None:
-        response = DeterministicNarrativeGenerator().generate(
-            NarrativeRequestBuilder().build(_sample_snapshot())
-        )
+        response = DeterministicNarrativeGenerator().generate(_sample_artifact())
 
         assert response.generator_type == GENERATOR_TYPE
         assert response.generator_type == "deterministic"
@@ -150,12 +154,12 @@ class TestNarrativeIntegration:
             _fail_legacy_llm,
         )
 
-        generator_calls: list[NarrativeRequest] = []
+        generator_calls: list = []
         original_generate = DeterministicNarrativeGenerator.generate
 
-        def tracked_generate(self, request: NarrativeRequest):
-            generator_calls.append(request)
-            return original_generate(self, request)
+        def tracked_generate(self, artifact):
+            generator_calls.append(artifact)
+            return original_generate(self, artifact)
 
         monkeypatch.setattr(DeterministicNarrativeGenerator, "generate", tracked_generate)
 

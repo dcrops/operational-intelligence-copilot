@@ -21,6 +21,7 @@ from src.operational_intelligence.llm.narrative_models import (
     DeterministicAnalysisSnapshot,
     NarrativeResponse,
 )
+from src.operational_intelligence.llm.prompt_artifact_builder import PromptArtifactBuilder
 
 
 def _finding_summary(title: str, description: str) -> str:
@@ -106,4 +107,5 @@ def maybe_generate_narrative(result: AnalysisResult) -> NarrativeResponse | None
 
     snapshot = build_deterministic_analysis_snapshot(result)
     request = NarrativeRequestBuilder().build(snapshot)
-    return DeterministicNarrativeGenerator().generate(request)
+    artifact = PromptArtifactBuilder().build(request)
+    return DeterministicNarrativeGenerator().generate(artifact)
