@@ -46,4 +46,7 @@ class DeterministicNarrativeGenerator:
             limitations=LIMITATIONS,
             source_sections_used=artifact.source_sections,
             generator_type=GENERATOR_TYPE,
+            model=None,
+            generation_duration_ms=None,
+            artifact_version=artifact.artifact_version,
         )

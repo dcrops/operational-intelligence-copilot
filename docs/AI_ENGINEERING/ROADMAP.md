@@ -5,7 +5,7 @@
 **Version:** 1.0
 **Last Updated:** June 2026
 **Current Phase:** Phase 3 complete — Application Quality Engineering  
-**Current Milestone:** Phase 4 — Milestone 11b — Prompt Construction & Narrative Assembly
+**Current Milestone:** Phase 4 — Milestone 11c — OpenAI Adapter & First Narrative Generation
 
 ---
 
@@ -286,9 +286,32 @@ Explicitly out of scope for 11b:
 * OpenAI integration, prompt execution, UI narrative rendering
 * Additional narrative objectives beyond `executive_narrative` and `executive_summary`
 
+### Milestone 11c — OpenAI Adapter & First Narrative Generation
+
+Status:
+
+✅ Completed
+
+Objective:
+
+Integrate OpenAI as the first production `NarrativeGenerator` implementation while preserving deterministic analytics as authoritative.
+
+Delivered:
+
+* `OpenAINarrativeGenerator`, `OpenAIPromptFormatter`, `OpenAINarrativeResponseParser`
+* `FallbackNarrativeGenerator` with explicit deterministic fallback
+* `narrative_factory.py` with `OIC_NARRATIVE_PROVIDER` support
+* `OpenAIProviderConfig`, `NarrativeGenerationError`
+* Extended `NarrativeResponse` metadata (`model`, `generation_duration_ms`, `artifact_version`)
+* OpenAI tests in `tests/test_openai_narrative_generator.py` (fake `LLMClient` only)
+
+Explicitly out of scope for 11c:
+
+* UI narrative rendering, streaming, memory, agents, evaluation framework
+* Token/cost tracking, prompt versioning
+
 Future milestones (planned):
 
-* OpenAI adapter behind `NarrativeGenerator`
 * Narrative rendering in the UI
 * LLM evaluation framework
 

@@ -46,6 +46,9 @@ class NarrativeResponse:
     limitations: str
     source_sections_used: tuple[str, ...]
     generator_type: str
+    model: str | None = None
+    generation_duration_ms: int | None = None
+    artifact_version: str | None = None
 
 
 @dataclass(frozen=True)

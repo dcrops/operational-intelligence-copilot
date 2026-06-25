@@ -357,6 +357,20 @@ Rules:
 
 ---
 
+# Provider Adapter Convention
+
+Phase 4 provider adapters live under `src/operational_intelligence/llm/`.
+
+Rules:
+
+* Provider adapters must not import pipeline, routing, clarification, or Streamlit modules.
+* Prompt formatting for a provider belongs in provider-specific modules (e.g. `openai_prompt_formatter.py`).
+* `PromptArtifact` stays vendor-neutral — model names and temperatures belong in provider config, not artifacts.
+* Provider selection is resolved only in `narrative_factory.py`.
+* Failures wrap as `NarrativeGenerationError`; fallback is explicit in `limitations`.
+
+---
+
 # Definition of Done
 
 A feature is considered complete when:

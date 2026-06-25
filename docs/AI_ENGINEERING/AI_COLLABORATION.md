@@ -259,6 +259,13 @@ Phase 4 work follows a **boundary-first** approach:
 6. Milestone 11b introduces `PromptArtifact` — use a **PromptArtifact-first** workflow: `NarrativeRequest` → `PromptArtifactBuilder` → `PromptArtifact` → `NarrativeGenerator`. Evidence assembly belongs in `PromptArtifactBuilder`, not in `NarrativeRequest`.
 7. Do not wire legacy `prompts.py` into the narrative path; it predates `PromptArtifact`.
 
+### Milestone 11c — OpenAI integration principles
+
+1. OpenAI code lives in provider adapters only (`OpenAINarrativeGenerator`, `OpenAIPromptFormatter`, `OpenAIClient`).
+2. Mock at the `LLMClient` boundary in tests — not at the OpenAI SDK boundary.
+3. Fallback must be explicit in `NarrativeResponse.limitations`, not silent.
+4. Deterministic analytics remain authoritative; LLM output is optional communication on `AnalysisResult.narrative` only.
+
 ---
 
 # Continuous Improvement

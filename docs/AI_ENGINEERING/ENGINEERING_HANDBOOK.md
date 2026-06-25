@@ -4,7 +4,7 @@
 **Version:** 1.0  
 **Last Updated:** June 2026  
 **Project Status:** Phase 3 complete — engineering-ready for Phase 4  
-**Current Milestone:** Phase 4 — Milestone 11b — Prompt Construction & Narrative Assembly
+**Current Milestone:** Phase 4 — Milestone 11c — OpenAI Adapter & First Narrative Generation
 
 ---
 
@@ -374,9 +374,17 @@ Completed in Phase 4 (Milestone 11b):
 - Evidence → Artifact → Generator flow in `ui/narrative_service.py`
 - Prompt construction tests in `tests/test_prompt_construction.py`
 
+Completed in Phase 4 (Milestone 11c):
+
+- `OpenAINarrativeGenerator` as first production LLM adapter
+- Provider architecture via `OIC_NARRATIVE_PROVIDER` (`deterministic` | `openai`)
+- `FallbackNarrativeGenerator` for resilient deterministic fallback
+- `narrative_factory.py` — single provider resolution point
+- OpenAI tests with fake `LLMClient` only (no real API calls in CI)
+
 Next planned work:
 
-Phase 4 — OpenAI adapter and UI narrative rendering (post-11b)
+Phase 4 — UI narrative rendering (post-11c)
 
 See [REGRESSION.md](REGRESSION.md) for regression execution and [ROADMAP.md](ROADMAP.md) for milestone history.
 

@@ -12,11 +12,9 @@ from ui.transparency import (
     format_temporal_filter_trail,
 )
 
-from src.operational_intelligence.llm.deterministic_narrative_generator import (
-    DeterministicNarrativeGenerator,
-)
 from src.operational_intelligence.llm.narrative_builder import NarrativeRequestBuilder
 from src.operational_intelligence.llm.narrative_config import is_narrative_enabled
+from src.operational_intelligence.llm.narrative_factory import resolve_narrative_generator
 from src.operational_intelligence.llm.narrative_models import (
     DeterministicAnalysisSnapshot,
     NarrativeResponse,
@@ -108,4 +106,4 @@ def maybe_generate_narrative(result: AnalysisResult) -> NarrativeResponse | None
     snapshot = build_deterministic_analysis_snapshot(result)
     request = NarrativeRequestBuilder().build(snapshot)
     artifact = PromptArtifactBuilder().build(request)
-    return DeterministicNarrativeGenerator().generate(artifact)
+    return resolve_narrative_generator().generate(artifact)

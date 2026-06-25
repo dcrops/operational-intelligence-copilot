@@ -245,7 +245,7 @@ The narrative layer must not:
 * mutate pipeline results
 * become the source of truth
 
-### Boundary flow (Milestones 11a–11b)
+### Boundary flow (Milestones 11a–11c)
 
 ```
 AnalysisResult / ExecutiveReport snapshot
@@ -257,6 +257,8 @@ NarrativeRequest
 PromptArtifactBuilder
         ↓
 PromptArtifact
+        ↓
+resolve_narrative_generator()
         ↓
 NarrativeGenerator
         ↓
@@ -270,8 +272,13 @@ Implementation lives under `src/operational_intelligence/llm/`:
 * `prompt_artifact_builder.py` — pure transformer from `NarrativeRequest` to `PromptArtifact`
 * `narrative_governance.py` — grounding rules, narrative objectives, artifact version
 * `narrative_protocol.py` — `NarrativeGenerator` interface (consumes `PromptArtifact`)
-* `deterministic_narrative_generator.py` — deterministic placeholder (no LLM)
-* `narrative_config.py` — `OIC_NARRATIVE_ENABLED` feature flag (default off)
+* `narrative_factory.py` — resolves provider-specific generators
+* `openai_narrative_generator.py` — OpenAI adapter (Milestone 11c)
+* `openai_prompt_formatter.py` — provider-specific message formatting
+* `openai_response_parser.py` — labelled response parsing
+* `fallback_narrative_generator.py` — resilient fallback to deterministic output
+* `deterministic_narrative_generator.py` — deterministic placeholder
+* `narrative_config.py` — `OIC_NARRATIVE_ENABLED`, `OIC_NARRATIVE_PROVIDER`, `OIC_OPENAI_MODEL`
 
 ### PromptArtifact layer (Milestone 11b)
 
@@ -281,9 +288,20 @@ Implementation lives under `src/operational_intelligence/llm/`:
 
 `GroundingConstraints.closed_world = True` encodes the closed-world evidence contract. Prohibited behaviours include calculating metrics, infering causation, changing risk levels, introducing new findings, and overriding the direct answer.
 
-Milestone 11b does not call OpenAI, execute prompts, or render narrative in the UI.
+### Provider architecture (Milestone 11c)
 
-When enabled, `AnalysisResult.narrative` may hold a `NarrativeResponse`. Deterministic fields remain unchanged.
+**OpenAI is a communication adapter only; deterministic analytics remain authoritative.**
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `OIC_NARRATIVE_ENABLED` | off | Master narrative switch |
+| `OIC_NARRATIVE_PROVIDER` | `deterministic` | `deterministic` or `openai` |
+| `OIC_OPENAI_MODEL` | `gpt-4.1-mini` | Model for OpenAI adapter |
+| `OPENAI_API_KEY` | unset | Required for OpenAI calls |
+
+When provider is `openai`, `FallbackNarrativeGenerator` wraps `OpenAINarrativeGenerator` with `DeterministicNarrativeGenerator` as fallback. On timeout, auth failure, network error, rate limiting, or malformed response, the application continues with deterministic narrative and explicit limitations text — failure is not silent.
+
+When enabled, `AnalysisResult.narrative` may hold a `NarrativeResponse`. Deterministic fields remain unchanged. UI narrative rendering is deferred to a later milestone.
 
 ---
 
