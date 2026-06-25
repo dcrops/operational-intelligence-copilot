@@ -273,6 +273,26 @@ Phase 4 work follows a **boundary-first** approach:
 3. Presentation logic belongs in `ui/narrative_presentation.py` — no LLM calls from UI components.
 4. Limitations must remain visible (not hidden in expanders).
 
+### Milestone 11e — Executive Advisor principles
+
+1. Deterministic analytics remain authoritative; the AI layer provides executive communication and investigation guidance only.
+2. Use reusable `NarrativeSection` objects — do not expand `NarrativeResponse` with numerous fixed advisor fields.
+3. Render sections by iterating `NarrativeResponse.sections`; do not hard-code advisor field names in UI or tests.
+4. State observed facts confidently; label possible explanations as hypotheses.
+5. Reference dataset dimensions in investigation guidance only when they appear in `PromptArtifact` evidence.
+6. Use plain business language in advisor narrative text; avoid statistical jargon such as z-score or standard deviation.
+7. Malformed LLM responses trigger deterministic fallback via `NarrativeGenerationError`.
+
+### Executive Context Builder principles
+
+1. Place translation in `ExecutiveContextBuilder` — not in generators or UI.
+2. The builder must remain domain-agnostic; derive context from pipeline metadata only.
+3. Never duplicate analytical logic or modify deterministic findings.
+4. Translate analytical telemetry into executive decision support — do not restate finding counts or detection process wording.
+5. Provide investigation strategy, business impact, decision guidance, and hypothesis categories where evidence allows.
+6. Narrative generators and OpenAI formatters consume `ExecutiveContext`, not raw telemetry.
+7. Technical implementation details stay in Evidence and System Transparency.
+
 ---
 
 # Continuous Improvement

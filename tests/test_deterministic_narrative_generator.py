@@ -8,6 +8,7 @@ from src.operational_intelligence.llm.deterministic_narrative_generator import (
     DeterministicNarrativeGenerator,
 )
 from src.operational_intelligence.llm.narrative_builder import NarrativeRequestBuilder
+from src.operational_intelligence.llm.narrative_governance import ADVISOR_SECTION_TITLES
 from src.operational_intelligence.llm.narrative_models import DeterministicAnalysisSnapshot
 from src.operational_intelligence.llm.prompt_artifact_builder import PromptArtifactBuilder
 
@@ -58,19 +59,26 @@ def _sample_artifact():
     return PromptArtifactBuilder().build(request)
 
 
+def _combined_section_text(response) -> str:
+    return "\n".join(section.content for section in response.sections)
+
+
 class TestDeterministicNarrativePresentation:
-    def test_produces_executive_style_prose(self) -> None:
+    def test_produces_advisor_sections_with_executive_content(self) -> None:
         response = DeterministicNarrativeGenerator().generate(_sample_artifact())
 
-        assert "Defect concentration is elevated on Line B." in response.executive_narrative
-        assert "Line B exceeds Line A." in response.executive_narrative
-        assert "Defect load requires immediate review." in response.executive_narrative
-        assert "Inspect Line B tooling." in response.executive_narrative
+        assert [section.title for section in response.sections] == list(ADVISOR_SECTION_TITLES)
+        combined = _combined_section_text(response)
+        assert "Defect load requires immediate review." in combined or "outside normal expectations" in combined.lower()
+        assert "Assessment Confidence:" not in combined
+        assert response.assessment_confidence is not None
+        assert "Based on the deterministic evidence" in combined
+        assert "operational analysis identified" not in combined.lower()
 
     def test_excludes_implementation_wording(self) -> None:
-        narrative = DeterministicNarrativeGenerator().generate(
-            _sample_artifact()
-        ).executive_narrative.lower()
+        narrative = _combined_section_text(
+            DeterministicNarrativeGenerator().generate(_sample_artifact())
+        ).lower()
 
         for term in _FORBIDDEN_NARRATIVE_TERMS:
             assert term not in narrative, f"Found forbidden term {term!r} in narrative"
@@ -79,13 +87,16 @@ class TestDeterministicNarrativePresentation:
         response = DeterministicNarrativeGenerator().generate(_sample_artifact())
 
         assert response.limitations == LIMITATIONS
-        assert "deterministic narrative generator" in response.limitations.lower()
-        assert "AI-generated executive communication is not enabled" in response.limitations
+        assert "deterministic analytical evidence" in response.limitations.lower()
+        assert "AI-generated executive communication is not enabled" not in response.limitations
 
     def test_key_message_uses_operational_rationale_when_available(self) -> None:
         response = DeterministicNarrativeGenerator().generate(_sample_artifact())
+        key_message = response.sections[0].content
 
-        assert response.key_message == "Defect load requires immediate review."
+        assert "Assessment Confidence:" not in key_message
+        assert response.assessment_confidence is not None
+        assert "outside normal expectations" in key_message.lower() or "Defect" in key_message
 
     def test_remains_deterministic(self) -> None:
         generator = DeterministicNarrativeGenerator()

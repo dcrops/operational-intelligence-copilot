@@ -38,14 +38,70 @@ class NarrativeRequest:
 
 
 @dataclass(frozen=True)
+class ExecutiveAssessmentBanner:
+    """Deterministic executive assessment banner for narrative presentation."""
+
+    level: str
+    indicator: str
+    headline: str
+
+
+@dataclass(frozen=True)
+class AssessmentConfidencePresentation:
+    """Structured assessment confidence for narrative presentation."""
+
+    level: str
+    indicator: str
+    rationale: str
+
+
+@dataclass(frozen=True)
+class ExecutiveContext:
+    """Business-level context translated from deterministic analysis."""
+
+    question: str
+    key_message: str
+    executive_assessment_level: str
+    executive_assessment_indicator: str
+    executive_assessment_headline: str
+    assessment_confidence_level: str
+    assessment_confidence_rationale: str
+    business_summary: str
+    direct_answer_summary: str
+    why_this_matters: str
+    key_findings: tuple[str, ...]
+    operational_significance: str | None
+    executive_severity: str | None
+    business_impact: str | None
+    decision_guidance: str | None
+    investigation_strategy: str
+    prioritized_explanations: str
+    conclusions: tuple[str, ...]
+    executive_actions: tuple[str, ...]
+    operational_investigation_actions: tuple[str, ...]
+    investigation_targets: tuple[str, ...]
+    investigation_categories: tuple[str, ...]
+    affected_metrics: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class NarrativeSection:
+    """Reusable narrative section for executive communication output."""
+
+    title: str
+    content: str
+
+
+@dataclass(frozen=True)
 class NarrativeResponse:
     """Communication output from narrative generation only."""
 
-    executive_narrative: str
-    key_message: str
+    sections: tuple[NarrativeSection, ...]
     limitations: str
     source_sections_used: tuple[str, ...]
     generator_type: str
+    executive_assessment: ExecutiveAssessmentBanner | None = None
+    assessment_confidence: AssessmentConfidencePresentation | None = None
     model: str | None = None
     generation_duration_ms: int | None = None
     artifact_version: str | None = None
@@ -89,4 +145,5 @@ class PromptArtifact:
     reasoning_trace: tuple[str, ...]
     source_sections: tuple[str, ...]
     evidence_references: tuple[EvidenceReference, ...]
+    executive_context: ExecutiveContext
     grounding_constraints: GroundingConstraints

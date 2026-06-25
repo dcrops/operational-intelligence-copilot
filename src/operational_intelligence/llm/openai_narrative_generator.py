@@ -5,6 +5,11 @@ from __future__ import annotations
 import time
 
 from src.operational_intelligence.llm.narrative_errors import NarrativeGenerationError
+from src.operational_intelligence.llm.narrative_briefing import (
+    build_assessment_confidence_presentation,
+    build_executive_assessment_banner,
+    build_limitations_text,
+)
 from src.operational_intelligence.llm.narrative_models import NarrativeResponse, PromptArtifact
 from src.operational_intelligence.llm.openai_prompt_formatter import OpenAIPromptFormatter
 from src.operational_intelligence.llm.openai_provider_config import OpenAIProviderConfig
@@ -61,11 +66,17 @@ class OpenAINarrativeGenerator:
             ) from exc
 
         return NarrativeResponse(
-            executive_narrative=parsed.executive_narrative,
-            key_message=parsed.key_message,
-            limitations=parsed.limitations,
+            sections=parsed.sections,
+            limitations=build_limitations_text(
+                generator_type=GENERATOR_TYPE,
+                provider_note=parsed.limitations,
+            ),
             source_sections_used=artifact.source_sections,
             generator_type=GENERATOR_TYPE,
+            executive_assessment=build_executive_assessment_banner(artifact.executive_context),
+            assessment_confidence=build_assessment_confidence_presentation(
+                artifact.executive_context
+            ),
             model=self._config.model,
             generation_duration_ms=duration_ms,
             artifact_version=artifact.artifact_version,

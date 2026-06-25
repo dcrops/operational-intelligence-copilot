@@ -2,6 +2,7 @@ from datetime import datetime
 
 import streamlit as st
 
+from src.operational_intelligence.llm.narrative_governance import ADVISOR_SECTION_KEY_MESSAGE
 from src.operational_intelligence.models import EvidenceItem, ExecutiveReport, Finding
 from ui.anomaly_presentation import anomaly_business_description
 from ui.executive_reasoning_presentation import (
@@ -22,13 +23,14 @@ from ui.executive_reasoning_presentation import (
 from ui.metric_presentation import humanise_metric_name, humanise_metric_references_in_text
 from ui.models import AnalysisResult
 from ui.narrative_presentation import (
+    ASSESSMENT_CONFIDENCE_HEADING,
     EXECUTIVE_NARRATIVE_AI_ASSISTED_HEADING,
-    EXECUTIVE_NARRATIVE_HEADING,
-    GENERATION_DETAILS_HEADING,
     GOVERNANCE_CAPTION,
-    KEY_MESSAGE_HEADING,
     LIMITATIONS_HEADING,
     NARRATIVE_DISABLED_MESSAGE,
+    TECHNICAL_DETAILS_HEADING,
+    format_assessment_confidence_level,
+    format_executive_assessment_banner,
     format_generation_details,
 )
 from ui.transparency import (
@@ -496,19 +498,32 @@ def _render_ai_assisted_narrative(result: AnalysisResult) -> None:
 
         st.caption(GOVERNANCE_CAPTION)
 
-        st.markdown(f"##### {KEY_MESSAGE_HEADING}")
-        st.markdown(narrative.key_message)
+        if narrative.executive_assessment is not None:
+            st.markdown(
+                format_executive_assessment_banner(narrative.executive_assessment),
+                unsafe_allow_html=True,
+            )
 
-        st.markdown(f"##### {EXECUTIVE_NARRATIVE_HEADING}")
-        st.markdown(narrative.executive_narrative)
+        for section in narrative.sections:
+            st.markdown(f"##### {section.title}")
+            st.markdown(section.content)
+
+            if (
+                section.title == ADVISOR_SECTION_KEY_MESSAGE
+                and narrative.assessment_confidence is not None
+            ):
+                confidence = narrative.assessment_confidence
+                st.markdown(f"##### {ASSESSMENT_CONFIDENCE_HEADING}")
+                st.markdown(format_assessment_confidence_level(confidence))
+                st.markdown(confidence.rationale)
 
         st.markdown(f"##### {LIMITATIONS_HEADING}")
         st.markdown(narrative.limitations)
 
         generation_details = format_generation_details(narrative)
         if generation_details:
-            st.markdown(f"##### {GENERATION_DETAILS_HEADING}")
-            for line in generation_details:
-                st.caption(f"- {line}")
+            with st.expander(TECHNICAL_DETAILS_HEADING):
+                for line in generation_details:
+                    st.caption(f"- {line}")
 
     _render_section(EXECUTIVE_NARRATIVE_AI_ASSISTED_HEADING, body)

@@ -4,7 +4,7 @@
 **Version:** 1.0  
 **Last Updated:** June 2026  
 **Project Status:** Phase 3 complete — engineering-ready for Phase 4  
-**Current Milestone:** Phase 4 — Milestone 11d — Executive Narrative Rendering
+**Current Milestone:** Phase 4 — Milestone 11e — AI Executive Advisor
 
 ---
 
@@ -389,6 +389,17 @@ Completed in Phase 4 (Milestone 11d):
 - Governance caption when narrative renders; placeholder when disabled
 - Deterministic sections remain primary and unchanged
 - Deterministic narrative generator produces polished executive prose as a graceful fallback when AI-assisted communication is unavailable
+
+Completed in Phase 4 (Milestone 11e):
+
+- **AI Executive Advisor** — narrative evolves from summarisation to executive communication and investigation guidance
+- Reusable `NarrativeSection` model; `NarrativeResponse.sections` replaces fixed advisor field names
+- Ordered advisor sections: Key Message, Why This Matters, Where To Investigate First, Possible Explanations To Check, Recommended Next Steps
+- Prompt artifact version 1.2 with executive-advisor governance, plain-language rules, and dimension-aware investigation guidance
+- **Executive Context Builder** — domain-agnostic translation layer between deterministic analysis and narrative generation
+- `ExecutiveContext` model; narrative generators consume executive context rather than raw analytical telemetry
+- UI iterates `NarrativeSection` objects dynamically; deterministic analytics remain authoritative
+- Tests in `tests/test_executive_advisor_narrative.py` and `tests/test_executive_context_builder.py`
 
 Next planned work:
 

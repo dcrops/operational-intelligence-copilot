@@ -245,7 +245,7 @@ The narrative layer must not:
 * mutate pipeline results
 * become the source of truth
 
-### Boundary flow (Milestones 11a–11c)
+### Boundary flow (Milestones 11a–11e)
 
 ```
 AnalysisResult / ExecutiveReport snapshot
@@ -253,6 +253,10 @@ AnalysisResult / ExecutiveReport snapshot
 NarrativeRequestBuilder
         ↓
 NarrativeRequest
+        ↓
+ExecutiveContextBuilder
+        ↓
+ExecutiveContext
         ↓
 PromptArtifactBuilder
         ↓
@@ -263,11 +267,15 @@ resolve_narrative_generator()
 NarrativeGenerator
         ↓
 NarrativeResponse
+        ↓
+Executive UI (Streamlit results panel)
 ```
 
 Implementation lives under `src/operational_intelligence/llm/`:
 
-* `narrative_models.py` — frozen `NarrativeRequest`, `NarrativeResponse`, `PromptArtifact`, `EvidenceReference`, `GroundingConstraints`
+* `narrative_models.py` — frozen `NarrativeRequest`, `NarrativeResponse`, `NarrativeSection`, `ExecutiveContext`, `PromptArtifact`, `EvidenceReference`, `GroundingConstraints`
+* `executive_context_builder.py` — translates deterministic outputs into domain-agnostic executive business context
+* `executive_language.py` — technical-to-executive language translation helpers
 * `narrative_builder.py` — pure transformer from deterministic snapshots to `NarrativeRequest`
 * `prompt_artifact_builder.py` — pure transformer from `NarrativeRequest` to `PromptArtifact`
 * `narrative_governance.py` — grounding rules, narrative objectives, artifact version
@@ -303,11 +311,39 @@ When provider is `openai`, `FallbackNarrativeGenerator` wraps `OpenAINarrativeGe
 
 When enabled, `AnalysisResult.narrative` may hold a `NarrativeResponse`. Deterministic fields remain unchanged.
 
-### UI narrative rendering (Milestone 11d)
+### AI Executive Advisor (Milestone 11e)
+
+Deterministic analytics answer **what happened**. The AI Executive Advisor answers **why it matters**, **where to investigate**, and **what to do next**.
+
+`NarrativeResponse` contains ordered `NarrativeSection` objects rather than fixed advisor field names. This keeps parsers, renderers, and tests extensible as future outputs add sections (for example Business Impact, Risk Level, or export formats) without repeatedly changing the core contract.
+
+Advisor sections (in order):
+
+1. Key Message
+2. Why This Matters
+3. Where To Investigate First
+4. Possible Explanations To Check
+5. Recommended Next Steps
+
+`limitations` remains a separate field. Investigation guidance references dataset dimensions only when present in deterministic evidence.
+
+### Executive Context Builder (Milestone 11e)
+
+The **Executive Context Builder** sits between deterministic analysis and prompt artifact construction. It performs **translation only** — it does not analyse, mutate findings, or infer unsupported causes.
+
+Deterministic analytics answer **what happened**. Executive Context translates that output into **executive decision support**: business significance, operational implications, investigation strategy, decision guidance, hypothesis categories, and action-oriented next steps. It deliberately avoids repeating analytical telemetry (finding counts, detection process wording, and implementation details) that already appear in Evidence and System Transparency.
+
+Technical implementation details (z-scores, thresholds, analysed columns, detection algorithms) remain in Evidence and System Transparency; they are abstracted before narrative generation.
+
+The builder is **intentionally domain-agnostic**. It does not encode industry-specific knowledge. Investigation targets, affected metrics, and business summaries are derived from metadata already produced by the analytical pipeline (for example dimension labels in transparency trails).
+
+Both `DeterministicNarrativeGenerator` and `OpenAINarrativeGenerator` consume `ExecutiveContext` via `PromptArtifact.executive_context`. OpenAI prompt formatting uses executive evidence references rather than raw analytical telemetry.
+
+### UI narrative rendering (Milestone 11d / 11e)
 
 When `AnalysisResult.narrative` is present, the results panel renders an **Executive Narrative (AI-Assisted)** section at the end of the report. Deterministic sections (Direct Answer, Executive Reasoning, System Transparency, etc.) remain above it and authoritative.
 
-Presentation helpers live in `ui/narrative_presentation.py`. The section includes governance copy, Key Message, Executive Narrative, Limitations, and optional generation metadata. When narrative is disabled, a placeholder info message is shown instead.
+Presentation helpers live in `ui/narrative_presentation.py`. The section includes governance copy, dynamically rendered `NarrativeSection` headings and content, Limitations, and optional generation metadata. When narrative is disabled, a placeholder info message is shown instead.
 
 **OpenAI is a communication adapter only; deterministic analytics remain authoritative.**
 

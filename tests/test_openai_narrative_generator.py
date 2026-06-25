@@ -22,11 +22,15 @@ from src.operational_intelligence.llm.narrative_config import (
 )
 from src.operational_intelligence.llm.narrative_errors import NarrativeGenerationError
 from src.operational_intelligence.llm.narrative_factory import resolve_narrative_generator
-from src.operational_intelligence.llm.narrative_governance import PROMPT_ARTIFACT_VERSION
+from src.operational_intelligence.llm.narrative_governance import (
+    ADVISOR_SECTION_TITLES,
+    PROMPT_ARTIFACT_VERSION,
+)
 from src.operational_intelligence.llm.narrative_models import (
     DeterministicAnalysisSnapshot,
     PromptArtifact,
 )
+from src.operational_intelligence.llm.narrative_briefing import build_limitations_text
 from src.operational_intelligence.llm.openai_narrative_generator import (
     GENERATOR_TYPE as OPENAI_GENERATOR_TYPE,
     OpenAINarrativeGenerator,
@@ -73,8 +77,16 @@ def _sample_llm_response() -> str:
     return (
         "KEY MESSAGE:\n"
         "Line B defect concentration requires executive attention.\n\n"
-        "EXECUTIVE NARRATIVE:\n"
-        "Deterministic evidence shows Line B has the highest defects.\n\n"
+        "WHY THIS MATTERS:\n"
+        "Elevated defects on Line B may affect throughput commitments.\n\n"
+        "WHERE TO INVESTIGATE FIRST:\n"
+        "Begin by comparing defect rates across production lines.\n\n"
+        "POSSIBLE EXPLANATIONS TO CHECK:\n"
+        "Possible causes to check include tooling wear or a recent process change.\n\n"
+        "EXECUTIVE ACTIONS:\n"
+        "Validate source data before escalation.\n\n"
+        "OPERATIONAL INVESTIGATION:\n"
+        "Inspect Line B tooling and validate recent maintenance records.\n\n"
         "LIMITATIONS:\n"
         "Based only on supplied evidence references."
     )
@@ -142,10 +154,8 @@ class TestOpenAINarrativeResponseParser:
     def test_parses_labelled_sections(self) -> None:
         parsed = OpenAINarrativeResponseParser().parse(_sample_llm_response())
 
-        assert parsed.key_message == "Line B defect concentration requires executive attention."
-        assert parsed.executive_narrative == (
-            "Deterministic evidence shows Line B has the highest defects."
-        )
+        assert [section.title for section in parsed.sections] == list(ADVISOR_SECTION_TITLES)
+        assert parsed.sections[0].content.startswith("Line B defect concentration")
         assert parsed.limitations == "Based only on supplied evidence references."
 
     def test_raises_for_malformed_output(self) -> None:
@@ -164,9 +174,12 @@ class TestOpenAINarrativeGenerator:
         response = generator.generate(artifact)
 
         assert response.generator_type == OPENAI_GENERATOR_TYPE
-        assert response.key_message.startswith("Line B defect concentration")
-        assert "highest defects" in response.executive_narrative
-        assert response.limitations == "Based only on supplied evidence references."
+        assert len(response.sections) == len(ADVISOR_SECTION_TITLES)
+        assert response.sections[0].content.startswith("Line B defect concentration")
+        assert response.limitations == build_limitations_text(
+            generator_type="openai",
+            provider_note="Based only on supplied evidence references.",
+        )
 
     def test_records_model_duration_and_artifact_version(self) -> None:
         artifact = _sample_artifact()

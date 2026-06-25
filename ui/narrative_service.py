@@ -105,5 +105,6 @@ def maybe_generate_narrative(result: AnalysisResult) -> NarrativeResponse | None
 
     snapshot = build_deterministic_analysis_snapshot(result)
     request = NarrativeRequestBuilder().build(snapshot)
+    # NarrativeRequest → ExecutiveContextBuilder → PromptArtifact → NarrativeGenerator
     artifact = PromptArtifactBuilder().build(request)
     return resolve_narrative_generator().generate(artifact)

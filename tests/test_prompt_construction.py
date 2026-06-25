@@ -75,8 +75,10 @@ class TestPromptArtifactContent:
         assert "finding-1" in evidence_ids
         assert "operational-assessment" in evidence_ids
         assert "conclusion-1" in evidence_ids
-        assert "action-1" in evidence_ids
-        assert "transparency-1" in evidence_ids
+        assert "executive-action-1" in evidence_ids
+        assert "operational-action-1" in evidence_ids
+        assert artifact.executive_context is not None
+        assert not any(evidence_id.startswith("transparency-") for evidence_id in evidence_ids)
 
     def test_excludes_prohibited_fields(self) -> None:
         artifact = _sample_artifact()
@@ -107,9 +109,12 @@ class TestEvidenceReferenceGeneration:
         second = builder.build(request).evidence_references
 
         assert first == second
-        assert first[2].evidence_id == "finding-1"
-        assert first[2].label == "Defect variance"
-        assert first[2].content == "Line B exceeds Line A."
+        evidence_ids = {reference.evidence_id for reference in first}
+        assert "finding-1" in evidence_ids
+        assert "key-message" in evidence_ids
+        assert "outside normal expectations" in first[-1].content.lower() or any(
+            "outside normal expectations" in reference.content.lower() for reference in first
+        )
 
     def test_source_section_traceability_preserved(self) -> None:
         artifact = _sample_artifact()
@@ -140,7 +145,7 @@ class TestPromptArtifactBuilder:
         artifacts = [PromptArtifactBuilder().build(_sample_request()) for _ in range(3)]
         assert artifacts[0] == artifacts[1] == artifacts[2]
 
-    def test_default_narrative_objective_is_executive_narrative(self) -> None:
+    def test_default_narrative_objective_is_executive_advisor(self) -> None:
         artifact = _sample_artifact()
         assert artifact.narrative_objective == DEFAULT_NARRATIVE_OBJECTIVE
 

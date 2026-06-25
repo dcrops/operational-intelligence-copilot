@@ -1,6 +1,7 @@
 from src.operational_intelligence.llm.deterministic_narrative_generator import (
     DeterministicNarrativeGenerator,
 )
+from src.operational_intelligence.llm.executive_context_builder import ExecutiveContextBuilder
 from src.operational_intelligence.llm.fallback_narrative_generator import (
     FallbackNarrativeGenerator,
 )
@@ -15,9 +16,11 @@ from src.operational_intelligence.llm.narrative_factory import resolve_narrative
 from src.operational_intelligence.llm.narrative_models import (
     DeterministicAnalysisSnapshot,
     EvidenceReference,
+    ExecutiveContext,
     GroundingConstraints,
     NarrativeRequest,
     NarrativeResponse,
+    NarrativeSection,
     PromptArtifact,
 )
 from src.operational_intelligence.llm.narrative_protocol import NarrativeGenerator
@@ -31,6 +34,8 @@ __all__ = [
     "DeterministicAnalysisSnapshot",
     "DeterministicNarrativeGenerator",
     "EvidenceReference",
+    "ExecutiveContext",
+    "ExecutiveContextBuilder",
     "FallbackNarrativeGenerator",
     "GroundingConstraints",
     "LLMClient",
@@ -39,6 +44,7 @@ __all__ = [
     "NarrativeRequest",
     "NarrativeRequestBuilder",
     "NarrativeResponse",
+    "NarrativeSection",
     "OpenAINarrativeGenerator",
     "OpenAIProviderConfig",
     "PromptArtifact",

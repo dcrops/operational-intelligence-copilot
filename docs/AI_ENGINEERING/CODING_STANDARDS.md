@@ -338,6 +338,8 @@ Rules:
 * Narrative generation must not import or call the operational pipeline, intent router, or clarification engine.
 * `NarrativeRequestBuilder` is a pure transformer from deterministic snapshots — no analytics, no LLM calls.
 * Narrative output (`NarrativeResponse`) must not replace deterministic report sections (Direct Answer, Executive Reasoning, transparency).
+* `NarrativeResponse.sections` holds ordered `NarrativeSection` objects; avoid adding fixed advisor fields to the core contract.
+* Build `ExecutiveContext` via `ExecutiveContextBuilder` before prompt artifact construction; generators consume executive context only.
 * Enable optional narrative via `OIC_NARRATIVE_ENABLED`; default behaviour remains unchanged when disabled.
 
 ---
@@ -371,6 +373,19 @@ Rules:
 
 ---
 
+# Narrative Translation Convention
+
+Phase 4 executive translation lives in `src/operational_intelligence/llm/executive_context_builder.py` and `executive_language.py`.
+
+Rules:
+
+* Translation only — no analytics, routing, or mutation of deterministic findings.
+* Remain domain-agnostic; derive investigation targets and metrics from pipeline metadata.
+* Abstract implementation details (z-score, thresholds, analysed columns) before narrative generation.
+* Do not import Streamlit or UI modules from translation code.
+
+---
+
 # Narrative Rendering Convention
 
 Phase 4 narrative rendering lives in `ui/narrative_presentation.py` and `ui/components/results_panel.py`.
@@ -379,6 +394,7 @@ Rules:
 
 * UI components must not call LLMs or import provider adapters.
 * Render **Executive Narrative (AI-Assisted)** at the end of the results panel only.
+* Iterate `NarrativeResponse.sections` dynamically; do not hard-code advisor section field names.
 * Show governance caption when `result.narrative` is present.
 * Do not replace or demote deterministic report sections.
 * Format generation metadata via pure presentation helpers.

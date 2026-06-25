@@ -5,54 +5,64 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from src.operational_intelligence.llm.narrative_errors import NarrativeGenerationError
-
-_SECTION_KEY_MESSAGE = "KEY MESSAGE:"
-_SECTION_EXECUTIVE_NARRATIVE = "EXECUTIVE NARRATIVE:"
-_SECTION_LIMITATIONS = "LIMITATIONS:"
+from src.operational_intelligence.llm.narrative_governance import (
+    ADVISOR_SECTION_LABELS,
+    ADVISOR_SECTION_LABEL_LIMITATIONS,
+    ADVISOR_SECTION_LABEL_TO_TITLE,
+    ADVISOR_SECTION_TITLES,
+)
+from src.operational_intelligence.llm.narrative_models import NarrativeSection
 
 
 @dataclass(frozen=True)
 class ParsedNarrativeSections:
     """Parsed narrative content extracted from provider text."""
 
-    key_message: str
-    executive_narrative: str
+    sections: tuple[NarrativeSection, ...]
     limitations: str
 
 
 class OpenAINarrativeResponseParser:
-    """Parse fixed labelled sections from LLM text."""
+    """Parse fixed labelled advisor sections from LLM text."""
 
     def parse(self, text: str) -> ParsedNarrativeSections:
-        """Extract narrative sections or raise NarrativeGenerationError."""
+        """Extract advisor sections or raise NarrativeGenerationError."""
         normalized = text.strip()
         if not normalized:
             raise NarrativeGenerationError("OpenAI response was empty")
 
-        key_message = self._extract_section(
-            normalized,
-            _SECTION_KEY_MESSAGE,
-            next_labels=(_SECTION_EXECUTIVE_NARRATIVE,),
-        )
-        executive_narrative = self._extract_section(
-            normalized,
-            _SECTION_EXECUTIVE_NARRATIVE,
-            next_labels=(_SECTION_LIMITATIONS,),
-        )
+        advisor_labels = ADVISOR_SECTION_LABELS[:-1]
+        sections: list[NarrativeSection] = []
+
+        for index, label in enumerate(advisor_labels):
+            next_labels = advisor_labels[index + 1 :] + (ADVISOR_SECTION_LABEL_LIMITATIONS,)
+            content = self._extract_section(
+                normalized,
+                label,
+                next_labels=next_labels,
+            )
+            if not content:
+                raise NarrativeGenerationError(
+                    f"OpenAI response missing required section: {label.rstrip(':')}"
+                )
+            sections.append(
+                NarrativeSection(
+                    title=ADVISOR_SECTION_LABEL_TO_TITLE[label],
+                    content=content,
+                )
+            )
+
         limitations = self._extract_section(
             normalized,
-            _SECTION_LIMITATIONS,
+            ADVISOR_SECTION_LABEL_LIMITATIONS,
             next_labels=(),
         )
 
-        if not key_message or not executive_narrative:
-            raise NarrativeGenerationError(
-                "OpenAI response missing required KEY MESSAGE or EXECUTIVE NARRATIVE sections"
-            )
+        if len(sections) != len(ADVISOR_SECTION_TITLES):
+            raise NarrativeGenerationError("OpenAI response missing required advisor sections")
 
         return ParsedNarrativeSections(
-            key_message=key_message,
-            executive_narrative=executive_narrative,
+            sections=tuple(sections),
             limitations=limitations or "None stated.",
         )
 

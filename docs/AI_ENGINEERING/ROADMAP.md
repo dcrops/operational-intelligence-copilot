@@ -5,7 +5,7 @@
 **Version:** 1.0
 **Last Updated:** June 2026
 **Current Phase:** Phase 3 complete — Application Quality Engineering  
-**Current Milestone:** Phase 4 — Milestone 11d — Executive Narrative Rendering
+**Current Milestone:** Phase 4 — Milestone 11e — AI Executive Advisor
 
 ---
 
@@ -330,6 +330,31 @@ Delivered:
 Explicitly out of scope for 11d:
 
 * Prompt/adapter changes, evaluation framework, narrative editing, streaming
+
+### Milestone 11e — AI Executive Advisor
+
+Status:
+
+✅ Completed
+
+Objective:
+
+Evolve the AI narrative layer from summarisation into executive communication and decision support while keeping deterministic analytics authoritative.
+
+Delivered:
+
+* Reusable `NarrativeSection` model with ordered advisor sections in `NarrativeResponse.sections`
+* Executive-advisor prompt contract (Key Message through Recommended Next Steps) with plain-language and hypothesis governance
+* **Executive Context Builder** (`executive_context_builder.py`) — domain-agnostic translation from deterministic outputs to executive business context
+* `ExecutiveContext` embedded in `PromptArtifact`; narrative generators consume executive context, not raw telemetry
+* Dimension-aware investigation guidance grounded in pipeline metadata only
+* Deterministic provider produces the same advisor section structure as graceful fallback
+* UI renders sections dynamically without hard-coded advisor field names
+* Tests in `tests/test_executive_advisor_narrative.py` and `tests/test_executive_context_builder.py`
+
+Explicitly out of scope for 11e:
+
+* Results page redesign, evidence redesign, charts, drill-down workflows, new analytics, hallucination scoring, streaming, memory, agents, RAG, feedback collection, multi-model comparison
 
 Future milestones (planned):
 

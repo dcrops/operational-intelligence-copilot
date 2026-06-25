@@ -341,19 +341,19 @@ def assert_narrative_placeholder_hidden(app: AppTest) -> None:
 
 
 def assert_narrative_content_visible(app: AppTest) -> None:
+    from src.operational_intelligence.llm.narrative_governance import ADVISOR_SECTION_TITLES
     from ui.narrative_presentation import (
-        EXECUTIVE_NARRATIVE_HEADING,
-        GENERATION_DETAILS_HEADING,
-        KEY_MESSAGE_HEADING,
+        ASSESSMENT_CONFIDENCE_HEADING,
+        EXECUTIVE_ASSESSMENT_HEADING,
         LIMITATIONS_HEADING,
     )
 
     visible = user_visible_text(app)
     for heading in (
-        KEY_MESSAGE_HEADING,
-        EXECUTIVE_NARRATIVE_HEADING,
+        EXECUTIVE_ASSESSMENT_HEADING,
+        *ADVISOR_SECTION_TITLES,
+        ASSESSMENT_CONFIDENCE_HEADING,
         LIMITATIONS_HEADING,
-        GENERATION_DETAILS_HEADING,
     ):
         assert heading in visible, f"Expected narrative heading {heading!r} to be visible."
 
