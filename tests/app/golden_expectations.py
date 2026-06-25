@@ -59,6 +59,8 @@ TEMPORAL_FILTER_MARKER = "Applied temporal filter:"
 SNAPSHOT_CONTRIBUTORS_MARKER = "Snapshot contributors:"
 
 SECTION_DATASET_PREVIEW = "Dataset Preview"
+SECTION_AI_ASSISTED_EXECUTIVE_NARRATIVE = "Executive Narrative (AI-Assisted)"
+NARRATIVE_DISABLED_MARKER = "AI-assisted narrative is not enabled"
 PROFILE_SUMMARY_HEADING = "Profile summary"
 LOAD_SUCCESS_MARKER = "Loaded"
 INVALID_EMPTY_CSV_MARKER = "uploaded CSV is empty"

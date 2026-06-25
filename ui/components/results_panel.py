@@ -21,6 +21,16 @@ from ui.executive_reasoning_presentation import (
 )
 from ui.metric_presentation import humanise_metric_name, humanise_metric_references_in_text
 from ui.models import AnalysisResult
+from ui.narrative_presentation import (
+    EXECUTIVE_NARRATIVE_AI_ASSISTED_HEADING,
+    EXECUTIVE_NARRATIVE_HEADING,
+    GENERATION_DETAILS_HEADING,
+    GOVERNANCE_CAPTION,
+    KEY_MESSAGE_HEADING,
+    LIMITATIONS_HEADING,
+    NARRATIVE_DISABLED_MESSAGE,
+    format_generation_details,
+)
 from ui.transparency import (
     format_auto_resolved_trail,
     format_clarification_trail,
@@ -474,10 +484,31 @@ def render_results(result: AnalysisResult) -> None:
 
     _render_section("System Transparency", render_transparency)
 
-    def render_llm_placeholder() -> None:
-        st.info(
-            "LLM explanations are not enabled yet. "
-            "The deterministic analysis above is the primary answer."
-        )
+    _render_ai_assisted_narrative(result)
 
-    _render_section("LLM Explanation", render_llm_placeholder)
+
+def _render_ai_assisted_narrative(result: AnalysisResult) -> None:
+    def body() -> None:
+        narrative = result.narrative
+        if narrative is None:
+            st.info(NARRATIVE_DISABLED_MESSAGE)
+            return
+
+        st.caption(GOVERNANCE_CAPTION)
+
+        st.markdown(f"##### {KEY_MESSAGE_HEADING}")
+        st.markdown(narrative.key_message)
+
+        st.markdown(f"##### {EXECUTIVE_NARRATIVE_HEADING}")
+        st.markdown(narrative.executive_narrative)
+
+        st.markdown(f"##### {LIMITATIONS_HEADING}")
+        st.markdown(narrative.limitations)
+
+        generation_details = format_generation_details(narrative)
+        if generation_details:
+            st.markdown(f"##### {GENERATION_DETAILS_HEADING}")
+            for line in generation_details:
+                st.caption(f"- {line}")
+
+    _render_section(EXECUTIVE_NARRATIVE_AI_ASSISTED_HEADING, body)

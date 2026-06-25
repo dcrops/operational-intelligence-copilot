@@ -108,9 +108,9 @@ class TestDeterministicNarrativeGenerator:
 
         assert response.generator_type == GENERATOR_TYPE
         assert response.generator_type == "deterministic"
-        assert "LLM" in response.limitations
+        assert "AI-generated executive communication is not enabled" in response.limitations
         assert response.limitations == LIMITATIONS
-        assert "not LLM-generated" in response.executive_narrative
+        assert "finding-" not in response.executive_narrative.lower()
 
 
 class TestNarrativeIntegration:

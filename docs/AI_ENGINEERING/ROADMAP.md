@@ -5,7 +5,7 @@
 **Version:** 1.0
 **Last Updated:** June 2026
 **Current Phase:** Phase 3 complete — Application Quality Engineering  
-**Current Milestone:** Phase 4 — Milestone 11c — OpenAI Adapter & First Narrative Generation
+**Current Milestone:** Phase 4 — Milestone 11d — Executive Narrative Rendering
 
 ---
 
@@ -310,9 +310,29 @@ Explicitly out of scope for 11c:
 * UI narrative rendering, streaming, memory, agents, evaluation framework
 * Token/cost tracking, prompt versioning
 
+### Milestone 11d — Executive Narrative Rendering
+
+Status:
+
+✅ Completed
+
+Objective:
+
+Render optional AI-assisted executive narrative in the Streamlit results panel while preserving deterministic report sections as authoritative.
+
+Delivered:
+
+* `ui/narrative_presentation.py` — pure presentation helpers and governance copy
+* Results panel renders **Executive Narrative (AI-Assisted)** when `result.narrative` is present
+* Disabled placeholder when narrative is absent
+* Presentation unit tests and minimal AppTests (deterministic provider only)
+
+Explicitly out of scope for 11d:
+
+* Prompt/adapter changes, evaluation framework, narrative editing, streaming
+
 Future milestones (planned):
 
-* Narrative rendering in the UI
 * LLM evaluation framework
 
 ---

@@ -54,6 +54,9 @@ def user_visible_text(app: AppTest) -> str:
     for element in app.subheader:
         if element.value:
             parts.append(element.value)
+    for element in app.caption:
+        if element.value:
+            parts.append(element.value)
     return "\n".join(parts)
 
 
@@ -315,6 +318,44 @@ def assert_transparency(app: AppTest) -> None:
     from tests.app.golden_expectations import SECTION_SYSTEM_TRANSPARENCY
 
     assert_section_visible(app, SECTION_SYSTEM_TRANSPARENCY)
+
+
+def assert_narrative_placeholder_visible(app: AppTest) -> None:
+    from tests.app.golden_expectations import (
+        NARRATIVE_DISABLED_MARKER,
+        SECTION_AI_ASSISTED_EXECUTIVE_NARRATIVE,
+    )
+
+    assert_section_visible(app, SECTION_AI_ASSISTED_EXECUTIVE_NARRATIVE)
+    assert any(
+        NARRATIVE_DISABLED_MARKER in (info.value or "") for info in app.info
+    ), "Expected disabled narrative placeholder info message."
+
+
+def assert_narrative_placeholder_hidden(app: AppTest) -> None:
+    from tests.app.golden_expectations import NARRATIVE_DISABLED_MARKER
+
+    assert not any(
+        NARRATIVE_DISABLED_MARKER in (info.value or "") for info in app.info
+    ), "Placeholder should not appear when narrative is enabled."
+
+
+def assert_narrative_content_visible(app: AppTest) -> None:
+    from ui.narrative_presentation import (
+        EXECUTIVE_NARRATIVE_HEADING,
+        GENERATION_DETAILS_HEADING,
+        KEY_MESSAGE_HEADING,
+        LIMITATIONS_HEADING,
+    )
+
+    visible = user_visible_text(app)
+    for heading in (
+        KEY_MESSAGE_HEADING,
+        EXECUTIVE_NARRATIVE_HEADING,
+        LIMITATIONS_HEADING,
+        GENERATION_DETAILS_HEADING,
+    ):
+        assert heading in visible, f"Expected narrative heading {heading!r} to be visible."
 
 
 def assert_expected_sections(app: AppTest, sections: tuple[str, ...]) -> None:

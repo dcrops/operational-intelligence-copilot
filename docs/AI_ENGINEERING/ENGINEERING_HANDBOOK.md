@@ -4,7 +4,7 @@
 **Version:** 1.0  
 **Last Updated:** June 2026  
 **Project Status:** Phase 3 complete — engineering-ready for Phase 4  
-**Current Milestone:** Phase 4 — Milestone 11c — OpenAI Adapter & First Narrative Generation
+**Current Milestone:** Phase 4 — Milestone 11d — Executive Narrative Rendering
 
 ---
 
@@ -382,9 +382,17 @@ Completed in Phase 4 (Milestone 11c):
 - `narrative_factory.py` — single provider resolution point
 - OpenAI tests with fake `LLMClient` only (no real API calls in CI)
 
+Completed in Phase 4 (Milestone 11d):
+
+- **Executive Narrative (AI-Assisted)** section in results panel
+- Pure presentation helpers in `ui/narrative_presentation.py`
+- Governance caption when narrative renders; placeholder when disabled
+- Deterministic sections remain primary and unchanged
+- Deterministic narrative generator produces polished executive prose as a graceful fallback when AI-assisted communication is unavailable
+
 Next planned work:
 
-Phase 4 — UI narrative rendering (post-11c)
+Phase 5 — LLM evaluation framework
 
 See [REGRESSION.md](REGRESSION.md) for regression execution and [ROADMAP.md](ROADMAP.md) for milestone history.
 

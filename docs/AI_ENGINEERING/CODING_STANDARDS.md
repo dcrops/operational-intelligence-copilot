@@ -371,6 +371,20 @@ Rules:
 
 ---
 
+# Narrative Rendering Convention
+
+Phase 4 narrative rendering lives in `ui/narrative_presentation.py` and `ui/components/results_panel.py`.
+
+Rules:
+
+* UI components must not call LLMs or import provider adapters.
+* Render **Executive Narrative (AI-Assisted)** at the end of the results panel only.
+* Show governance caption when `result.narrative` is present.
+* Do not replace or demote deterministic report sections.
+* Format generation metadata via pure presentation helpers.
+
+---
+
 # Definition of Done
 
 A feature is considered complete when:

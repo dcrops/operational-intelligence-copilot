@@ -266,6 +266,13 @@ Phase 4 work follows a **boundary-first** approach:
 3. Fallback must be explicit in `NarrativeResponse.limitations`, not silent.
 4. Deterministic analytics remain authoritative; LLM output is optional communication on `AnalysisResult.narrative` only.
 
+### Milestone 11d — UI rendering principles
+
+1. AI-assisted narrative must not replace Direct Answer, Executive Reasoning, or System Transparency.
+2. Always show governance caption when narrative renders.
+3. Presentation logic belongs in `ui/narrative_presentation.py` — no LLM calls from UI components.
+4. Limitations must remain visible (not hidden in expanders).
+
 ---
 
 # Continuous Improvement

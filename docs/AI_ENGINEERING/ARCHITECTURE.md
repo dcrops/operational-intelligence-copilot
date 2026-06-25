@@ -301,7 +301,15 @@ Implementation lives under `src/operational_intelligence/llm/`:
 
 When provider is `openai`, `FallbackNarrativeGenerator` wraps `OpenAINarrativeGenerator` with `DeterministicNarrativeGenerator` as fallback. On timeout, auth failure, network error, rate limiting, or malformed response, the application continues with deterministic narrative and explicit limitations text — failure is not silent.
 
-When enabled, `AnalysisResult.narrative` may hold a `NarrativeResponse`. Deterministic fields remain unchanged. UI narrative rendering is deferred to a later milestone.
+When enabled, `AnalysisResult.narrative` may hold a `NarrativeResponse`. Deterministic fields remain unchanged.
+
+### UI narrative rendering (Milestone 11d)
+
+When `AnalysisResult.narrative` is present, the results panel renders an **Executive Narrative (AI-Assisted)** section at the end of the report. Deterministic sections (Direct Answer, Executive Reasoning, System Transparency, etc.) remain above it and authoritative.
+
+Presentation helpers live in `ui/narrative_presentation.py`. The section includes governance copy, Key Message, Executive Narrative, Limitations, and optional generation metadata. When narrative is disabled, a placeholder info message is shown instead.
+
+**OpenAI is a communication adapter only; deterministic analytics remain authoritative.**
 
 ---
 

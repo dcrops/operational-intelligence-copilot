@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Last Updated:** June 2026  
-**Milestone:** 11c — OpenAI Adapter & First Narrative Generation (Phase 4 tests may set `OIC_NARRATIVE_ENABLED` and `OIC_NARRATIVE_PROVIDER`)
+**Milestone:** 11d — Executive Narrative Rendering
 
 This document is the canonical guide for running the Operational Intelligence Copilot regression suite. It describes the three execution tiers established during Phase 3 (Milestones 10c–10g) and the criteria for declaring a regression run successful.
 
@@ -34,6 +34,8 @@ python -m pytest tests/app/test_dataset_lifecycle_journeys.py -m app -q
 python -m pytest tests/test_prompt_construction.py -q
 python -m pytest tests/test_narrative_boundary.py -q
 python -m pytest tests/test_openai_narrative_generator.py -q
+python -m pytest tests/test_narrative_presentation.py -q
+python -m pytest tests/app/test_narrative_rendering.py -m app -q
 ```
 
 **When to use:** After changing helpers, golden scenarios, a single AppTest module, prompt artifact models, or narrative generator protocol.
