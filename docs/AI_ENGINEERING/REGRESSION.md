@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Last Updated:** June 2026  
-**Milestone:** 11e — AI Executive Advisor
+**Milestone:** 11f — Business Narrative Translation Layer
 
 This document is the canonical guide for running the Operational Intelligence Copilot regression suite. It describes the three execution tiers established during Phase 3 (Milestones 10c–10g) and the criteria for declaring a regression run successful.
 
@@ -32,6 +32,7 @@ python -m pytest tests/app/test_clarification_journeys.py -m app -q
 python -m pytest tests/app/test_temporal_snapshot_journeys.py -m app -q
 python -m pytest tests/app/test_dataset_lifecycle_journeys.py -m app -q
 python -m pytest tests/test_prompt_construction.py -q
+python -m pytest tests/test_business_narrative_translation.py -q
 python -m pytest tests/test_executive_context_builder.py -q
 python -m pytest tests/test_executive_advisor_narrative.py -q
 python -m pytest tests/test_narrative_boundary.py -q
@@ -40,7 +41,7 @@ python -m pytest tests/test_narrative_presentation.py -q
 python -m pytest tests/app/test_narrative_rendering.py -m app -q
 ```
 
-**When to use:** After changing helpers, golden scenarios, a single AppTest module, prompt artifact models, or narrative generator protocol.
+**When to use:** After changing helpers, golden scenarios, a single AppTest module, prompt artifact models, narrative generator protocol, or Business Narrative Translation Layer rules.
 
 **Expected result:** All tests in the targeted file pass with zero failures.
 

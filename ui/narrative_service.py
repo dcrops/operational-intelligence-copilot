@@ -12,6 +12,9 @@ from ui.transparency import (
     format_temporal_filter_trail,
 )
 
+from src.operational_intelligence.llm.business_narrative_translation import (
+    BusinessNarrativeTranslator,
+)
 from src.operational_intelligence.llm.narrative_builder import NarrativeRequestBuilder
 from src.operational_intelligence.llm.narrative_config import is_narrative_enabled
 from src.operational_intelligence.llm.narrative_factory import resolve_narrative_generator
@@ -54,6 +57,7 @@ def build_deterministic_analysis_snapshot(result: AnalysisResult) -> Determinist
         reasoning_trace = reasoning_trace + (
             f"Assessment: {report.operational_assessment.rationale}",
         )
+    reasoning_trace = BusinessNarrativeTranslator().translate_reasoning_trace(reasoning_trace)
 
     transparency_lines: list[str] = []
     transparency_lines.extend(format_temporal_filter_trail(result.temporal_filter))

@@ -1,3 +1,8 @@
+from src.operational_intelligence.llm.business_narrative_translation import (
+    BusinessNarrativeTranslator,
+    TranslationCategory,
+    TranslationRegistry,
+)
 from src.operational_intelligence.llm.deterministic_narrative_generator import (
     DeterministicNarrativeGenerator,
 )
@@ -31,6 +36,7 @@ from src.operational_intelligence.llm.protocol import LLMClient
 from src.operational_intelligence.llm.prompts import SYSTEM_PROMPT, build_user_prompt
 
 __all__ = [
+    "BusinessNarrativeTranslator",
     "DeterministicAnalysisSnapshot",
     "DeterministicNarrativeGenerator",
     "EvidenceReference",
@@ -50,6 +56,8 @@ __all__ = [
     "PromptArtifact",
     "PromptArtifactBuilder",
     "SYSTEM_PROMPT",
+    "TranslationCategory",
+    "TranslationRegistry",
     "build_user_prompt",
     "get_narrative_provider",
     "get_openai_provider_config",

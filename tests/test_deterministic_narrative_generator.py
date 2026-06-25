@@ -72,7 +72,7 @@ class TestDeterministicNarrativePresentation:
         assert "Defect load requires immediate review." in combined or "outside normal expectations" in combined.lower()
         assert "Assessment Confidence:" not in combined
         assert response.assessment_confidence is not None
-        assert "Based on the deterministic evidence" in combined
+        assert "Based on the available evidence" in combined
         assert "operational analysis identified" not in combined.lower()
 
     def test_excludes_implementation_wording(self) -> None:

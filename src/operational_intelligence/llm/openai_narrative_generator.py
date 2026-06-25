@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import time
 
+from src.operational_intelligence.llm.business_narrative_translation import (
+    BusinessNarrativeTranslator,
+)
 from src.operational_intelligence.llm.narrative_errors import NarrativeGenerationError
 from src.operational_intelligence.llm.narrative_briefing import (
     build_assessment_confidence_presentation,
     build_executive_assessment_banner,
     build_limitations_text,
 )
-from src.operational_intelligence.llm.narrative_models import NarrativeResponse, PromptArtifact
+from src.operational_intelligence.llm.narrative_models import NarrativeResponse, NarrativeSection, PromptArtifact
 from src.operational_intelligence.llm.openai_prompt_formatter import OpenAIPromptFormatter
 from src.operational_intelligence.llm.openai_provider_config import OpenAIProviderConfig
 from src.operational_intelligence.llm.openai_response_parser import OpenAINarrativeResponseParser
@@ -34,6 +37,7 @@ class OpenAINarrativeGenerator:
         self._config = config
         self._prompt_formatter = prompt_formatter or OpenAIPromptFormatter()
         self._response_parser = response_parser or OpenAINarrativeResponseParser()
+        self._translator = BusinessNarrativeTranslator()
 
     @property
     def model_name(self) -> str:
@@ -65,11 +69,33 @@ class OpenAINarrativeGenerator:
                 f"Failed to parse OpenAI narrative response: {exc}"
             ) from exc
 
+        person_dimensions = self._translator.extract_person_dimensions(
+            artifact.transparency_summary,
+            findings_text=(
+                artifact.direct_answer,
+                artifact.executive_summary,
+                *artifact.analytical_findings,
+            ),
+        )
+        translated_sections = tuple(
+            NarrativeSection(
+                title=section.title,
+                content=self._translator.translate_prose(
+                    section.content,
+                    person_dimensions=person_dimensions,
+                ),
+            )
+            for section in parsed.sections
+        )
+
         return NarrativeResponse(
-            sections=parsed.sections,
-            limitations=build_limitations_text(
-                generator_type=GENERATOR_TYPE,
-                provider_note=parsed.limitations,
+            sections=translated_sections,
+            limitations=self._translator.translate_prose(
+                build_limitations_text(
+                    generator_type=GENERATOR_TYPE,
+                    provider_note=parsed.limitations,
+                ),
+                person_dimensions=person_dimensions,
             ),
             source_sections_used=artifact.source_sections,
             generator_type=GENERATOR_TYPE,

@@ -247,6 +247,25 @@ Future AI integration should extend the platform rather than replace determinist
 
 ---
 
+# Audience-Specific Communication
+
+Different system components communicate with different audiences.
+
+| Component | Audience | Purpose |
+|-----------|----------|---------|
+| Direct Answer | Business user | Plain operational response |
+| Executive Reasoning | Operational leaders | Analytical explanation |
+| System Transparency | Developer and auditor | Traceability and routing metadata |
+| Executive Narrative | Executive decision support | Business-facing briefing |
+
+The **Business Narrative Translation Layer** enables these views to consume the same deterministic evidence while presenting information appropriate to each audience.
+
+Executive Reasoning and System Transparency retain raw deterministic terminology. Executive Narrative consumes translated business language only. Translation is registry-driven, deterministic, and presentation-only.
+
+When extending narrative capabilities, add rules to `TranslationRegistry` rather than introducing audience-specific conditionals in UI or reasoning code.
+
+---
+
 # Phase 4 Guidance — AI Narrative Layer
 
 Phase 4 work follows a **boundary-first** approach:
@@ -292,6 +311,16 @@ Phase 4 work follows a **boundary-first** approach:
 5. Provide investigation strategy, business impact, decision guidance, and hypothesis categories where evidence allows.
 6. Narrative generators and OpenAI formatters consume `ExecutiveContext`, not raw telemetry.
 7. Technical implementation details stay in Evidence and System Transparency.
+
+### Milestone 11f — Business Narrative Translation Layer principles
+
+1. Translation rules live in `TranslationRegistry` — not scattered conditionals across builders or UI.
+2. The translation layer is presentation-only; never modify analytics, routing, Executive Reasoning, or System Transparency.
+3. Classify artefacts as Preserve, Translate, Remove, or Abstract before narrative generation.
+4. Apply translation at snapshot, context, and OpenAI output boundaries.
+5. Preserve deterministic ordering and internal identifiers (`translate_identifier_with_source()`).
+6. Abstract person-identifying record values for person dimensions only; preserve operational entities.
+7. Extend the registry when adding new analytical tools or fields — do not duplicate translation logic in `ExecutiveContextBuilder`.
 
 ---
 

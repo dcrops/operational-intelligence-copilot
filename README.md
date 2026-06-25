@@ -36,9 +36,7 @@ Rather than allowing an LLM to determine analytical facts, the system first esta
 * producing executive findings
 * explaining every analytical decision
 
-Only after this deterministic platform is complete will an AI Narrative Layer be introduced.
-
-The LLM will communicate deterministic findings rather than generate them.
+Only after this deterministic platform is complete, an AI Narrative Layer communicates those findings through audience-specific presentation — including the Business Narrative Translation Layer for executive-facing language.
 
 This approach reflects modern AI Engineering practices where AI augments reliable systems instead of replacing them.
 
@@ -84,6 +82,19 @@ The application explains:
 * temporal reasoning
 * clarification decisions
 * evidence used during analysis
+
+System Transparency retains raw deterministic metadata. Executive Narrative applies the Business Narrative Translation Layer so executives see business language only.
+
+---
+
+## Executive Narrative (AI-Assisted)
+
+Optional executive briefing generated from deterministic evidence:
+
+* Business Narrative Translation Layer providing deterministic translation from analytical reasoning into executive-facing business language
+* Executive advisor sections (Key Message, Why This Matters, investigation guidance, executive and operational actions)
+* Deterministic or OpenAI-backed generation with explicit limitations
+* Executive Assessment banner and structured confidence presentation
 
 ---
 
@@ -172,14 +183,24 @@ Executive Reporting
 
         │
 
-        ▼
-
-System Transparency
+        ├─────────────────────────────┐
+        │                             │
+        ▼                             ▼
+System Transparency          Business Narrative Translation Layer
+(Direct Answer, Executive              │
+ Reasoning — analytical)               ▼
+        │                      Executive Narrative
+        │                             │
+        └──────────────┬──────────────┘
+                       ▼
+                 Presentation
 ```
 
 The deterministic pipeline remains the single source of analytical truth.
 
-Future AI capabilities will enhance communication rather than replace analytical reasoning.
+Executive Reasoning and System Transparency present analytical and audit detail. The Business Narrative Translation Layer converts the same evidence into executive-facing business language before Executive Narrative generation.
+
+Future AI capabilities enhance executive communication rather than replace analytical reasoning.
 
 ---
 
@@ -295,15 +316,18 @@ These documents evolved alongside the codebase and describe the engineering phil
 
 # Current Status
 
-**Phase 3 — Application Quality Engineering**
+**Phase 4 — AI Narrative Layer**
 
-✅ Complete
+Milestone 11f complete. The deterministic platform is production-ready; optional Executive Narrative generation is available when enabled.
 
 Completed capabilities include:
 
 * Deterministic Analytics
 * Executive Reasoning
 * Executive Reporting
+* System Transparency
+* Business Narrative Translation Layer
+* Executive Narrative (AI-Assisted)
 * Behavioural Application Testing
 * Golden Dataset Registry
 * Golden User Journeys
@@ -312,22 +336,22 @@ Completed capabilities include:
 * Dataset Lifecycle Testing
 * Engineering Readiness
 
-The deterministic platform is now considered production-ready.
+Enable narrative generation with `OIC_NARRATIVE_ENABLED=true` (see `docs/AI_ENGINEERING/ARCHITECTURE.md`).
 
 ---
 
 # Future Direction
 
-Phase 4 introduces an AI Narrative Layer.
+Phase 5 introduces an LLM evaluation framework.
 
-Rather than generating analytical facts, the AI layer will:
+The AI narrative layer:
 
-* communicate deterministic findings
-* improve executive readability
-* remain fully governed by deterministic evidence
-* preserve explainability and transparency
+* communicates deterministic findings
+* applies registry-driven business translation before executive presentation
+* remains fully governed by deterministic evidence
+* preserves explainability and transparency
 
-This project intentionally demonstrates how Large Language Models can be integrated into trustworthy analytical systems without compromising engineering discipline.
+This project demonstrates how Large Language Models can be integrated into trustworthy analytical systems without compromising engineering discipline.
 
 ---
 

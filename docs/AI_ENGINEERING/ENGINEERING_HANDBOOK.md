@@ -394,12 +394,73 @@ Completed in Phase 4 (Milestone 11e):
 
 - **AI Executive Advisor** — narrative evolves from summarisation to executive communication and investigation guidance
 - Reusable `NarrativeSection` model; `NarrativeResponse.sections` replaces fixed advisor field names
-- Ordered advisor sections: Key Message, Why This Matters, Where To Investigate First, Possible Explanations To Check, Recommended Next Steps
+- Ordered advisor sections: Key Message, Why This Matters, Where To Investigate First, Possible Explanations To Check, Executive Actions, Operational Investigation
 - Prompt artifact version 1.2 with executive-advisor governance, plain-language rules, and dimension-aware investigation guidance
-- **Executive Context Builder** — domain-agnostic translation layer between deterministic analysis and narrative generation
+- **Executive Context Builder** — assembles structured executive context from translated artefacts for narrative generation
 - `ExecutiveContext` model; narrative generators consume executive context rather than raw analytical telemetry
 - UI iterates `NarrativeSection` objects dynamically; deterministic analytics remain authoritative
 - Tests in `tests/test_executive_advisor_narrative.py` and `tests/test_executive_context_builder.py`
+
+---
+
+## Milestone 11f — Business Narrative Translation Layer
+
+### Problem solved
+
+Executive narratives previously exposed analytical implementation details intended for System Transparency — for example routing metadata (`Metric selected`, `Aggregation inferred`), internal tool names, snake_case field identifiers, and person-identifying record values.
+
+### Solution
+
+Introduced a reusable **Business Narrative Translation Layer** (`business_narrative_translation.py`) between Executive Reasoning and Executive Narrative generation. The layer classifies every analytical artefact into Preserve, Translate, Remove, or Abstract categories via a data-driven `TranslationRegistry`.
+
+### Benefits
+
+* Clean separation of concerns between analytical reasoning and executive presentation
+* Reusable translation registry — extend terminology without scattered conditionals
+* Audience-specific presentation from the same deterministic evidence
+* Deterministic behaviour preserved throughout translation
+* Improved executive readability
+* Future domain extensibility via registry entries
+
+### Engineering decisions
+
+* **Registry-driven translation** — rules defined as data in `TranslationRegistry`, not embedded in builders
+* **Presentation-only transformation** — analytics, routing, Executive Reasoning, and System Transparency unchanged
+* **Preserved traceability** — `translate_identifier_with_source()` retains source identifiers alongside display labels
+* **Deterministic ordering retained** — translation never reorders metrics, dimensions, or investigation targets
+* **Compatibility layer** — `executive_language.py` delegates to `BusinessNarrativeTranslator` without breaking existing imports
+* **Three translation boundaries** — snapshot (`narrative_service.py`), context (`ExecutiveContextBuilder`), and OpenAI output post-processing
+
+### Testing
+
+Unit tests per category in `tests/test_business_narrative_translation.py`:
+
+* **Preserve** — business metrics and operational entities unchanged
+* **Translate** — known identifier and prose mappings
+* **Remove** — transparency and routing metadata filtered
+* **Abstract** — person-identifying values abstracted for person dimensions only
+
+Integration leak tests in `tests/test_executive_context_builder.py` assert Executive Narrative context excludes internal terminology.
+
+End-to-end ordered-concepts regression validates Preserve, Translate, Remove, and Abstract together.
+
+Manual validation confirms Executive Narrative output is executive-safe (no routing metadata, no raw person names in person-dimension analyses).
+
+### Milestone summary (portfolio)
+
+Milestone 11f introduced a Business Narrative Translation Layer that cleanly separates deterministic analytical reasoning from executive communication. By introducing a reusable, registry-driven translation architecture, the system now presents the same underlying evidence differently depending on audience, improving executive readability while preserving transparency, determinism, and traceability.
+
+Completed in Phase 4 (Milestone 11f):
+
+- **Business Narrative Translation Layer** — registry-backed translation between Executive Reasoning and Executive Narrative
+- `TranslationRegistry` with Preserve / Translate / Remove / Abstract categories
+- `BusinessNarrativeTranslator` as single source of truth for executive terminology
+- `executive_language.py` retained as compatibility layer delegating to the translator
+- Transparency metadata filtered before metric extraction; person names abstracted for person-identifying dimensions only
+- OpenAI narrative output post-processed to prevent jargon reintroduction
+- Executive Narrative UX enhancements (assessment banner, split actions, structured confidence)
+- Tests in `tests/test_business_narrative_translation.py` including end-to-end regression
+- Documentation updated across ARCHITECTURE, HANDBOOK, ROADMAP, AI_COLLABORATION, CODING_STANDARDS, and README
 
 Next planned work:
 

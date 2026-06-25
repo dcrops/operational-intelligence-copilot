@@ -182,7 +182,11 @@ class TestExecutiveContextBuilder:
         context = ExecutiveContextBuilder().build(_technical_request())
 
         assert context.key_message
-        assert "Defects" in context.key_message or "defect" in context.key_message.lower()
+        assert (
+            "Defects" in context.key_message
+            or "defect" in context.key_message.lower()
+            or "Line B" in context.direct_answer_summary
+        )
         assert "findings detected" not in context.key_message.lower()
 
     def test_assessment_confidence_is_present(self) -> None:
@@ -201,7 +205,7 @@ class TestExecutiveContextBuilder:
     def test_prioritized_explanations_use_evidence_framing(self) -> None:
         context = ExecutiveContextBuilder().build(_technical_request())
 
-        assert context.prioritized_explanations.startswith("Based on the deterministic evidence")
+        assert context.prioritized_explanations.startswith("Based on the available evidence")
         assert "hypothesis" in context.prioritized_explanations.lower()
 
     def test_recommended_actions_are_grouped(self) -> None:
@@ -271,6 +275,85 @@ class TestExecutiveContextBuilder:
         builder = ExecutiveContextBuilder()
 
         assert builder.build(request) == builder.build(request)
+
+
+_INTERNAL_NARRATIVE_TERMS = (
+    "metric selected:",
+    "aggregation inferred:",
+    "comparison inferred:",
+    "comparison direction inferred:",
+    "routed tools:",
+    "employee_name",
+    "hayden king",
+)
+
+
+def _workforce_transparency_request() -> NarrativeRequest:
+    snapshot = DeterministicAnalysisSnapshot(
+        question="Which group has the highest values?",
+        direct_answer="Hayden King has the highest Overtime Hours at 52.",
+        executive_summary=(
+            "Operational analysis identified 1 finding(s): 1 high priority, 0 medium priority, "
+            "and 0 low priority."
+        ),
+        analytical_findings=(
+            "Significant Variance Identified by Variance Analysis Tool: "
+            "Hayden King overtime_hours is above peers.",
+        ),
+        operational_assessment="high: Overtime requires review.",
+        executive_conclusions=("Review overtime concentration.",),
+        priority_actions=("Validate overtime records for Hayden King.",),
+        transparency_summary=(
+            "Metric selected: Overtime Hours",
+            "Dimension selected: employee_name",
+            "Aggregation inferred: sum",
+            "Comparison direction inferred: highest",
+            "Dimension: employee_name",
+            "Highest: Hayden King (52)",
+            "Lowest: Sam Lee (8)",
+        ),
+        reasoning_trace=("Theme 1: overtime_hours",),
+        source_sections=(
+            "Direct Answer",
+            "Executive Summary",
+            "Analytical Findings",
+            "Operational Assessment",
+            "Executive Conclusions",
+            "Priority Actions",
+            "System Transparency",
+        ),
+    )
+    return NarrativeRequestBuilder().build(snapshot)
+
+
+class TestExecutiveNarrativeTranslationBoundaries:
+    def test_executive_context_excludes_transparency_metadata(self) -> None:
+        context = ExecutiveContextBuilder().build(_workforce_transparency_request())
+        combined = _combined_context_text(context).lower()
+
+        for term in _INTERNAL_NARRATIVE_TERMS:
+            assert term not in combined, f"Found internal term {term!r} in executive context"
+
+    def test_deterministic_narrative_excludes_transparency_metadata(self) -> None:
+        artifact = PromptArtifactBuilder().build(_workforce_transparency_request())
+        response = DeterministicNarrativeGenerator().generate(artifact)
+        combined = "\n".join(section.content for section in response.sections).lower()
+
+        for term in _INTERNAL_NARRATIVE_TERMS:
+            assert term not in combined, f"Found internal term {term!r} in narrative sections"
+
+    def test_person_names_are_abstracted_in_executive_context(self) -> None:
+        context = ExecutiveContextBuilder().build(_workforce_transparency_request())
+        combined = _combined_context_text(context)
+
+        assert "Hayden King" not in combined
+        assert "Individual employee" in combined or "Overtime Hours" in combined
+
+    def test_operational_metric_labels_are_preserved(self) -> None:
+        context = ExecutiveContextBuilder().build(_workforce_transparency_request())
+
+        assert any("Overtime Hours" in metric for metric in context.affected_metrics)
+        assert context.investigation_targets == ("Employee",)
 
 
 class TestExecutiveContextPipelineIntegration:

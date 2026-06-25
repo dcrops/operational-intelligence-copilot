@@ -2,9 +2,9 @@
 
 # Architecture
 
-**Version:** 1.0
+**Version:** 1.1
 **Last Updated:** June 2026  
-**Current Milestone:** Phase 3 complete — Application Quality Engineering
+**Current Milestone:** Phase 4 — Milestone 11f — Business Narrative Translation Layer
 
 ---
 
@@ -73,12 +73,50 @@ Executive Reasoning
     ▼
 Executive Report
     │
-    ▼
-Presentation Layer
+    ├──────────────────────────────────────┐
+    │                                      │
+    ▼                                      ▼
+Presentation Layer              Business Narrative Translation Layer
+(Direct Answer, Executive                  │
+ Reasoning, Transparency)                 ▼
+    │                              Executive Narrative
+    │                                      │
+    └──────────────────┬───────────────────┘
+                       ▼
+              Application Testing
+```
+
+The deterministic pipeline (through Executive Report) remains the single source of analytical truth. The optional narrative path applies audience-specific translation before Executive Narrative generation.
+
+---
+
+# Presentation Pipeline
+
+The user-facing report combines deterministic presentation with optional executive narrative communication.
+
+```text
+Question
     │
     ▼
-Application Testing
+Intent Routing
+    │
+    ▼
+Deterministic Analytics
+    │
+    ▼
+Executive Reasoning
+    │
+    ▼
+Business Narrative Translation Layer
+    │
+    ▼
+Executive Narrative
+    │
+    ▼
+Presentation
 ```
+
+This pipeline separates **analytical reasoning** (Executive Reasoning, System Transparency) from **executive communication** (Executive Narrative). The translation layer ensures the same deterministic evidence can be presented appropriately to each audience without modifying underlying analytics or reasoning.
 
 ---
 
@@ -245,7 +283,7 @@ The narrative layer must not:
 * mutate pipeline results
 * become the source of truth
 
-### Boundary flow (Milestones 11a–11e)
+### Boundary flow (Milestones 11a–11f)
 
 ```
 AnalysisResult / ExecutiveReport snapshot
@@ -253,6 +291,8 @@ AnalysisResult / ExecutiveReport snapshot
 NarrativeRequestBuilder
         ↓
 NarrativeRequest
+        ↓
+BusinessNarrativeTranslator (filter, translate, abstract)
         ↓
 ExecutiveContextBuilder
         ↓
@@ -264,7 +304,7 @@ PromptArtifact
         ↓
 resolve_narrative_generator()
         ↓
-NarrativeGenerator
+NarrativeGenerator (+ post-translation for OpenAI output)
         ↓
 NarrativeResponse
         ↓
@@ -274,8 +314,9 @@ Executive UI (Streamlit results panel)
 Implementation lives under `src/operational_intelligence/llm/`:
 
 * `narrative_models.py` — frozen `NarrativeRequest`, `NarrativeResponse`, `NarrativeSection`, `ExecutiveContext`, `PromptArtifact`, `EvidenceReference`, `GroundingConstraints`
+* `business_narrative_translation.py` — registry-backed Business Narrative Translation Layer (Preserve / Translate / Remove / Abstract)
 * `executive_context_builder.py` — translates deterministic outputs into domain-agnostic executive business context
-* `executive_language.py` — technical-to-executive language translation helpers
+* `executive_language.py` — compatibility layer delegating to `BusinessNarrativeTranslator`
 * `narrative_builder.py` — pure transformer from deterministic snapshots to `NarrativeRequest`
 * `prompt_artifact_builder.py` — pure transformer from `NarrativeRequest` to `PromptArtifact`
 * `narrative_governance.py` — grounding rules, narrative objectives, artifact version
@@ -323,15 +364,123 @@ Advisor sections (in order):
 2. Why This Matters
 3. Where To Investigate First
 4. Possible Explanations To Check
-5. Recommended Next Steps
+5. Executive Actions
+6. Operational Investigation
 
 `limitations` remains a separate field. Investigation guidance references dataset dimensions only when present in deterministic evidence.
 
+Presentation metadata includes a deterministic Executive Assessment banner and structured Assessment Confidence block.
+
+## Business Narrative Translation Layer
+
+The Business Narrative Translation Layer is responsible for converting deterministic analytical artefacts into executive-facing business language before narrative generation.
+
+Its purpose is to ensure that executive communication describes operational meaning rather than implementation details.
+
+It provides a clean separation between analytical reasoning and executive presentation.
+
+Implementation: `src/operational_intelligence/llm/business_narrative_translation.py` (`TranslationRegistry`, `BusinessNarrativeTranslator`). The layer does not modify analytics, routing, Executive Reasoning, System Transparency, or evidence generation.
+
+```
+Executive Reasoning (detailed, analytical)
+        ↓
+Deterministic snapshot (raw artefacts)
+        ↓
+Business Narrative Translation Layer
+        ↓
+Executive Context Builder
+        ↓
+Executive Narrative (business-facing)
+        ↓
+Presentation
+```
+
+### Separation of concerns
+
+| Layer | Audience | Terminology |
+|-------|----------|-------------|
+| Direct Answer | Business user | Plain operational answer |
+| Executive Reasoning | Operational leaders | Detailed, analytically accurate |
+| System Transparency | Developer and auditor | Raw routing metadata, inferred parameters, tool names |
+| Executive Narrative | Executive decision support | Business concepts only via translation registry |
+
+### Preserve
+
+Business concepts that should remain unchanged.
+
+Examples:
+
+* Attendance Rate
+* Overtime Hours
+* Behaviour Incidents
+* Revenue
+* Operational entities such as production lines, schools, departments, and branches (for example Line B, School C, Finance Department)
+
+### Translate
+
+Technical terminology converted into business terminology.
+
+Examples:
+
+| Internal | Executive |
+|----------|-----------|
+| `employee_name` | Employee |
+| `department_name` | Department |
+| `variance_analysis` | Performance comparison |
+| `anomaly_detection` | Performance anomalies |
+
+Translation is deterministic and registry-driven. Terminology entries support singular and plural forms for future extension.
+
+### Remove
+
+Implementation details that should never appear in executive communication.
+
+Examples:
+
+* Metric selected
+* Aggregation inferred
+* Comparison direction inferred
+* Routed tools
+* Internal routing metadata
+* Analytical process telemetry (finding counts, tool titles)
+
+### Abstract
+
+Person-identifying values converted into executive-safe language.
+
+Examples:
+
+| Value | Executive (person dimension) |
+|-------|------------------------------|
+| Hayden King | Individual employee |
+| Student Name (record value) | Individual student |
+| Patient Name (record value) | Individual patient |
+
+Operational entities such as departments, schools, production lines, and branches remain unchanged. Abstraction applies to person-identifying dimensions only (for example `employee_name`, `student_name`, `patient_name`).
+
+### Design principles
+
+* **Deterministic translation** — same input always produces the same executive output; no LLM involvement in the translation layer itself
+* **Data-driven registry** — rules live in `TranslationRegistry`; extend terminology and remove-prefix lists rather than scattering conditionals
+* **Presentation-only transformation** — translation affects narrative presentation, not analytical facts or reasoning outputs
+* **Preserved internal identifiers** — `translate_identifier_with_source()` retains source identifiers alongside display labels for traceability and future drill-down
+* **Preserved deterministic ordering** — translation never reorders metrics, dimensions, findings, or investigation targets
+
+Translation is applied at three boundaries:
+
+1. **Snapshot boundary** — `reasoning_trace` theme labels translated in `ui/narrative_service.py`
+2. **Context boundary** — `ExecutiveContextBuilder` consumes registry-filtered transparency lines and translated prose
+3. **OpenAI boundary** — parsed LLM sections post-processed through `translate_prose` to prevent jargon reintroduction
+
+`executive_language.py` remains a compatibility layer delegating to `BusinessNarrativeTranslator`.
+
 ### Executive Context Builder (Milestone 11e)
 
-The **Executive Context Builder** sits between deterministic analysis and prompt artifact construction. It performs **translation only** — it does not analyse, mutate findings, or infer unsupported causes.
+The **Executive Context Builder** consumes output from the Business Narrative Translation Layer and assembles structured `ExecutiveContext` for narrative generation.
 
-Deterministic analytics answer **what happened**. Executive Context translates that output into **executive decision support**: business significance, operational implications, investigation strategy, decision guidance, hypothesis categories, and action-oriented next steps. It deliberately avoids repeating analytical telemetry (finding counts, detection process wording, and implementation details) that already appear in Evidence and System Transparency.
+It performs **context assembly and template construction only** — it does not analyse, mutate findings, or infer unsupported causes.
+
+Deterministic analytics answer **what happened**. Executive Context assembles that output into **executive decision support**: business significance, operational implications, investigation strategy, decision guidance, hypothesis categories, and action-oriented next steps. It deliberately avoids repeating analytical telemetry (finding counts, detection process wording, and implementation details) that already appear in Evidence and System Transparency.
 
 Technical implementation details (z-scores, thresholds, analysed columns, detection algorithms) remain in Evidence and System Transparency; they are abstracted before narrative generation.
 
@@ -386,8 +535,14 @@ Reasoning
 
 ↓
 
+Business Narrative Translation (narrative path only)
+
+↓
+
 Presentation
 ```
+
+Analytical reasoning (Executive Reasoning, System Transparency) and executive communication (Executive Narrative) remain distinct. Transparency retains raw deterministic terminology; Executive Narrative consumes translated business language only.
 
 These boundaries should remain intact.
 
@@ -413,6 +568,9 @@ Current high-level modules include:
 * Executive Report Generator
 * Answer Generator
 * Transparency Engine
+* Business Narrative Translation Layer (`business_narrative_translation.py`)
+* Executive Context Builder
+* Narrative generators (deterministic / OpenAI)
 
 ---
 
@@ -494,6 +652,7 @@ The following principles should guide future development.
 * Maintain deterministic reasoning.
 * Separate analytics from reasoning.
 * Separate reasoning from presentation.
+* Separate executive communication from analytical transparency.
 * Reuse infrastructure before adding features.
 * Protect module boundaries.
 * Prefer composition over duplication.

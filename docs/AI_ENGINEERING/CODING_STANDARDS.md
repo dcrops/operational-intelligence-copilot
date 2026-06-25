@@ -375,14 +375,28 @@ Rules:
 
 # Narrative Translation Convention
 
-Phase 4 executive translation lives in `src/operational_intelligence/llm/executive_context_builder.py` and `executive_language.py`.
+Phase 4 executive translation lives in `src/operational_intelligence/llm/business_narrative_translation.py`, `executive_context_builder.py`, and `executive_language.py` (compatibility layer).
 
 Rules:
 
 * Translation only — no analytics, routing, or mutation of deterministic findings.
+* Use `TranslationRegistry` and `BusinessNarrativeTranslator` as the single source of truth for executive terminology.
+* Classify artefacts as Preserve, Translate, Remove, or Abstract — do not scatter audience-specific conditionals.
 * Remain domain-agnostic; derive investigation targets and metrics from pipeline metadata.
-* Abstract implementation details (z-score, thresholds, analysed columns) before narrative generation.
+* Filter transparency metadata before narrative consumption; abstract person names for person-identifying dimensions only.
 * Do not import Streamlit or UI modules from translation code.
+
+---
+
+# Audience Separation
+
+Business-facing components should never expose implementation details.
+
+Presentation layers should communicate concepts appropriate to their intended audience while preserving deterministic traceability internally.
+
+Where translation is required, implement it through reusable registry-driven components rather than scattered conditional logic.
+
+Executive Reasoning and System Transparency retain raw deterministic terminology. Executive Narrative consumes translated business language via the Business Narrative Translation Layer.
 
 ---
 

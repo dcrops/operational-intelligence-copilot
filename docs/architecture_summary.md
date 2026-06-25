@@ -71,6 +71,8 @@ The default user path is **fully deterministic**:
 │  Direct Answers                              │
 │  Investigation Suggestions                   │
 │  Transparency Trails                         │
+│  Business Narrative Translation (optional)   │
+│  Executive Narrative (optional)              │
 └──────────────────────────────────────────────┘
 ```
 
@@ -105,7 +107,7 @@ The default user path is **fully deterministic**:
 | `reporting.py` | Executive report generation |
 | `answer_generator.py` | Deterministic answer generation |
 | `llm_answer_generator.py` | Optional LLM rendering layer |
-| `llm/` | LLM interfaces and adapters |
+| `llm/` | LLM interfaces, narrative boundary, Business Narrative Translation Layer, executive context |
 
 ---
 
@@ -212,6 +214,21 @@ Outputs:
 - Evidence
 - Transparency Trails
 - Metrics Analysed
+- Executive Narrative (optional — via Business Narrative Translation Layer)
+
+### Optional narrative path
+
+```text
+Executive Reasoning
+        ↓
+Business Narrative Translation Layer
+        ↓
+Executive Narrative
+        ↓
+Presentation
+```
+
+Executive Reasoning and System Transparency retain raw deterministic terminology. Executive Narrative consumes translated business language only.
 
 ---
 

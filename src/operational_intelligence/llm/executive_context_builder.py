@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
+from src.operational_intelligence.llm.business_narrative_translation import (
+    BusinessNarrativeTranslator,
+)
 from src.operational_intelligence.llm.executive_language import (
     collapse_multiline_text,
     extract_quoted_identifiers,
     extract_snake_case_identifiers,
-    humanize_identifier,
     is_analytical_telemetry,
     is_implementation_title,
-    sanitize_executive_prose,
     split_sentences,
-    strip_analytical_telemetry,
-    strip_implementation_wording,
-    translate_technical_language,
 )
 from src.operational_intelligence.llm.narrative_models import ExecutiveContext, NarrativeRequest
+
+_DEFAULT_TRANSLATOR = BusinessNarrativeTranslator()
 
 DEFAULT_INVESTIGATION_CATEGORIES = (
     "operational disruption",
@@ -36,17 +36,18 @@ _ANALYTICAL_TITLE_PREFIXES = (
     "defect variance",
 )
 
-_TRANSPARENCY_LINE_PREFIXES = (
-    "Temporal filter:",
-    "Dimension:",
-    "Highest:",
-    "Lowest:",
-    "Clarification:",
-    "Automatically resolved:",
-    "Metrics analysed:",
-    "Snapshot:",
-    "Applied filter:",
-)
+def _person_dimensions_for_request(
+    request: NarrativeRequest,
+    translator: BusinessNarrativeTranslator,
+) -> tuple[str, ...]:
+    return translator.extract_person_dimensions(
+        request.transparency_summary,
+        findings_text=(
+            request.direct_answer,
+            request.executive_summary,
+            *request.analytical_findings,
+        ),
+    )
 
 _COUNT_WORDS = {
     1: "One",
@@ -64,11 +65,28 @@ def _split_finding_summary(summary: str) -> tuple[str, str]:
     return summary, summary
 
 
-def _translate_executive_text(text: str) -> str:
-    translated = sanitize_executive_prose(
-        strip_analytical_telemetry(translate_technical_language(text))
-    )
-    return strip_implementation_wording(translated)
+_TRANSPARENCY_METRIC_LINE_PREFIXES = (
+    "Temporal filter:",
+    "Period:",
+    "Date column:",
+    "Records analysed:",
+    "Highest:",
+    "Lowest:",
+    "Metrics analysed:",
+    "Snapshot:",
+    "Applied filter:",
+    "Reason:",
+    "Analysis:",
+)
+
+
+def _translate_executive_text(
+    text: str,
+    *,
+    translator: BusinessNarrativeTranslator,
+    person_dimensions: tuple[str, ...],
+) -> str:
+    return translator.translate_prose(text, person_dimensions=person_dimensions)
 
 
 def _strip_analytical_title(title: str) -> str:
@@ -82,22 +100,39 @@ def _strip_analytical_title(title: str) -> str:
 
 def _parse_operational_assessment(
     operational_assessment: str | None,
+    *,
+    translator: BusinessNarrativeTranslator,
+    person_dimensions: tuple[str, ...],
 ) -> tuple[str | None, str | None]:
     if not operational_assessment:
         return None, None
     if ": " in operational_assessment:
         level, rationale = operational_assessment.split(": ", 1)
-        return humanize_identifier(level), _translate_executive_text(rationale)
-    return None, _translate_executive_text(operational_assessment)
+        return (
+            translator.translate_identifier(level),
+            _translate_executive_text(
+                rationale,
+                translator=translator,
+                person_dimensions=person_dimensions,
+            ),
+        )
+    return None, _translate_executive_text(
+        operational_assessment,
+        translator=translator,
+        person_dimensions=person_dimensions,
+    )
 
 
-def _extract_investigation_targets(transparency_summary: tuple[str, ...]) -> tuple[str, ...]:
+def _extract_investigation_targets(
+    transparency_summary: tuple[str, ...],
+    translator: BusinessNarrativeTranslator,
+) -> tuple[str, ...]:
     targets: list[str] = []
     seen: set[str] = set()
-    for line in transparency_summary:
+    for line in translator.filter_transparency_lines(transparency_summary):
         if not line.startswith("Dimension: "):
             continue
-        target = humanize_identifier(line.removeprefix("Dimension: "))
+        target = translator.translate_identifier(line.removeprefix("Dimension: "))
         key = target.lower()
         if not target or key in seen:
             continue
@@ -106,13 +141,18 @@ def _extract_investigation_targets(transparency_summary: tuple[str, ...]) -> tup
     return tuple(targets)
 
 
-def _extract_metrics_from_transparency(transparency_summary: tuple[str, ...]) -> tuple[str, ...]:
+def _extract_metrics_from_transparency(
+    transparency_summary: tuple[str, ...],
+    translator: BusinessNarrativeTranslator,
+) -> tuple[str, ...]:
     metrics: list[str] = []
     seen: set[str] = set()
-    for line in transparency_summary:
-        if any(line.startswith(prefix) for prefix in _TRANSPARENCY_LINE_PREFIXES):
+    for line in translator.filter_transparency_lines(transparency_summary):
+        if line.startswith("Dimension: "):
             continue
-        candidate = line.strip()
+        if any(line.startswith(prefix) for prefix in _TRANSPARENCY_METRIC_LINE_PREFIXES):
+            continue
+        candidate = translator.translate_identifier(line.strip())
         if not candidate or candidate.startswith("-"):
             continue
         key = candidate.lower()
@@ -127,6 +167,8 @@ def _extract_affected_metrics(
     request: NarrativeRequest,
     *,
     investigation_targets: tuple[str, ...],
+    translator: BusinessNarrativeTranslator,
+    person_dimensions: tuple[str, ...],
 ) -> tuple[str, ...]:
     dimension_names = {target.lower() for target in investigation_targets}
     combined_text = "\n".join(
@@ -139,7 +181,7 @@ def _extract_affected_metrics(
     seen: set[str] = set()
     metrics: list[str] = []
 
-    for label in _extract_metrics_from_transparency(request.transparency_summary):
+    for label in _extract_metrics_from_transparency(request.transparency_summary, translator):
         if label.lower() in dimension_names:
             continue
         key = label.lower()
@@ -151,7 +193,16 @@ def _extract_affected_metrics(
         *extract_quoted_identifiers(combined_text),
         *extract_snake_case_identifiers(combined_text),
     ):
-        label = humanize_identifier(identifier)
+        if translator.registry.is_person_dimension(identifier):
+            continue
+        if identifier.lower().replace(" ", "_") in {
+            "anomaly_detection",
+            "variance_analysis",
+            "trend_analysis",
+            "snapshot_analysis",
+        }:
+            continue
+        label = translator.translate_identifier(identifier)
         key = label.lower()
         if key in seen or key in dimension_names:
             continue
@@ -160,7 +211,14 @@ def _extract_affected_metrics(
 
     for finding in request.analytical_findings:
         title, _ = _split_finding_summary(finding)
-        title_text = _strip_analytical_title(_translate_executive_text(title))
+        stripped_title = _strip_analytical_title(title)
+        if not stripped_title:
+            continue
+        title_text = _translate_executive_text(
+            stripped_title,
+            translator=translator,
+            person_dimensions=person_dimensions,
+        )
         if not title_text or is_analytical_telemetry(title_text) or is_implementation_title(title_text):
             continue
         key = title_text.lower()
@@ -316,7 +374,7 @@ def _build_assessment_confidence(
     if confidence_signals >= 2 or (finding_count >= 1 and has_operational_assessment):
         return (
             "Medium",
-            "Findings are supported by deterministic evidence but should be validated against source data.",
+            "Findings are supported by reported evidence but should be validated against source data.",
         )
 
     return (
@@ -354,7 +412,7 @@ def _build_prioritized_explanations(
 
     if multi_metric and (multi_finding or len(affected_metrics) >= 3) and not has_dimension:
         return (
-            "Based on the deterministic evidence, the most plausible explanations are "
+            "Based on the available evidence, the most plausible explanations are "
             "organisation-wide reporting inconsistencies or cross-cutting operational effects, "
             "because anomalies appear across multiple unrelated operational metrics. "
             "Treat this as a hypothesis until validated."
@@ -363,20 +421,20 @@ def _build_prioritized_explanations(
     if has_dimension:
         target_text = _format_list(investigation_targets)
         return (
-            f"Based on the deterministic evidence, the most plausible explanations are "
+            f"Based on the available evidence, the most plausible explanations are "
             f"localised operational issues within affected {target_text}, rather than "
             "organisation-wide effects. Treat this as a hypothesis until validated."
         )
 
     if multi_metric:
         return (
-            "Based on the deterministic evidence, the most plausible explanations include "
+            "Based on the available evidence, the most plausible explanations include "
             "reporting inconsistencies or operational changes affecting multiple metrics. "
             "The available evidence cannot distinguish between these causes — validate before deciding."
         )
 
     return (
-        "Based on the deterministic evidence, the most plausible explanations include "
+        "Based on the available evidence, the most plausible explanations include "
         "operational disruption, process changes, or data quality issues. "
         "The available evidence cannot distinguish between these causes — validate before deciding."
     )
@@ -453,6 +511,8 @@ def _build_operational_investigation_actions(
     request: NarrativeRequest,
     *,
     affected_metrics: tuple[str, ...],
+    translator: BusinessNarrativeTranslator,
+    person_dimensions: tuple[str, ...],
 ) -> tuple[str, ...]:
     actions: list[str] = []
 
@@ -465,7 +525,11 @@ def _build_operational_investigation_actions(
         add_action(f"Review {metric} records")
 
     for action in request.priority_actions:
-        translated = _translate_executive_text(action)
+        translated = _translate_executive_text(
+            action,
+            translator=translator,
+            person_dimensions=person_dimensions,
+        )
         if not translated:
             continue
         lower = translated.lower()
@@ -494,17 +558,32 @@ def _to_business_implication(description: str) -> str:
     )
 
 
-def _build_business_implications(request: NarrativeRequest) -> tuple[str, ...]:
+def _build_business_implications(
+    request: NarrativeRequest,
+    *,
+    translator: BusinessNarrativeTranslator,
+    person_dimensions: tuple[str, ...],
+) -> tuple[str, ...]:
     implications: list[str] = []
     seen: set[str] = set()
 
     for finding in request.analytical_findings:
         title, description = _split_finding_summary(finding)
-        description_text = _translate_executive_text(description)
+        description_text = _translate_executive_text(
+            description,
+            translator=translator,
+            person_dimensions=person_dimensions,
+        )
         if description_text and not is_analytical_telemetry(description_text):
             implication = _to_business_implication(description_text)
         else:
-            title_text = _strip_analytical_title(_translate_executive_text(title))
+            title_text = _strip_analytical_title(
+                _translate_executive_text(
+                    title,
+                    translator=translator,
+                    person_dimensions=person_dimensions,
+                )
+            )
             implication = _to_business_implication(title_text) if title_text else ""
 
         if implication and implication.lower() not in seen:
@@ -518,15 +597,30 @@ def _build_business_summary(
     request: NarrativeRequest,
     *,
     key_message: str,
+    translator: BusinessNarrativeTranslator,
+    person_dimensions: tuple[str, ...],
 ) -> str:
-    translated_summary = _translate_executive_text(request.executive_summary)
+    translated_summary = _translate_executive_text(
+        request.executive_summary,
+        translator=translator,
+        person_dimensions=person_dimensions,
+    )
     if translated_summary and not is_analytical_telemetry(translated_summary):
         return translated_summary
     return key_message
 
 
-def _build_direct_answer_summary(request: NarrativeRequest) -> str:
-    translated = _translate_executive_text(collapse_multiline_text(request.direct_answer))
+def _build_direct_answer_summary(
+    request: NarrativeRequest,
+    *,
+    translator: BusinessNarrativeTranslator,
+    person_dimensions: tuple[str, ...],
+) -> str:
+    translated = _translate_executive_text(
+        collapse_multiline_text(request.direct_answer),
+        translator=translator,
+        person_dimensions=person_dimensions,
+    )
     substantive_sentences = [
         sentence
         for sentence in split_sentences(translated)
@@ -567,18 +661,34 @@ def _build_decision_guidance(*, executive_severity: str | None) -> str | None:
 class ExecutiveContextBuilder:
     """Build domain-agnostic executive context from completed narrative requests."""
 
+    def __init__(self, translator: BusinessNarrativeTranslator | None = None) -> None:
+        self._translator = translator or _DEFAULT_TRANSLATOR
+
     def build(self, request: NarrativeRequest) -> ExecutiveContext:
         """Return translated executive context without modifying source evidence."""
+        translator = self._translator
+        person_dimensions = _person_dimensions_for_request(request, translator)
         executive_severity, assessment_significance = _parse_operational_assessment(
-            request.operational_assessment
+            request.operational_assessment,
+            translator=translator,
+            person_dimensions=person_dimensions,
         )
-        investigation_targets = _extract_investigation_targets(request.transparency_summary)
+        investigation_targets = _extract_investigation_targets(
+            request.transparency_summary,
+            translator,
+        )
         affected_metrics = _extract_affected_metrics(
             request,
             investigation_targets=investigation_targets,
+            translator=translator,
+            person_dimensions=person_dimensions,
         )
         finding_count = len(request.analytical_findings)
-        direct_answer_summary = _build_direct_answer_summary(request)
+        direct_answer_summary = _build_direct_answer_summary(
+            request,
+            translator=translator,
+            person_dimensions=person_dimensions,
+        )
         key_message = _build_key_message(
             affected_metrics=affected_metrics,
             executive_severity=executive_severity,
@@ -606,6 +716,8 @@ class ExecutiveContextBuilder:
         operational_investigation_actions = _build_operational_investigation_actions(
             request,
             affected_metrics=affected_metrics,
+            translator=translator,
+            person_dimensions=person_dimensions,
         )
         prioritized_explanations = _build_prioritized_explanations(
             affected_metrics=affected_metrics,
@@ -613,9 +725,17 @@ class ExecutiveContextBuilder:
             investigation_targets=investigation_targets,
         )
         conclusions = tuple(
-            _translate_executive_text(conclusion)
+            _translate_executive_text(
+                conclusion,
+                translator=translator,
+                person_dimensions=person_dimensions,
+            )
             for conclusion in request.executive_conclusions
-            if _translate_executive_text(conclusion)
+            if _translate_executive_text(
+                conclusion,
+                translator=translator,
+                person_dimensions=person_dimensions,
+            )
         )
 
         return ExecutiveContext(
@@ -626,10 +746,19 @@ class ExecutiveContextBuilder:
             executive_assessment_headline=assessment_headline,
             assessment_confidence_level=confidence_level,
             assessment_confidence_rationale=confidence_rationale,
-            business_summary=_build_business_summary(request, key_message=key_message),
+            business_summary=_build_business_summary(
+                request,
+                key_message=key_message,
+                translator=translator,
+                person_dimensions=person_dimensions,
+            ),
             direct_answer_summary=direct_answer_summary,
             why_this_matters=why_this_matters,
-            key_findings=_build_business_implications(request),
+            key_findings=_build_business_implications(
+                request,
+                translator=translator,
+                person_dimensions=person_dimensions,
+            ),
             operational_significance=assessment_significance,
             executive_severity=executive_severity,
             business_impact=_build_business_impact(

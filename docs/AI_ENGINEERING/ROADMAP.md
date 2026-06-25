@@ -4,8 +4,8 @@
 
 **Version:** 1.0
 **Last Updated:** June 2026
-**Current Phase:** Phase 3 complete — Application Quality Engineering  
-**Current Milestone:** Phase 4 — Milestone 11e — AI Executive Advisor
+**Current Phase:** Phase 4 — AI Narrative Layer (Milestone 11f complete)  
+**Current Milestone:** Milestone 11f — Business Narrative Translation Layer (complete)
 
 ---
 
@@ -355,6 +355,34 @@ Delivered:
 Explicitly out of scope for 11e:
 
 * Results page redesign, evidence redesign, charts, drill-down workflows, new analytics, hallucination scoring, streaming, memory, agents, RAG, feedback collection, multi-model comparison
+
+### Milestone 11f — Business Narrative Translation Layer
+
+Status:
+
+✅ Completed
+
+**Summary:** Milestone 11f introduced the Business Narrative Translation Layer, separating executive communication from deterministic reasoning through a reusable registry-driven translation architecture.
+
+Objective:
+
+Introduce a registry-backed translation layer between Executive Reasoning and Executive Narrative so executives see business concepts only — not routing metadata, tool names, or person-identifying record values.
+
+Delivered:
+
+* `business_narrative_translation.py` — `TranslationRegistry`, `BusinessNarrativeTranslator`, Preserve / Translate / Remove / Abstract categories
+* Data-driven terminology registry with singular/plural support for future extension
+* `executive_language.py` retained as compatibility layer delegating to the translator
+* Registry-driven transparency filtering in `ExecutiveContextBuilder`
+* Reasoning trace translation at narrative snapshot boundary
+* OpenAI narrative post-processing to prevent jargon reintroduction
+* Executive Narrative UX enhancements (assessment banner, split actions, structured confidence)
+* Tests in `tests/test_business_narrative_translation.py` including end-to-end regression
+
+Explicitly out of scope for 11f:
+
+* Analytics, routing, Executive Reasoning engine, System Transparency formatters, evidence generation changes
+* Unifying UI metric humanisation with narrative registry (future consistency work)
 
 Future milestones (planned):
 
