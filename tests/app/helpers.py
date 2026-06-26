@@ -260,6 +260,95 @@ def assert_clarification_visible(app: AppTest, *, clarification_type: str | None
         assert app.radio(key=f"clarification_{clarification_type}") is not None
 
 
+def assert_section_order(app: AppTest, *section_titles: str) -> None:
+    """Assert section headings appear in the given order within visible text."""
+    visible = user_visible_text(app)
+    last_index = -1
+    for title in section_titles:
+        index = visible.index(title)
+        assert index > last_index, (
+            f"Expected {title!r} after prior sections. Order check failed for: {section_titles!r}"
+        )
+        last_index = index
+
+
+def assert_analysis_header_visible(app: AppTest) -> None:
+    """Assert the analysis header is shown with question and dataset context."""
+    from tests.app.golden_expectations import ANALYSIS_HEADER_STATUS
+
+    assert_results_visible(app)
+    visible = user_visible_text(app)
+    assert ANALYSIS_HEADER_STATUS in visible
+    assert "**Question:**" in visible
+    assert "**Dataset:**" in visible
+    assert "**Completed:**" in visible
+
+
+def markdown_section_headings(app: AppTest) -> list[str]:
+    """Return #### section headings in render order from markdown elements."""
+    headings: list[str] = []
+    prefix = "#### "
+    for element in app.markdown:
+        value = element.value or ""
+        if value.startswith(prefix):
+            headings.append(value[len(prefix) :].strip())
+    return headings
+
+
+def assert_results_information_architecture(app: AppTest) -> None:
+    """Assert the Milestone 13b results information hierarchy."""
+    from tests.app.golden_expectations import (
+        ANALYSIS_HEADER_STATUS,
+        ANALYTICAL_FINDINGS_HEADING,
+        RESULTS_NAVIGATION_HEADING,
+        SECTION_AUDIT,
+        SECTION_DIRECT_ANSWER,
+        SECTION_EXECUTIVE_SUMMARY,
+        SECTION_INVESTIGATION,
+        SECTION_OVERVIEW,
+        SECTION_SYSTEM_TRANSPARENCY,
+    )
+    from ui.executive_reasoning_presentation import (
+        ANALYSIS_OVERVIEW_HEADING,
+        EXECUTIVE_REASONING_HEADING,
+    )
+    from ui.narrative_presentation import GENERATED_BY_HEADING
+
+    assert_analysis_header_visible(app)
+
+    headings = markdown_section_headings(app)
+    assert headings.index(ANALYSIS_HEADER_STATUS) < headings.index(SECTION_DIRECT_ANSWER)
+    assert headings.index(SECTION_DIRECT_ANSWER) < headings.index(SECTION_EXECUTIVE_SUMMARY)
+    assert headings.index(SECTION_EXECUTIVE_SUMMARY) < headings.index(RESULTS_NAVIGATION_HEADING)
+    assert headings.index(RESULTS_NAVIGATION_HEADING) < headings.index(SECTION_OVERVIEW)
+    assert headings.index(SECTION_OVERVIEW) < headings.index(SECTION_INVESTIGATION)
+    assert headings.index(SECTION_INVESTIGATION) < headings.index(SECTION_AUDIT)
+    assert headings.index(SECTION_EXECUTIVE_SUMMARY) < headings.index(SECTION_INVESTIGATION)
+    assert headings.index(ANALYTICAL_FINDINGS_HEADING) < headings.index(SECTION_AUDIT)
+    assert headings.index(SECTION_SYSTEM_TRANSPARENCY) < headings.index("Verification")
+
+    if "Recommended Actions" in headings:
+        recommended_index = headings.index("Recommended Actions")
+        executive_index = headings.index(SECTION_EXECUTIVE_SUMMARY)
+        navigation_index = headings.index(RESULTS_NAVIGATION_HEADING)
+        assert executive_index < recommended_index < navigation_index
+
+    if EXECUTIVE_REASONING_HEADING in headings:
+        assert headings.index(ANALYTICAL_FINDINGS_HEADING) < headings.index(
+            EXECUTIVE_REASONING_HEADING
+        )
+        assert headings.index(EXECUTIVE_REASONING_HEADING) < headings.index(SECTION_AUDIT)
+
+    if "Suggested Follow-Up Investigations" in headings:
+        assert headings.index(ANALYTICAL_FINDINGS_HEADING) < headings.index(
+            "Suggested Follow-Up Investigations"
+        )
+
+    assert ANALYSIS_OVERVIEW_HEADING in headings
+    assert "Verification" in headings
+    assert GENERATED_BY_HEADING in user_visible_text(app)
+
+
 def assert_results_visible(app: AppTest) -> None:
     """Assert the results panel is shown."""
     assert_section_visible(app, SECTION_RESULTS)

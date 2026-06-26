@@ -15,6 +15,13 @@ from ui.executive_reasoning_presentation import (
     ANALYTICAL_FINDINGS_HEADING,
     EXECUTIVE_REASONING_HEADING,
 )
+from ui.results_headings import (
+    ANALYSIS_HEADER_STATUS,
+    RESULTS_NAVIGATION_HEADING,
+    SECTION_AUDIT,
+    SECTION_INVESTIGATION,
+    SECTION_OVERVIEW,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SAMPLE_DATA_DIR = PROJECT_ROOT / "data" / "sample"
@@ -32,7 +39,7 @@ SECTION_DIRECT_ANSWER = "Direct Answer"
 SECTION_OPERATIONAL_ASSESSMENT = "Operational Assessment"
 SECTION_SYSTEM_TRANSPARENCY = "System Transparency"
 SECTION_CLARIFICATION = "Clarification Required"
-SECTION_RESULTS = "Results"
+SECTION_RESULTS = ANALYSIS_HEADER_STATUS
 
 STANDARD_RESULTS_SECTIONS: tuple[str, ...] = (
     SECTION_DIRECT_ANSWER,

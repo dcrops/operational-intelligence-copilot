@@ -1,5 +1,6 @@
 import pandas as pd
 from dataclasses import replace
+from datetime import datetime, timezone
 
 from src.operational_intelligence.answer_generator import AnswerGenerator
 from src.operational_intelligence.executive_reasoning import ExecutiveReasoningEngine
@@ -105,4 +106,5 @@ def run_analysis(
         result,
         narrative=narrative,
         narrative_warnings=narrative_warnings,
+        completed_at=datetime.now(timezone.utc).astimezone(),
     )

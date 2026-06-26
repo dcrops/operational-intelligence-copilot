@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from src.operational_intelligence.llm.narrative_config import NarrativeRuntimeConfig
 from src.operational_intelligence.llm.narrative_models import NarrativeResponse
@@ -28,3 +29,4 @@ class AnalysisResult:
     snapshot_context: SnapshotContext | None = None
     narrative: NarrativeResponse | None = None
     narrative_warnings: tuple[str, ...] = field(default_factory=tuple)
+    completed_at: datetime | None = None
