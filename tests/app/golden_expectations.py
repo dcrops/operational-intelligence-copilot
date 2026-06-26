@@ -17,7 +17,6 @@ from ui.executive_reasoning_presentation import (
 )
 from ui.results_headings import (
     ANALYSIS_HEADER_STATUS,
-    RESULTS_NAVIGATION_HEADING,
     SECTION_AUDIT,
     SECTION_INVESTIGATION,
     SECTION_OVERVIEW,

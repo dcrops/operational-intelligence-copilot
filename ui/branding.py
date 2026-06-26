@@ -23,33 +23,56 @@ CAPABILITY_BADGES: tuple[str, ...] = (
 
 CRC_LOGO_PATH = PROJECT_ROOT / "assets" / "images" / "crc-logo.png"
 
-SIDEBAR_LOGO_WIDTH = 86
+SIDEBAR_LOGO_WIDTH = 70
 HERO_LOGO_WIDTH = 170
 
 CRC_PRIMARY_COLOR = "#7CFF3A"
 CRC_PRIMARY_DARK = "#2E7D32"
 CRC_TEXT_MUTED = "#B0BEC5"
 
+SHELL_LAYOUT_TOP_PADDING = "0.85rem"
+
 SHELL_STYLES = f"""
 <style>
+section.main > div.block-container {{
+    padding-top: {SHELL_LAYOUT_TOP_PADDING};
+}}
+section[data-testid="stSidebar"] > div:first-child {{
+    padding-top: {SHELL_LAYOUT_TOP_PADDING};
+}}
+
+.oic-sidebar-branding-shell {{
+    text-align: center;
+    padding: 0.05rem 0 0.3rem 0;
+}}
+.oic-sidebar-logo {{
+    width: {SIDEBAR_LOGO_WIDTH}px;
+    height: auto;
+    display: block;
+    margin: 0 auto 0.18rem auto;
+}}
 .oic-sidebar-brand {{
     text-align: center;
-    padding: 0.25rem 0 0.5rem 0;
+    padding: 0;
 }}
 .oic-sidebar-org {{
     color: {CRC_PRIMARY_COLOR};
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.13em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    margin: 0.4rem 0 0.25rem 0;
+    margin: 0.22rem 0 0.12rem 0;
 }}
 .oic-sidebar-platform {{
     color: {CRC_TEXT_MUTED};
-    font-size: 0.88rem;
+    font-size: 0.8rem;
+    line-height: 1.35;
     margin: 0;
 }}
 
+.oic-app-hero-shell {{
+    margin-top: 0;
+}}
 .oic-hero-card {{
     padding: 2.1rem 2.4rem;
     border: 1px solid rgba(124, 255, 58, 0.28);

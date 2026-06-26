@@ -2,31 +2,41 @@
 
 from __future__ import annotations
 
-import streamlit as st
-
 from ui.components.analysis_header import render_analysis_header
-from ui.components.results_audit import render_audit_content
+from ui.components.results_audit import render_audit_bundle
 from ui.components.results_executive import (
     render_direct_answer,
     render_executive_summary_content,
+    render_narrative_fallback_warnings,
     render_recommended_actions,
 )
-from ui.components.results_investigation import render_investigation_content, render_overview_content
-from ui.components.results_navigation_placeholder import render_results_navigation_placeholder
+from ui.components.results_investigation import render_investigation_bundle
 from ui.models import AnalysisResult
-from ui.results_headings import SECTION_OVERVIEW
+from ui.results_headings import DISCLOSURE_AUDIT_LABEL, DISCLOSURE_INVESTIGATION_LABEL
+from ui.results_presentation import (
+    ZONE_AUDIT,
+    ZONE_INVESTIGATION,
+    inject_results_styles,
+    render_collapsible_group,
+)
 
 
 def render_results(result: AnalysisResult) -> None:
-    """Render analysis results in the approved task-oriented information hierarchy."""
+    """Render the Executive Surface and collapsed disclosure groups."""
+    inject_results_styles()
     render_analysis_header(result)
     render_direct_answer(result)
     render_executive_summary_content(result)
     render_recommended_actions(result)
-    render_results_navigation_placeholder()
+    render_narrative_fallback_warnings(result)
 
-    st.markdown(f"#### {SECTION_OVERVIEW}")
-    render_overview_content(result)
-
-    render_investigation_content(result)
-    render_audit_content(result)
+    render_collapsible_group(
+        DISCLOSURE_INVESTIGATION_LABEL,
+        lambda: render_investigation_bundle(result),
+        zone=ZONE_INVESTIGATION,
+    )
+    render_collapsible_group(
+        DISCLOSURE_AUDIT_LABEL,
+        lambda: render_audit_bundle(result),
+        zone=ZONE_AUDIT,
+    )

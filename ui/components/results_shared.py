@@ -20,6 +20,15 @@ from ui.executive_reasoning_presentation import (
 )
 from ui.metric_presentation import humanise_metric_name, humanise_metric_references_in_text
 from ui.models import AnalysisResult
+from ui.results_presentation import (
+    ZONE_INVESTIGATION,
+    close_section_heading,
+    open_section_heading,
+    render_collapsible_group,
+    render_labelled_field,
+    render_level2_heading,
+    render_section,
+)
 from ui.variance_presentation import variance_business_description
 
 SEVERITY_BADGES = {
@@ -30,16 +39,6 @@ SEVERITY_BADGES = {
 }
 
 MAX_EVIDENCE_DISPLAY = 5
-
-
-def render_section(title: str, render_body, *, bordered: bool = True) -> None:
-    st.markdown(f"#### {title}")
-    if bordered:
-        with st.container(border=True):
-            render_body()
-    else:
-        render_body()
-    st.markdown("")
 
 
 def severity_badge(severity: str) -> str:
@@ -164,47 +163,53 @@ def render_evidence_summary(item: EvidenceItem, evidence_type_name: str) -> None
     ctx = item.supporting_context
 
     if evidence_type_name == "anomaly":
-        st.markdown(f"- **Row index:** {ctx.get('row_index', '—')}")
-        st.markdown(f"- **Observed value:** {format_number(item.metric_value)}")
-        st.markdown(f"- **Mean:** {format_number(ctx.get('mean', '—'))}")
-        st.markdown(
-            f"- **Standard deviation:** {format_number(ctx.get('standard_deviation', '—'))}"
-        )
-        st.markdown(f"- **Z-score:** {format_number(ctx.get('z_score', '—'))}")
-        st.markdown(f"- **Direction:** {ctx.get('anomaly_direction', '—')}")
+        mean = ctx.get("mean")
+        observed = item.metric_value
+        render_labelled_field("Observed value", format_number(observed))
+        render_labelled_field("Expected value", format_number(mean))
+        if isinstance(observed, (int, float)) and isinstance(mean, (int, float)):
+            render_labelled_field("Difference", format_number(observed - mean))
+        render_labelled_field("Z-score", format_number(ctx.get("z_score", "—")))
+        render_labelled_field("Direction", ctx.get("anomaly_direction", "—"))
+        render_labelled_field("Row index", ctx.get("row_index", "—"))
         return
 
     if evidence_type_name == "variance":
         dimension_name, dimension_value = context_dimension(ctx)
         if dimension_name and dimension_value:
-            st.markdown(f"- **Dimension ({dimension_name}):** {dimension_value}")
+            render_labelled_field(f"Dimension ({dimension_name})", dimension_value)
         else:
-            st.markdown("- **Dimension value:** —")
-        st.markdown(f"- **Metric name:** {humanise_metric_name(item.metric_name)}")
-        st.markdown(f"- **Metric value:** {format_number(item.metric_value)}")
+            render_labelled_field("Dimension value", "—")
+        render_labelled_field("Metric", humanise_metric_name(item.metric_name))
+        render_labelled_field("Observed value", format_number(item.metric_value))
         return
 
     if evidence_type_name == "trend":
         date_name, date_value = context_dimension(ctx)
         if date_name and date_value:
-            st.markdown(f"- **Date ({date_name}):** {date_value}")
+            render_labelled_field(f"Date ({date_name})", date_value)
         else:
-            st.markdown("- **Date / month:** —")
-        st.markdown(f"- **Metric name:** {humanise_metric_name(item.metric_name)}")
-        st.markdown(f"- **Metric value:** {format_number(item.metric_value)}")
+            render_labelled_field("Date / month", "—")
+        render_labelled_field("Metric", humanise_metric_name(item.metric_name))
+        render_labelled_field("Observed value", format_number(item.metric_value))
         return
 
     if item.metric_name:
-        st.markdown(f"- **Metric name:** {humanise_metric_name(item.metric_name)}")
+        render_labelled_field("Metric", humanise_metric_name(item.metric_name))
     if item.metric_value is not None:
-        st.markdown(f"- **Metric value:** {format_number(item.metric_value)}")
+        render_labelled_field("Observed value", format_number(item.metric_value))
     if item.dataset_name:
-        st.markdown(f"- **Dataset:** {item.dataset_name}")
+        render_labelled_field("Dataset", item.dataset_name)
 
 
 def render_evidence_item(item: EvidenceItem, index: int, evidence_type_name: str) -> None:
-    st.markdown(f"**Evidence {index}:** {item.description}")
+    st.markdown(
+        f'<div class="oic-evidence-panel">'
+        f'<div class="oic-evidence-title">Evidence {index}: {item.description}</div>',
+        unsafe_allow_html=True,
+    )
     render_evidence_summary(item, evidence_type_name)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     if item.supporting_context:
         with st.expander("Raw evidence", expanded=False):
@@ -323,26 +328,27 @@ def render_executive_reasoning(report: ExecutiveReport) -> None:
     if not should_show_executive_reasoning(report):
         return
 
+    open_section_heading(zone=ZONE_INVESTIGATION, tier=1)
     st.markdown(f"#### {EXECUTIVE_REASONING_HEADING}")
+    close_section_heading()
+    st.markdown('<div class="oic-reasoning-block">', unsafe_allow_html=True)
 
     if should_show_operational_assessment(report):
-        st.markdown("##### Operational Assessment")
-        render_operational_assessment(report)
+        with st.container(border=True):
+            render_level2_heading("Operational Assessment", zone=ZONE_INVESTIGATION)
+            render_operational_assessment(report)
 
     if should_show_executive_conclusions(report):
-        if should_show_operational_assessment(report):
-            st.markdown("")
-        st.markdown("##### Executive Conclusions")
-        render_executive_conclusions(report)
+        with st.container(border=True):
+            render_level2_heading("Executive Conclusions", zone=ZONE_INVESTIGATION)
+            render_executive_conclusions(report)
 
     if should_show_priority_actions(report):
-        if should_show_operational_assessment(report) or should_show_executive_conclusions(
-            report
-        ):
-            st.markdown("")
-        st.markdown("##### Priority Actions")
-        render_priority_actions(report)
+        with st.container(border=True):
+            render_level2_heading("Priority Actions", zone=ZONE_INVESTIGATION)
+            render_priority_actions(report)
 
+    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("")
 
 

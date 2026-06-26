@@ -14,30 +14,32 @@ from ui.components.results_shared import (
 from ui.executive_reasoning_presentation import (
     ANALYSIS_OVERVIEW_HEADING,
     ANALYTICAL_FINDINGS_HEADING,
-    format_analysis_overview,
     split_follow_up_investigations,
 )
 from ui.models import AnalysisResult
-from ui.results_headings import SECTION_INVESTIGATION
+from ui.results_headings import SECTION_OVERVIEW
+from ui.results_presentation import (
+    ZONE_INVESTIGATION,
+    close_section_heading,
+    format_investigation_overview_bullets,
+    open_section_heading,
+    render_level2_heading,
+    render_overview_bullets,
+)
 
 
 def render_overview_content(result: AnalysisResult) -> None:
     """Render Analysis Overview beneath the Overview section heading."""
 
     def body() -> None:
-        overview = format_analysis_overview(
-            findings=result.findings,
-            routes=result.routes,
-            report=result.report,
-        )
-        for bullet in overview.bullets:
-            st.markdown(f"- {bullet}")
+        bullets = format_investigation_overview_bullets(result)
+        render_overview_bullets(bullets)
 
-    render_section(ANALYSIS_OVERVIEW_HEADING, body)
+    render_section(ANALYSIS_OVERVIEW_HEADING, body, zone=ZONE_INVESTIGATION)
 
 
-def render_investigation_content(result: AnalysisResult) -> None:
-    st.markdown(f"#### {SECTION_INVESTIGATION}")
+def render_investigation_sections(result: AnalysisResult) -> None:
+    """Render investigation sections without the outer Investigation group heading."""
 
     def render_analytical_findings() -> None:
         findings = bucketed_findings(result)
@@ -50,7 +52,7 @@ def render_investigation_content(result: AnalysisResult) -> None:
                 if index < len(findings):
                     st.divider()
 
-    render_section(ANALYTICAL_FINDINGS_HEADING, render_analytical_findings)
+    render_section(ANALYTICAL_FINDINGS_HEADING, render_analytical_findings, zone=ZONE_INVESTIGATION)
 
     render_executive_reasoning(result.report)
 
@@ -70,6 +72,16 @@ def render_investigation_content(result: AnalysisResult) -> None:
         else:
             st.caption("No follow-up investigations suggested.")
 
-    render_section("Suggested Follow-Up Investigations", render_investigations)
-
+    render_level2_heading("Suggested Follow-Up Investigations", zone=ZONE_INVESTIGATION)
+    with st.container(border=True):
+        render_investigations()
     st.markdown("")
+
+
+def render_investigation_bundle(result: AnalysisResult) -> None:
+    """Render Overview and Investigation content inside a disclosure group."""
+    open_section_heading(zone=ZONE_INVESTIGATION, tier=1)
+    st.markdown(f"#### {SECTION_OVERVIEW}")
+    close_section_heading()
+    render_overview_content(result)
+    render_investigation_sections(result)

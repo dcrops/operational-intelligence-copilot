@@ -38,17 +38,30 @@ _BANNER_ACCENT_COLORS = {
     "stable": "#16a34a",
 }
 
+_BANNER_BACKGROUND_COLORS = {
+    "critical": "rgba(220, 38, 38, 0.11)",
+    "high": "rgba(234, 88, 12, 0.1)",
+    "medium": "rgba(202, 138, 4, 0.1)",
+    "low": "rgba(22, 163, 74, 0.09)",
+    "stable": "rgba(22, 163, 74, 0.09)",
+}
+
 
 def format_executive_assessment_banner(banner: ExecutiveAssessmentBanner) -> str:
-    """Return markdown with severity accent styling for the executive assessment banner."""
-    accent = _BANNER_ACCENT_COLORS.get(banner.level.lower(), "#64748b")
+    """Return HTML with severity accent styling for the executive assessment banner."""
+    level_key = banner.level.lower()
+    accent = _BANNER_ACCENT_COLORS.get(level_key, "#64748b")
+    background = _BANNER_BACKGROUND_COLORS.get(level_key, "rgba(148, 163, 184, 0.08)")
     indicator = banner.indicator.strip()
     headline = banner.headline.strip()
+    level_label = banner.level.strip().title()
     return (
-        f'<div style="border-left: 4px solid {accent}; padding: 0.75rem 1rem; '
-        f'margin: 0.5rem 0 1rem 0; background-color: rgba(148, 163, 184, 0.08);">'
-        f"<strong>{indicator} {EXECUTIVE_ASSESSMENT_HEADING}</strong><br><br>"
-        f"{headline}"
+        f'<div class="oic-assessment-banner" style="border-left: 4px solid {accent}; '
+        f'background-color: {background};">'
+        f'<div class="oic-assessment-label">{EXECUTIVE_ASSESSMENT_HEADING}</div>'
+        f'<div class="oic-assessment-level" style="color: {accent};">'
+        f"{indicator} {level_label}</div>"
+        f'<div class="oic-assessment-headline">{headline}</div>'
         f"</div>"
     )
 

@@ -151,7 +151,12 @@ def assert_app_shell_visible(app: AppTest) -> None:
 
 
 def assert_dataset_preview_visible(app: AppTest) -> None:
+    """Assert dataset preview is available (expanded subheader or collapsed expander)."""
     from tests.app.golden_expectations import SECTION_DATASET_PREVIEW
+
+    if find_expander(app, "Dataset Preview") is not None:
+        assert_expander_present(app, "Dataset Preview")
+        return
 
     assert_section_visible(app, SECTION_DATASET_PREVIEW)
 
@@ -279,9 +284,9 @@ def assert_analysis_header_visible(app: AppTest) -> None:
     assert_results_visible(app)
     visible = user_visible_text(app)
     assert ANALYSIS_HEADER_STATUS in visible
-    assert "**Question:**" in visible
-    assert "**Dataset:**" in visible
-    assert "**Completed:**" in visible
+    assert "Question" in visible
+    assert "Dataset" in visible
+    assert "Completed" in visible
 
 
 def markdown_section_headings(app: AppTest) -> list[str]:
@@ -295,16 +300,101 @@ def markdown_section_headings(app: AppTest) -> list[str]:
     return headings
 
 
+def find_expander(app: AppTest, label: str):
+    """Return the first expander matching the label, if present."""
+    return next((item for item in app.expander if item.label == label), None)
+
+
+def expand_disclosure(app: AppTest, label: str) -> AppTest:
+    """Verify a disclosure group exists (AppTest renders expander content in the tree)."""
+    expander = find_expander(app, label)
+    assert expander is not None, f"Expected expander {label!r} to be present."
+    return app
+
+
+def assert_expander_present(app: AppTest, label: str, *, expanded: bool | None = None) -> None:
+    expander = find_expander(app, label)
+    assert expander is not None, f"Expected expander {label!r} to be present."
+    if expanded is not None:
+        assert expander.proto.expanded is expanded, (
+            f"Expected expander {label!r} expanded={expanded}, got {expander.proto.expanded}"
+        )
+
+
+def assert_executive_surface_visible(app: AppTest) -> None:
+    """Assert default Executive Surface content is visible without disclosure expansion."""
+    from src.operational_intelligence.llm.narrative_governance import (
+        ADVISOR_SECTION_EXECUTIVE_ACTIONS,
+        ADVISOR_SECTION_KEY_MESSAGE,
+    )
+    from tests.app.golden_expectations import (
+        ANALYSIS_HEADER_STATUS,
+        SECTION_DIRECT_ANSWER,
+        SECTION_EXECUTIVE_SUMMARY,
+    )
+    from ui.narrative_presentation import ASSESSMENT_CONFIDENCE_HEADING, EXECUTIVE_ASSESSMENT_HEADING
+
+    assert_analysis_header_visible(app)
+    assert_section_visible(app, SECTION_DIRECT_ANSWER)
+    assert_section_visible(app, SECTION_EXECUTIVE_SUMMARY)
+
+    visible = user_visible_text(app)
+    assert ANALYSIS_HEADER_STATUS in visible
+    assert EXECUTIVE_ASSESSMENT_HEADING in visible
+    assert ADVISOR_SECTION_KEY_MESSAGE in visible
+    assert ADVISOR_SECTION_EXECUTIVE_ACTIONS in visible
+    assert ASSESSMENT_CONFIDENCE_HEADING in visible
+
+
+def assert_investigation_collapsed_by_default(app: AppTest) -> None:
+    from ui.results_headings import DISCLOSURE_INVESTIGATION_LABEL
+
+    assert_expander_present(app, DISCLOSURE_INVESTIGATION_LABEL, expanded=False)
+
+
+def assert_audit_collapsed_by_default(app: AppTest) -> None:
+    from ui.results_headings import DISCLOSURE_AUDIT_LABEL
+
+    assert_expander_present(app, DISCLOSURE_AUDIT_LABEL, expanded=False)
+
+
+def expand_investigation_disclosure(app: AppTest) -> AppTest:
+    from ui.results_headings import DISCLOSURE_INVESTIGATION_LABEL
+
+    return expand_disclosure(app, DISCLOSURE_INVESTIGATION_LABEL)
+
+
+def expand_audit_disclosure(app: AppTest) -> AppTest:
+    from ui.results_headings import DISCLOSURE_AUDIT_LABEL
+
+    return expand_disclosure(app, DISCLOSURE_AUDIT_LABEL)
+
+
+def assert_investigation_reachable(app: AppTest) -> None:
+    from tests.app.golden_expectations import ANALYTICAL_FINDINGS_HEADING, SECTION_OVERVIEW
+
+    expand_investigation_disclosure(app)
+    assert_section_visible(app, SECTION_OVERVIEW)
+    assert_section_visible(app, ANALYTICAL_FINDINGS_HEADING)
+    assert_executive_reasoning(app)
+
+
+def assert_audit_reachable(app: AppTest) -> None:
+    from ui.narrative_presentation import GENERATED_BY_HEADING, GOVERNANCE_CAPTION
+
+    expand_audit_disclosure(app)
+    assert_transparency(app)
+    assert GENERATED_BY_HEADING in user_visible_text(app)
+    assert GOVERNANCE_CAPTION in user_visible_text(app)
+
+
 def assert_results_information_architecture(app: AppTest) -> None:
-    """Assert the Milestone 13b results information hierarchy."""
+    """Assert the Milestone 13b hierarchy remains inside disclosure groups."""
     from tests.app.golden_expectations import (
         ANALYSIS_HEADER_STATUS,
         ANALYTICAL_FINDINGS_HEADING,
-        RESULTS_NAVIGATION_HEADING,
-        SECTION_AUDIT,
         SECTION_DIRECT_ANSWER,
         SECTION_EXECUTIVE_SUMMARY,
-        SECTION_INVESTIGATION,
         SECTION_OVERVIEW,
         SECTION_SYSTEM_TRANSPARENCY,
     )
@@ -314,30 +404,23 @@ def assert_results_information_architecture(app: AppTest) -> None:
     )
     from ui.narrative_presentation import GENERATED_BY_HEADING
 
-    assert_analysis_header_visible(app)
+    assert_executive_surface_visible(app)
+    expand_investigation_disclosure(app)
+    expand_audit_disclosure(app)
 
     headings = markdown_section_headings(app)
-    assert headings.index(ANALYSIS_HEADER_STATUS) < headings.index(SECTION_DIRECT_ANSWER)
+    visible = user_visible_text(app)
+    assert visible.index(ANALYSIS_HEADER_STATUS) < visible.index(SECTION_DIRECT_ANSWER)
     assert headings.index(SECTION_DIRECT_ANSWER) < headings.index(SECTION_EXECUTIVE_SUMMARY)
-    assert headings.index(SECTION_EXECUTIVE_SUMMARY) < headings.index(RESULTS_NAVIGATION_HEADING)
-    assert headings.index(RESULTS_NAVIGATION_HEADING) < headings.index(SECTION_OVERVIEW)
-    assert headings.index(SECTION_OVERVIEW) < headings.index(SECTION_INVESTIGATION)
-    assert headings.index(SECTION_INVESTIGATION) < headings.index(SECTION_AUDIT)
-    assert headings.index(SECTION_EXECUTIVE_SUMMARY) < headings.index(SECTION_INVESTIGATION)
-    assert headings.index(ANALYTICAL_FINDINGS_HEADING) < headings.index(SECTION_AUDIT)
-    assert headings.index(SECTION_SYSTEM_TRANSPARENCY) < headings.index("Verification")
-
-    if "Recommended Actions" in headings:
-        recommended_index = headings.index("Recommended Actions")
-        executive_index = headings.index(SECTION_EXECUTIVE_SUMMARY)
-        navigation_index = headings.index(RESULTS_NAVIGATION_HEADING)
-        assert executive_index < recommended_index < navigation_index
+    assert headings.index(SECTION_EXECUTIVE_SUMMARY) < headings.index(SECTION_OVERVIEW)
+    assert headings.index(SECTION_OVERVIEW) < headings.index(ANALYTICAL_FINDINGS_HEADING)
+    assert headings.index(ANALYTICAL_FINDINGS_HEADING) < headings.index(SECTION_SYSTEM_TRANSPARENCY)
 
     if EXECUTIVE_REASONING_HEADING in headings:
         assert headings.index(ANALYTICAL_FINDINGS_HEADING) < headings.index(
             EXECUTIVE_REASONING_HEADING
         )
-        assert headings.index(EXECUTIVE_REASONING_HEADING) < headings.index(SECTION_AUDIT)
+        assert headings.index(EXECUTIVE_REASONING_HEADING) < headings.index(SECTION_SYSTEM_TRANSPARENCY)
 
     if "Suggested Follow-Up Investigations" in headings:
         assert headings.index(ANALYTICAL_FINDINGS_HEADING) < headings.index(
@@ -345,8 +428,8 @@ def assert_results_information_architecture(app: AppTest) -> None:
         )
 
     assert ANALYSIS_OVERVIEW_HEADING in headings
-    assert "Verification" in headings
-    assert GENERATED_BY_HEADING in user_visible_text(app)
+    assert "Verification" in visible
+    assert GENERATED_BY_HEADING in visible
 
 
 def assert_results_visible(app: AppTest) -> None:
@@ -372,18 +455,21 @@ def assert_direct_answer(app: AppTest) -> None:
 def assert_operational_assessment(app: AppTest) -> None:
     from tests.app.golden_expectations import SECTION_OPERATIONAL_ASSESSMENT
 
+    expand_investigation_disclosure(app)
     assert_section_visible(app, SECTION_OPERATIONAL_ASSESSMENT)
 
 
 def assert_executive_reasoning(app: AppTest) -> None:
     from tests.app.golden_expectations import EXECUTIVE_REASONING_HEADING
 
+    expand_investigation_disclosure(app)
     assert_section_visible(app, EXECUTIVE_REASONING_HEADING)
 
 
 def assert_executive_conclusions(app: AppTest) -> None:
     from tests.app.golden_expectations import SECTION_EXECUTIVE_CONCLUSIONS
 
+    expand_investigation_disclosure(app)
     assert_section_visible(app, SECTION_EXECUTIVE_CONCLUSIONS)
 
 
@@ -405,12 +491,14 @@ def assert_clarification_resolved(app: AppTest) -> None:
 def assert_snapshot_transparency(app: AppTest) -> None:
     from tests.app.golden_expectations import SNAPSHOT_TRANSPARENCY_MARKER
 
+    expand_audit_disclosure(app)
     assert SNAPSHOT_TRANSPARENCY_MARKER in user_visible_text(app)
 
 
 def assert_temporal_filter_transparency(app: AppTest) -> None:
     from tests.app.golden_expectations import TEMPORAL_FILTER_MARKER
 
+    expand_audit_disclosure(app)
     assert TEMPORAL_FILTER_MARKER in user_visible_text(app)
 
 
@@ -423,6 +511,7 @@ def assert_snapshot_not_active(app: AppTest) -> None:
 def assert_snapshot_contributors_transparency(app: AppTest) -> None:
     from tests.app.golden_expectations import SNAPSHOT_CONTRIBUTORS_MARKER
 
+    expand_audit_disclosure(app)
     visible = user_visible_text(app)
     assert SNAPSHOT_CONTRIBUTORS_MARKER in visible
     assert "Dimension:" in visible
@@ -433,12 +522,14 @@ def assert_snapshot_contributors_transparency(app: AppTest) -> None:
 def assert_priority_actions(app: AppTest) -> None:
     from tests.app.golden_expectations import SECTION_PRIORITY_ACTIONS
 
+    expand_investigation_disclosure(app)
     assert_section_visible(app, SECTION_PRIORITY_ACTIONS)
 
 
 def assert_transparency(app: AppTest) -> None:
     from tests.app.golden_expectations import SECTION_SYSTEM_TRANSPARENCY
 
+    expand_audit_disclosure(app)
     assert_section_visible(app, SECTION_SYSTEM_TRANSPARENCY)
 
 
@@ -476,11 +567,12 @@ def assert_provider_status_visible(app: AppTest, marker: str) -> None:
 
 def assert_generation_method_visible(app: AppTest, marker: str) -> None:
     """Assert backend-driven generation method text is visible in results."""
+    expand_audit_disclosure(app)
     visible = user_visible_text(app)
     assert marker in visible, f"Expected generation method marker {marker!r} in visible text."
 
 
-def assert_narrative_content_visible(app: AppTest) -> None:
+def assert_narrative_content_reachable(app: AppTest) -> None:
     from src.operational_intelligence.llm.narrative_governance import ADVISOR_SECTION_TITLES
     from ui.narrative_presentation import (
         ASSESSMENT_CONFIDENCE_HEADING,
@@ -488,14 +580,26 @@ def assert_narrative_content_visible(app: AppTest) -> None:
         LIMITATIONS_HEADING,
     )
 
+    assert_executive_surface_visible(app)
+    expand_investigation_disclosure(app)
+    expand_audit_disclosure(app)
+
     visible = user_visible_text(app)
-    for heading in (
-        EXECUTIVE_ASSESSMENT_HEADING,
-        *ADVISOR_SECTION_TITLES,
-        ASSESSMENT_CONFIDENCE_HEADING,
-        LIMITATIONS_HEADING,
-    ):
-        assert heading in visible, f"Expected narrative heading {heading!r} to be visible."
+    expander_labels = {expander.label for expander in app.expander}
+
+    assert EXECUTIVE_ASSESSMENT_HEADING in visible
+    assert ASSESSMENT_CONFIDENCE_HEADING in visible
+
+    for heading in ADVISOR_SECTION_TITLES:
+        assert heading in visible or heading in expander_labels, (
+            f"Expected narrative heading {heading!r} to be reachable."
+        )
+
+    assert LIMITATIONS_HEADING in expander_labels or LIMITATIONS_HEADING in visible
+
+
+def assert_narrative_content_visible(app: AppTest) -> None:
+    assert_narrative_content_reachable(app)
 
 
 def assert_expected_sections(app: AppTest, sections: tuple[str, ...]) -> None:

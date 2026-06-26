@@ -70,13 +70,26 @@ if not has_dataset():
 dataset_name = st.session_state.dataset_name
 example_questions = _example_questions_for_dataset(dataset_name)
 
-st.subheader("Dataset Preview")
-df = st.session_state.df
-st.dataframe(df.head(PREVIEW_ROW_LIMIT), use_container_width=True)
-if len(df) > PREVIEW_ROW_LIMIT:
-    st.caption(f"Showing first {PREVIEW_ROW_LIMIT} of {len(df)} rows.")
+def _render_dataset_preview() -> None:
+    df = st.session_state.df
+    st.dataframe(df.head(PREVIEW_ROW_LIMIT), use_container_width=True)
+    if len(df) > PREVIEW_ROW_LIMIT:
+        st.caption(f"Showing first {PREVIEW_ROW_LIMIT} of {len(df)} rows.")
+    else:
+        st.caption(f"Showing all {len(df)} rows.")
+
+
+last_result = st.session_state.get("last_result")
+collapse_dataset_preview = (
+    last_result is not None and last_result.clarification is None
+)
+
+if collapse_dataset_preview:
+    with st.expander("Dataset Preview", expanded=False):
+        _render_dataset_preview()
 else:
-    st.caption(f"Showing all {len(df)} rows.")
+    st.subheader("Dataset Preview")
+    _render_dataset_preview()
 
 st.subheader("Ask a Question")
 st.caption("Example questions:")
@@ -106,6 +119,7 @@ if st.button(
                 narrative_config=get_narrative_runtime_config(),
             )
         set_analysis_result(result)
+        st.rerun()
     except ValueError as exc:
         set_analysis_error(str(exc))
     except Exception:

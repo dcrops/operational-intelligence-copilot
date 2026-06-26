@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import streamlit as st
 
-from ui.components.results_shared import render_section
 from ui.models import AnalysisResult
 from ui.narrative_presentation import (
     GENERATED_BY_HEADING,
@@ -14,7 +13,7 @@ from ui.narrative_presentation import (
     format_generation_details,
     format_generation_method,
 )
-from ui.results_headings import SECTION_AUDIT
+from ui.results_presentation import ZONE_AUDIT, render_section, render_subsection
 from ui.transparency import (
     format_auto_resolved_trail,
     format_clarification_trail,
@@ -63,8 +62,8 @@ def _render_technical_details(result: AnalysisResult) -> None:
             st.caption(f"- {line}")
 
 
-def render_audit_content(result: AnalysisResult) -> None:
-    st.markdown(f"#### {SECTION_AUDIT}")
+def render_audit_bundle(result: AnalysisResult) -> None:
+    """Render audit and verification content inside a disclosure group."""
 
     def render_transparency() -> None:
         st.markdown(f"**Question:** {result.request.question}")
@@ -116,14 +115,14 @@ def render_audit_content(result: AnalysisResult) -> None:
             for metric in metrics_analysed:
                 st.markdown(f"- {metric}")
 
-    render_section("System Transparency", render_transparency)
+    render_section("System Transparency", render_transparency, zone=ZONE_AUDIT)
 
     def render_verification() -> None:
+        st.markdown('<div class="oic-audit-verification">', unsafe_allow_html=True)
         _render_generated_by(result)
         _render_runtime_metadata(result)
         _render_technical_details(result)
         _render_governance_information()
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    render_section("Verification", render_verification)
-
-    st.markdown("")
+    render_subsection("Verification", render_verification, zone=ZONE_AUDIT, bordered=False)
