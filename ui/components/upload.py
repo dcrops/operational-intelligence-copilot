@@ -5,6 +5,7 @@ import streamlit as st
 
 from src.operational_intelligence.profiling import DatasetProfiler
 from ui.components.app_shell import render_sidebar_branding
+from ui.components.narrative_controls import render_narrative_controls
 from ui.state import set_dataset
 
 SAMPLE_DATASETS = {
@@ -95,3 +96,5 @@ def render_sidebar() -> None:
             f"Dimensions: {', '.join(profile.potential_dimensions) or 'None'}"
         )
         st.sidebar.caption(f"Suitable tools: {', '.join(profile.suitable_tools) or 'None'}")
+
+    render_narrative_controls()

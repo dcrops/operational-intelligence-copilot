@@ -62,6 +62,12 @@ def user_visible_text(app: AppTest) -> str:
     for element in app.caption:
         if element.value:
             parts.append(element.value)
+    for element in app.success:
+        if element.value:
+            parts.append(element.value)
+    for element in app.warning:
+        if element.value:
+            parts.append(element.value)
     return "\n".join(parts)
 
 
@@ -82,6 +88,9 @@ def sidebar_visible_text(app: AppTest) -> str:
         if element.value:
             parts.append(element.value)
     for element in sidebar.success:
+        if element.value:
+            parts.append(element.value)
+    for element in sidebar.warning:
         if element.value:
             parts.append(element.value)
     for element in sidebar.metric:
@@ -362,6 +371,24 @@ def assert_narrative_placeholder_hidden(app: AppTest) -> None:
     assert not any(
         NARRATIVE_DISABLED_MARKER in (info.value or "") for info in app.info
     ), "Placeholder should not appear when narrative is enabled."
+
+
+def select_narrative_mode(app: AppTest, mode: str) -> AppTest:
+    """Select a sidebar narrative mode using internal mode values."""
+    app.sidebar.radio(key="narrative_mode").set_value(mode).run()
+    return app
+
+
+def assert_provider_status_visible(app: AppTest, marker: str) -> None:
+    """Assert provider status text is visible in the sidebar."""
+    sidebar = sidebar_visible_text(app)
+    assert marker in sidebar, f"Expected provider status marker {marker!r} in sidebar."
+
+
+def assert_generation_method_visible(app: AppTest, marker: str) -> None:
+    """Assert backend-driven generation method text is visible in results."""
+    visible = user_visible_text(app)
+    assert marker in visible, f"Expected generation method marker {marker!r} in visible text."
 
 
 def assert_narrative_content_visible(app: AppTest) -> None:

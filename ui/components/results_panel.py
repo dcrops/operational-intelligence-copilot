@@ -24,14 +24,17 @@ from ui.metric_presentation import humanise_metric_name, humanise_metric_referen
 from ui.models import AnalysisResult
 from ui.narrative_presentation import (
     ASSESSMENT_CONFIDENCE_HEADING,
-    EXECUTIVE_NARRATIVE_AI_ASSISTED_HEADING,
+    EXECUTIVE_SUMMARY_HEADING,
+    GENERATED_BY_HEADING,
     GOVERNANCE_CAPTION,
     LIMITATIONS_HEADING,
     NARRATIVE_DISABLED_MESSAGE,
     TECHNICAL_DETAILS_HEADING,
     format_assessment_confidence_level,
     format_executive_assessment_banner,
+    format_generated_by_secondary_metadata,
     format_generation_details,
+    format_generation_method,
 )
 from ui.transparency import (
     format_auto_resolved_trail,
@@ -486,17 +489,30 @@ def render_results(result: AnalysisResult) -> None:
 
     _render_section("System Transparency", render_transparency)
 
-    _render_ai_assisted_narrative(result)
+    _render_executive_summary(result)
 
 
-def _render_ai_assisted_narrative(result: AnalysisResult) -> None:
+def _render_executive_summary(result: AnalysisResult) -> None:
     def body() -> None:
         narrative = result.narrative
         if narrative is None:
             st.info(NARRATIVE_DISABLED_MESSAGE)
             return
 
+        for warning in result.narrative_warnings:
+            st.warning(warning)
+
         st.caption(GOVERNANCE_CAPTION)
+
+        if narrative.generation_metadata is not None:
+            status_level, provider_label = format_generation_method(narrative.generation_metadata)
+            st.markdown(f"**{GENERATED_BY_HEADING}**")
+            if status_level == "warning":
+                st.warning(f"🟡 {provider_label}")
+            else:
+                st.success(f"🟢 {provider_label}")
+            for line in format_generated_by_secondary_metadata(narrative.generation_metadata):
+                st.caption(line)
 
         if narrative.executive_assessment is not None:
             st.markdown(
@@ -526,4 +542,4 @@ def _render_ai_assisted_narrative(result: AnalysisResult) -> None:
                 for line in generation_details:
                     st.caption(f"- {line}")
 
-    _render_section(EXECUTIVE_NARRATIVE_AI_ASSISTED_HEADING, body)
+    _render_section(EXECUTIVE_SUMMARY_HEADING, body)

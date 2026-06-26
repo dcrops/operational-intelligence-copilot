@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from src.operational_intelligence.llm.narrative_governance import (
     ADVISOR_SECTION_EXECUTIVE_ACTIONS,
     ADVISOR_SECTION_KEY_MESSAGE,
@@ -14,6 +16,7 @@ from src.operational_intelligence.llm.narrative_models import (
     AssessmentConfidencePresentation,
     ExecutiveAssessmentBanner,
     ExecutiveContext,
+    NarrativeGenerationMetadata,
     NarrativeResponse,
     NarrativeSection,
 )
@@ -132,4 +135,23 @@ def build_narrative_response(
         model=model,
         generation_duration_ms=generation_duration_ms,
         artifact_version=artifact_version,
+    )
+
+
+def attach_generation_metadata(
+    response: NarrativeResponse,
+    metadata: NarrativeGenerationMetadata,
+) -> NarrativeResponse:
+    """Attach metadata and synchronise legacy response fields for backward compatibility."""
+    return replace(
+        response,
+        generator_type=metadata.actual_provider,
+        model=metadata.model if metadata.model is not None else response.model,
+        generation_duration_ms=metadata.wall_clock_duration_ms,
+        artifact_version=(
+            metadata.provider_version
+            if metadata.provider_version is not None
+            else response.artifact_version
+        ),
+        generation_metadata=metadata,
     )

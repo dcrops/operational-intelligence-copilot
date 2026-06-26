@@ -197,7 +197,7 @@ class TestNarrativeIntegration:
         clarification_before = result.clarification
 
         snapshot = build_deterministic_analysis_snapshot(result)
-        narrative = maybe_generate_narrative(result)
+        narrative, _warnings = maybe_generate_narrative(result)
 
         assert narrative is not None
         assert result.findings == findings_before

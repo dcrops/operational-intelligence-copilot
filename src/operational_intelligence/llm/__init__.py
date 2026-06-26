@@ -12,17 +12,27 @@ from src.operational_intelligence.llm.fallback_narrative_generator import (
 )
 from src.operational_intelligence.llm.narrative_builder import NarrativeRequestBuilder
 from src.operational_intelligence.llm.narrative_config import (
+    NarrativeRuntimeConfig,
     get_narrative_provider,
     get_openai_provider_config,
     is_narrative_enabled,
 )
 from src.operational_intelligence.llm.narrative_errors import NarrativeGenerationError
-from src.operational_intelligence.llm.narrative_factory import resolve_narrative_generator
+from src.operational_intelligence.llm.narrative_factory import (
+    NarrativeResolution,
+    resolve_narrative,
+    resolve_narrative_generator,
+)
+from src.operational_intelligence.llm.narrative_generation import (
+    NarrativeGenerationOutcome,
+    generate_narrative,
+)
 from src.operational_intelligence.llm.narrative_models import (
     DeterministicAnalysisSnapshot,
     EvidenceReference,
     ExecutiveContext,
     GroundingConstraints,
+    NarrativeGenerationMetadata,
     NarrativeRequest,
     NarrativeResponse,
     NarrativeSection,
@@ -46,10 +56,14 @@ __all__ = [
     "GroundingConstraints",
     "LLMClient",
     "NarrativeGenerationError",
+    "NarrativeGenerationMetadata",
+    "NarrativeGenerationOutcome",
     "NarrativeGenerator",
     "NarrativeRequest",
     "NarrativeRequestBuilder",
+    "NarrativeResolution",
     "NarrativeResponse",
+    "NarrativeRuntimeConfig",
     "NarrativeSection",
     "OpenAINarrativeGenerator",
     "OpenAIProviderConfig",
@@ -61,6 +75,8 @@ __all__ = [
     "build_user_prompt",
     "get_narrative_provider",
     "get_openai_provider_config",
+    "generate_narrative",
     "is_narrative_enabled",
+    "resolve_narrative",
     "resolve_narrative_generator",
 ]

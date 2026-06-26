@@ -93,6 +93,20 @@ class NarrativeSection:
 
 
 @dataclass(frozen=True)
+class NarrativeGenerationMetadata:
+    """Authoritative provider verification metadata for a narrative generation run."""
+
+    generator_name: str
+    requested_provider: str
+    actual_provider: str
+    fallback_used: bool
+    fallback_reason: str | None = None
+    wall_clock_duration_ms: int | None = None
+    model: str | None = None
+    provider_version: str | None = None
+
+
+@dataclass(frozen=True)
 class NarrativeResponse:
     """Communication output from narrative generation only."""
 
@@ -105,6 +119,7 @@ class NarrativeResponse:
     model: str | None = None
     generation_duration_ms: int | None = None
     artifact_version: str | None = None
+    generation_metadata: NarrativeGenerationMetadata | None = None
 
 
 @dataclass(frozen=True)

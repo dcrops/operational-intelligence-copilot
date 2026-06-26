@@ -110,7 +110,7 @@ class TranslationRegistry:
             "overtime_hours": TerminologyEntry("Overtime Hours"),
             "behaviour_incidents": TerminologyEntry("Behaviour Incidents"),
             "behaviour_incident": TerminologyEntry("Behaviour Incidents"),
-            "anomaly_detection": TerminologyEntry("Performance anomalies"),
+            "anomaly_detection": TerminologyEntry("Operational performance"),
             "variance_analysis": TerminologyEntry("Performance comparison"),
             "department": TerminologyEntry("Department", "Departments"),
         }
@@ -169,7 +169,7 @@ class TranslationRegistry:
             (_Z_SCORE_THRESHOLD_PATTERN, "expected operating range"),
             (re.compile(r"\bstandard deviation\b", re.IGNORECASE), "expected variation"),
             (re.compile(r"\banomaly threshold\b", re.IGNORECASE), "expected operating range"),
-            (re.compile(r"\banomaly detection\b", re.IGNORECASE), "performance anomalies"),
+            (re.compile(r"\banomaly detection\b", re.IGNORECASE), "operational performance"),
             (re.compile(r"\bvariance analysis\b", re.IGNORECASE), "performance comparison"),
             (re.compile(r"\banomalous records?\b", re.IGNORECASE), "unusual records"),
             (
@@ -185,17 +185,17 @@ class TranslationRegistry:
                     r"\b\d+\s+unusual\s+(?:high|low\s+)?values?\s+were\s+detected\b",
                     re.IGNORECASE,
                 ),
-                "Performance appears outside normal expectations",
+                "Overall performance appears outside normal expectations",
             ),
             (
                 re.compile(r"Anomalies Detected by .+", re.IGNORECASE),
-                "Significant performance anomalies",
+                "Operational performance",
             ),
             (
                 re.compile(r"Significant Variance Identified by .+", re.IGNORECASE),
-                "Significant performance differences",
+                "Performance differences",
             ),
-            (re.compile(r"Trend Identified by .+", re.IGNORECASE), "Significant performance trends"),
+            (re.compile(r"Trend Identified by .+", re.IGNORECASE), "Performance trend"),
             (
                 re.compile(r"Snapshot Summary from .+", re.IGNORECASE),
                 "Snapshot performance summary",

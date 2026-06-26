@@ -48,7 +48,7 @@ class TestTranslate:
         assert translator.translate_identifier("patient_name") == "Patient"
         assert translator.translate_identifier("branch_code") == "Branch"
         assert translator.translate_identifier("production_line") == "Production Line"
-        assert translator.translate_identifier("anomaly_detection") == "Performance anomalies"
+        assert translator.translate_identifier("anomaly_detection") == "Operational performance"
         assert translator.translate_identifier("variance_analysis") == "Performance comparison"
 
     def test_technical_prose_is_translated(self) -> None:
@@ -194,5 +194,5 @@ class TestEndToEndTranslationRegression:
         translated = translator.translate_reasoning_trace(trace)
 
         assert translated[0] == "Theme 1: Overtime Hours"
-        assert translated[1] == "Theme 2: Performance anomalies"
+        assert translated[1] == "Theme 2: Operational performance"
         assert "Defect load requires immediate review." in translated[2]

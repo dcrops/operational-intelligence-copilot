@@ -4,6 +4,10 @@ from openai import OpenAI
 
 from src.operational_intelligence.llm.protocol import LLMClient
 
+import truststore
+
+truststore.inject_into_ssl()
+
 
 class OpenAIClient:
     """OpenAI-backed implementation of LLMClient."""

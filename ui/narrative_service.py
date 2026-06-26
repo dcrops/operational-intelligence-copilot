@@ -16,8 +16,8 @@ from src.operational_intelligence.llm.business_narrative_translation import (
     BusinessNarrativeTranslator,
 )
 from src.operational_intelligence.llm.narrative_builder import NarrativeRequestBuilder
-from src.operational_intelligence.llm.narrative_config import is_narrative_enabled
-from src.operational_intelligence.llm.narrative_factory import resolve_narrative_generator
+from src.operational_intelligence.llm.narrative_config import NarrativeRuntimeConfig
+from src.operational_intelligence.llm.narrative_generation import generate_narrative
 from src.operational_intelligence.llm.narrative_models import (
     DeterministicAnalysisSnapshot,
     NarrativeResponse,
@@ -100,15 +100,19 @@ def build_deterministic_analysis_snapshot(result: AnalysisResult) -> Determinist
     )
 
 
-def maybe_generate_narrative(result: AnalysisResult) -> NarrativeResponse | None:
+def maybe_generate_narrative(
+    result: AnalysisResult,
+    config: NarrativeRuntimeConfig | None = None,
+) -> tuple[NarrativeResponse | None, tuple[str, ...]]:
     """Return optional narrative output without mutating deterministic analysis."""
-    if not is_narrative_enabled():
-        return None
+    runtime_config = config or NarrativeRuntimeConfig.from_environment()
+    if not runtime_config.enabled:
+        return None, ()
     if result.clarification is not None or result.report is None:
-        return None
+        return None, ()
 
     snapshot = build_deterministic_analysis_snapshot(result)
     request = NarrativeRequestBuilder().build(snapshot)
-    # NarrativeRequest → ExecutiveContextBuilder → PromptArtifact → NarrativeGenerator
     artifact = PromptArtifactBuilder().build(request)
-    return resolve_narrative_generator().generate(artifact)
+    outcome = generate_narrative(artifact, runtime_config)
+    return outcome.response, outcome.warnings

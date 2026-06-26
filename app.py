@@ -7,6 +7,7 @@ from ui.components.clarification_panel import render_clarification
 from ui.components.results_panel import render_results
 from ui.components.app_shell import render_app_hero
 from ui.components.upload import render_sidebar
+from ui.narrative_runtime import get_narrative_runtime_config
 from ui.state import has_dataset, init_session_state, set_analysis_error, set_analysis_result
 
 EXAMPLE_QUESTIONS_BY_DATASET = {
@@ -102,6 +103,7 @@ if st.button(
                 question=st.session_state.question,
                 df=st.session_state.df,
                 profile=st.session_state.profile,
+                narrative_config=get_narrative_runtime_config(),
             )
         set_analysis_result(result)
     except ValueError as exc:

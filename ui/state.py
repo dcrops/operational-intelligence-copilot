@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from src.operational_intelligence.models import DatasetProfile
+from ui.narrative_runtime import narrative_mode_from_environment
 
 if TYPE_CHECKING:
     from ui.models import AnalysisResult
@@ -20,6 +21,7 @@ def init_session_state() -> None:
         "last_error": None,
         "question": "",
         "loaded_source_id": None,
+        "narrative_mode": narrative_mode_from_environment(),
     }
     for key, value in defaults.items():
         if key not in st.session_state:

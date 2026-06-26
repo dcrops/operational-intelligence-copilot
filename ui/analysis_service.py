@@ -12,6 +12,7 @@ from src.operational_intelligence.models import (
 )
 from src.operational_intelligence.pipeline import OperationalPipeline
 from src.operational_intelligence.reporting import ExecutiveReportGenerator
+from src.operational_intelligence.llm.narrative_config import NarrativeRuntimeConfig
 from ui.models import AnalysisResult
 from ui.narrative_service import maybe_generate_narrative
 from ui.transparency import resolve_metrics_analysed
@@ -27,6 +28,7 @@ def run_analysis(
     selected_comparison_direction: str | None = None,
     selected_date_column: str | None = None,
     requested_analysis_type: str | None = None,
+    narrative_config: NarrativeRuntimeConfig | None = None,
 ) -> AnalysisResult:
     """
     Run the operational intelligence flow for a natural language question.
@@ -95,4 +97,12 @@ def run_analysis(
         temporal_filter=temporal_filter,
         snapshot_context=snapshot_context,
     )
-    return replace(result, narrative=maybe_generate_narrative(result))
+    narrative, narrative_warnings = maybe_generate_narrative(
+        result,
+        config=narrative_config,
+    )
+    return replace(
+        result,
+        narrative=narrative,
+        narrative_warnings=narrative_warnings,
+    )

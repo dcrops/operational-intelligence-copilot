@@ -1,8 +1,9 @@
-"""Unit tests for AI-assisted narrative presentation helpers."""
+"""Unit tests for executive narrative presentation helpers."""
 
 from __future__ import annotations
 
 from src.operational_intelligence.llm.deterministic_narrative_generator import GENERATOR_TYPE
+from src.operational_intelligence.llm.narrative_config import PROVIDER_DETERMINISTIC, PROVIDER_OPENAI
 from src.operational_intelligence.llm.narrative_governance import (
     ADVISOR_SECTION_TITLES,
     PROMPT_ARTIFACT_VERSION,
@@ -10,6 +11,7 @@ from src.operational_intelligence.llm.narrative_governance import (
 from src.operational_intelligence.llm.narrative_models import (
     AssessmentConfidencePresentation,
     ExecutiveAssessmentBanner,
+    NarrativeGenerationMetadata,
     NarrativeResponse,
     NarrativeSection,
 )
@@ -20,7 +22,9 @@ from ui.narrative_presentation import (
     NARRATIVE_DISABLED_MESSAGE,
     format_assessment_confidence_level,
     format_executive_assessment_banner,
+    format_generated_by_secondary_metadata,
     format_generation_details,
+    format_generation_method,
 )
 
 
@@ -28,6 +32,17 @@ def _advisor_sections() -> tuple[NarrativeSection, ...]:
     return tuple(
         NarrativeSection(title=title, content=f"Content for {title}.")
         for title in ADVISOR_SECTION_TITLES
+    )
+
+
+def _deterministic_metadata() -> NarrativeGenerationMetadata:
+    return NarrativeGenerationMetadata(
+        generator_name="Deterministic Engine",
+        requested_provider=PROVIDER_DETERMINISTIC,
+        actual_provider=PROVIDER_DETERMINISTIC,
+        fallback_used=False,
+        wall_clock_duration_ms=12,
+        provider_version=PROMPT_ARTIFACT_VERSION,
     )
 
 
@@ -42,8 +57,9 @@ def _deterministic_response() -> NarrativeResponse:
         source_sections_used=("Direct Answer", "Executive Summary"),
         generator_type=GENERATOR_TYPE,
         model=None,
-        generation_duration_ms=None,
+        generation_duration_ms=12,
         artifact_version=PROMPT_ARTIFACT_VERSION,
+        generation_metadata=_deterministic_metadata(),
     )
 
 
@@ -56,33 +72,81 @@ def _openai_style_response() -> NarrativeResponse:
         model="gpt-4.1-mini",
         generation_duration_ms=842,
         artifact_version=PROMPT_ARTIFACT_VERSION,
+        generation_metadata=NarrativeGenerationMetadata(
+            generator_name="OpenAI GPT (gpt-4.1-mini)",
+            requested_provider=PROVIDER_OPENAI,
+            actual_provider=PROVIDER_OPENAI,
+            fallback_used=False,
+            wall_clock_duration_ms=842,
+            model="gpt-4.1-mini",
+            provider_version=PROMPT_ARTIFACT_VERSION,
+        ),
     )
 
 
 class TestFormatGenerationDetails:
-    def test_includes_only_non_none_metadata(self) -> None:
+    def test_metadata_first_details(self) -> None:
         details = format_generation_details(_deterministic_response())
 
-        assert "Generator: deterministic" in details
-        assert not any(line.startswith("Model:") for line in details)
-        assert not any(line.startswith("Duration:") for line in details)
-        assert f"Artifact version: {PROMPT_ARTIFACT_VERSION}" in details
+        assert "Requested provider: deterministic" in details
+        assert "Actual provider: deterministic" in details
+        assert "Generator: Deterministic Engine" in details
+        assert "Generation Time: 12 ms" in details
 
-    def test_deterministic_response_omits_model_and_duration_when_none(self) -> None:
-        response = _deterministic_response()
+    def test_legacy_fallback_when_metadata_missing(self) -> None:
+        response = NarrativeResponse(
+            sections=_advisor_sections(),
+            limitations="Legacy response.",
+            source_sections_used=("Direct Answer",),
+            generator_type=GENERATOR_TYPE,
+            artifact_version=PROMPT_ARTIFACT_VERSION,
+        )
         details = format_generation_details(response)
 
-        assert response.model is None
-        assert response.generation_duration_ms is None
-        assert len(details) == 2
+        assert "Generator: deterministic" in details
+        assert f"Provider version: {PROMPT_ARTIFACT_VERSION}" in details
 
     def test_openai_style_response_includes_model_and_duration_when_present(self) -> None:
         details = format_generation_details(_openai_style_response())
 
-        assert "Generator: openai" in details
+        assert "Actual provider: openai" in details
         assert "Model: gpt-4.1-mini" in details
-        assert "Duration: 842 ms" in details
-        assert f"Artifact version: {PROMPT_ARTIFACT_VERSION}" in details
+        assert "Generation Time: 842 ms" in details
+
+
+class TestFormatGeneratedBySecondaryMetadata:
+    def test_includes_model_and_generation_time_when_present(self) -> None:
+        lines = format_generated_by_secondary_metadata(
+            NarrativeGenerationMetadata(
+                generator_name="OpenAI GPT (gpt-4.1-mini)",
+                requested_provider=PROVIDER_OPENAI,
+                actual_provider=PROVIDER_OPENAI,
+                fallback_used=False,
+                wall_clock_duration_ms=842,
+                model="gpt-4.1-mini",
+            )
+        )
+
+        assert lines == ("Model: gpt-4.1-mini", "Generation Time: 842 ms")
+
+
+class TestFormatGenerationMethod:
+    def test_active_deterministic_label(self) -> None:
+        status_level, label = format_generation_method(_deterministic_metadata())
+        assert status_level == "active"
+        assert label == "Deterministic Engine"
+
+    def test_fallback_label(self) -> None:
+        metadata = NarrativeGenerationMetadata(
+            generator_name="Deterministic Engine",
+            requested_provider=PROVIDER_OPENAI,
+            actual_provider=PROVIDER_DETERMINISTIC,
+            fallback_used=True,
+            fallback_reason="Missing API key",
+        )
+        status_level, label = format_generation_method(metadata)
+        assert status_level == "warning"
+        assert label == "Fallback to Deterministic Engine"
 
 
 class TestExecutiveBriefingPresentation:
@@ -116,6 +180,6 @@ class TestGovernanceCopy:
         assert "Executive Reasoning" in GOVERNANCE_CAPTION
         assert "System Transparency" in GOVERNANCE_CAPTION
 
-    def test_disabled_message_says_ai_assisted_narrative_not_enabled(self) -> None:
-        assert "AI-assisted narrative is not enabled" in NARRATIVE_DISABLED_MESSAGE
+    def test_disabled_message_mentions_authoritative_answer(self) -> None:
+        assert "Executive summary is unavailable" in NARRATIVE_DISABLED_MESSAGE
         assert "authoritative answer" in NARRATIVE_DISABLED_MESSAGE

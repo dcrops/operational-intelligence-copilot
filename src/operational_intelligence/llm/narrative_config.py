@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
+from typing import Literal
 
 from src.operational_intelligence.llm.openai_provider_config import OpenAIProviderConfig
 
@@ -15,7 +17,40 @@ PROVIDER_DETERMINISTIC = "deterministic"
 PROVIDER_OPENAI = "openai"
 SUPPORTED_PROVIDERS = frozenset({PROVIDER_DETERMINISTIC, PROVIDER_OPENAI})
 
+NarrativeProvider = Literal["deterministic", "openai"]
+
 DEFAULT_OPENAI_MODEL = "gpt-4.1-mini"
+
+
+@dataclass(frozen=True)
+class NarrativeRuntimeConfig:
+    """Resolved narrative enablement and provider for a single analysis run."""
+
+    enabled: bool
+    provider: NarrativeProvider
+
+    @classmethod
+    def disabled(cls) -> NarrativeRuntimeConfig:
+        return cls(enabled=False, provider=PROVIDER_DETERMINISTIC)
+
+    @classmethod
+    def deterministic(cls) -> NarrativeRuntimeConfig:
+        return cls(enabled=True, provider=PROVIDER_DETERMINISTIC)
+
+    @classmethod
+    def openai(cls) -> NarrativeRuntimeConfig:
+        return cls(enabled=True, provider=PROVIDER_OPENAI)
+
+    @classmethod
+    def from_environment(cls) -> NarrativeRuntimeConfig:
+        """Build runtime config from environment variables (non-UI callers)."""
+        if not is_narrative_enabled():
+            return cls.disabled()
+
+        provider = os.environ.get(_ENV_PROVIDER, "").strip().lower()
+        if provider == PROVIDER_OPENAI:
+            return cls.openai()
+        return cls.deterministic()
 
 
 def is_narrative_enabled() -> bool:
