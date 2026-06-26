@@ -35,7 +35,6 @@ from ui.results_headings import (
 )
 from ui.results_presentation import (
     ZONE_EXECUTIVE,
-    render_executive_spacer,
     render_hero_body,
     render_level2_heading,
     render_numbered_items,
@@ -92,8 +91,10 @@ def _render_assessment_confidence(
     level_line: str,
     rationale: str,
 ) -> None:
-    st.markdown(f"##### {ASSESSMENT_CONFIDENCE_HEADING}")
+    render_level2_heading(ASSESSMENT_CONFIDENCE_HEADING, zone=ZONE_EXECUTIVE)
+    st.markdown('<div class="oic-confidence-block">', unsafe_allow_html=True)
     st.markdown(level_line)
+    st.markdown("</div>", unsafe_allow_html=True)
     with st.expander(ASSESSMENT_CONFIDENCE_DETAILS_LABEL, expanded=False):
         st.markdown(rationale)
 
@@ -107,14 +108,13 @@ def render_executive_summary_content(result: AnalysisResult) -> None:
             st.info(NARRATIVE_DISABLED_MESSAGE)
             return
 
-        st.markdown('<div class="oic-executive-summary-body">', unsafe_allow_html=True)
+        st.markdown('<div class="oic-executive-briefing">', unsafe_allow_html=True)
 
         if narrative.executive_assessment is not None:
             st.markdown(
                 format_executive_assessment_banner(narrative.executive_assessment),
                 unsafe_allow_html=True,
             )
-            render_executive_spacer("lg")
 
         for section in narrative.sections:
             if section.title in _COLLAPSED_SUMMARY_SECTIONS:
@@ -122,13 +122,10 @@ def render_executive_summary_content(result: AnalysisResult) -> None:
                 continue
 
             if section.title == ADVISOR_SECTION_EXECUTIVE_ACTIONS:
-                render_executive_spacer("md")
                 _render_executive_actions_section(section)
-                render_executive_spacer("sm")
                 continue
 
             if section.title == ADVISOR_SECTION_KEY_MESSAGE:
-                render_executive_spacer("md")
                 render_level2_heading(section.title, zone=ZONE_EXECUTIVE)
             else:
                 st.markdown(f"##### {section.title}")
@@ -138,14 +135,12 @@ def render_executive_summary_content(result: AnalysisResult) -> None:
                 section.title == ADVISOR_SECTION_KEY_MESSAGE
                 and narrative.assessment_confidence is not None
             ):
-                render_executive_spacer("sm")
                 confidence = narrative.assessment_confidence
                 _render_assessment_confidence(
                     level_line=format_assessment_confidence_level(confidence),
                     rationale=confidence.rationale,
                 )
 
-        render_executive_spacer("md")
         with st.expander(LIMITATIONS_HEADING, expanded=False):
             st.markdown(narrative.limitations)
 

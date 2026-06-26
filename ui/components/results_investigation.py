@@ -17,12 +17,9 @@ from ui.executive_reasoning_presentation import (
     split_follow_up_investigations,
 )
 from ui.models import AnalysisResult
-from ui.results_headings import SECTION_OVERVIEW
 from ui.results_presentation import (
     ZONE_INVESTIGATION,
-    close_section_heading,
     format_investigation_overview_bullets,
-    open_section_heading,
     render_level2_heading,
     render_overview_bullets,
 )
@@ -40,6 +37,7 @@ def render_overview_content(result: AnalysisResult) -> None:
 
 def render_investigation_sections(result: AnalysisResult) -> None:
     """Render investigation sections without the outer Investigation group heading."""
+    st.markdown('<div class="oic-findings-body">', unsafe_allow_html=True)
 
     def render_analytical_findings() -> None:
         findings = bucketed_findings(result)
@@ -73,15 +71,19 @@ def render_investigation_sections(result: AnalysisResult) -> None:
             st.caption("No follow-up investigations suggested.")
 
     render_level2_heading("Suggested Follow-Up Investigations", zone=ZONE_INVESTIGATION)
+    st.markdown('<div class="oic-follow-up-block">', unsafe_allow_html=True)
     with st.container(border=True):
         render_investigations()
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("")
 
 
-def render_investigation_bundle(result: AnalysisResult) -> None:
-    """Render Overview and Investigation content inside a disclosure group."""
-    open_section_heading(zone=ZONE_INVESTIGATION, tier=1)
-    st.markdown(f"#### {SECTION_OVERVIEW}")
-    close_section_heading()
-    render_overview_content(result)
+def render_findings_bundle(result: AnalysisResult) -> None:
+    """Render analytical findings content for the Findings tab."""
     render_investigation_sections(result)
+
+
+def render_investigation_bundle(result: AnalysisResult) -> None:
+    """Deprecated alias for disclosure-era callers; use render_findings_bundle."""
+    render_findings_bundle(result)

@@ -273,6 +273,7 @@ def bucketed_findings(result: AnalysisResult) -> list[Finding]:
 
 def render_finding(finding: Finding) -> None:
     badge = severity_badge(finding.severity)
+    st.markdown('<div class="oic-finding-item">', unsafe_allow_html=True)
     st.markdown(f"{badge} · **{finding.title}**")
     st.markdown(business_friendly_description(finding))
 
@@ -281,6 +282,7 @@ def render_finding(finding: Finding) -> None:
 
     with st.expander(f"Evidence ({len(finding.evidence)})", expanded=False):
         render_evidence(finding.evidence, finding)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_operational_assessment(report: ExecutiveReport) -> None:

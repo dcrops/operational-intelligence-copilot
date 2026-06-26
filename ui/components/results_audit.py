@@ -64,6 +64,7 @@ def _render_technical_details(result: AnalysisResult) -> None:
 
 def render_audit_bundle(result: AnalysisResult) -> None:
     """Render audit and verification content inside a disclosure group."""
+    st.markdown('<div class="oic-audit-body">', unsafe_allow_html=True)
 
     def render_transparency() -> None:
         st.markdown(f"**Question:** {result.request.question}")
@@ -119,10 +120,13 @@ def render_audit_bundle(result: AnalysisResult) -> None:
 
     def render_verification() -> None:
         st.markdown('<div class="oic-audit-verification">', unsafe_allow_html=True)
+        st.markdown('<div class="oic-audit-generated-by">', unsafe_allow_html=True)
         _render_generated_by(result)
+        st.markdown("</div>", unsafe_allow_html=True)
         _render_runtime_metadata(result)
         _render_technical_details(result)
         _render_governance_information()
         st.markdown("</div>", unsafe_allow_html=True)
 
     render_subsection("Verification", render_verification, zone=ZONE_AUDIT, bordered=False)
+    st.markdown("</div>", unsafe_allow_html=True)

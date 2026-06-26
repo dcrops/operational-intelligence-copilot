@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import streamlit as st
+
 from ui.components.analysis_header import render_analysis_header
 from ui.components.results_audit import render_audit_bundle
 from ui.components.results_executive import (
@@ -10,33 +12,29 @@ from ui.components.results_executive import (
     render_narrative_fallback_warnings,
     render_recommended_actions,
 )
-from ui.components.results_investigation import render_investigation_bundle
+from ui.components.results_investigation import render_findings_bundle
 from ui.models import AnalysisResult
-from ui.results_headings import DISCLOSURE_AUDIT_LABEL, DISCLOSURE_INVESTIGATION_LABEL
-from ui.results_presentation import (
-    ZONE_AUDIT,
-    ZONE_INVESTIGATION,
-    inject_results_styles,
-    render_collapsible_group,
-)
+from ui.results_headings import TAB_AUDIT_LABEL, TAB_FINDINGS_LABEL, TAB_SUMMARY_LABEL
+from ui.results_presentation import inject_results_styles
 
 
 def render_results(result: AnalysisResult) -> None:
-    """Render the Executive Surface and collapsed disclosure groups."""
+    """Render analysis header and task-oriented results tabs."""
     inject_results_styles()
     render_analysis_header(result)
-    render_direct_answer(result)
-    render_executive_summary_content(result)
-    render_recommended_actions(result)
-    render_narrative_fallback_warnings(result)
 
-    render_collapsible_group(
-        DISCLOSURE_INVESTIGATION_LABEL,
-        lambda: render_investigation_bundle(result),
-        zone=ZONE_INVESTIGATION,
+    summary_tab, findings_tab, audit_tab = st.tabs(
+        [TAB_SUMMARY_LABEL, TAB_FINDINGS_LABEL, TAB_AUDIT_LABEL]
     )
-    render_collapsible_group(
-        DISCLOSURE_AUDIT_LABEL,
-        lambda: render_audit_bundle(result),
-        zone=ZONE_AUDIT,
-    )
+
+    with summary_tab:
+        render_direct_answer(result)
+        render_executive_summary_content(result)
+        render_recommended_actions(result)
+        render_narrative_fallback_warnings(result)
+
+    with findings_tab:
+        render_findings_bundle(result)
+
+    with audit_tab:
+        render_audit_bundle(result)
