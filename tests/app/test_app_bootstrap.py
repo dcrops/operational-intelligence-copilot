@@ -11,6 +11,7 @@ from tests.app.golden_expectations import (
     get_scenario,
 )
 from tests.app.helpers import (
+    assert_app_shell_visible,
     assert_bootstrap_prompt_visible,
     assert_expected_sections,
     assert_no_app_exception,
@@ -36,8 +37,8 @@ class TestApplicationMarkers:
 class TestApplicationBootstrap:
     def test_app_launches_without_dataset(self, app):
         assert_no_app_exception(app)
+        assert_app_shell_visible(app)
         assert_bootstrap_prompt_visible(app)
-        assert any(title.value == "Operational Intelligence Copilot" for title in app.title)
 
     def test_manufacturing_sample_loads_from_sidebar(self, app):
         scenario = get_scenario("manufacturing_bootstrap_smoke")

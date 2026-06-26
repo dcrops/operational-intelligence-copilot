@@ -3,8 +3,8 @@
 
 **Version:** 1.0  
 **Last Updated:** June 2026  
-**Project Status:** Phase 3 complete — engineering-ready for Phase 4  
-**Current Milestone:** Phase 4 — Milestone 11e — AI Executive Advisor
+**Project Status:** Phase 4 — Presentation polish (Milestone 12a complete)  
+**Current Milestone:** Phase 4 — Milestone 12a — Branded Application Shell
 
 ---
 
@@ -461,6 +461,31 @@ Completed in Phase 4 (Milestone 11f):
 - Executive Narrative UX enhancements (assessment banner, split actions, structured confidence)
 - Tests in `tests/test_business_narrative_translation.py` including end-to-end regression
 - Documentation updated across ARCHITECTURE, HANDBOOK, ROADMAP, AI_COLLABORATION, CODING_STANDARDS, and README
+
+---
+
+## Milestone 12a — Branded Application Shell
+
+Presentation-only UX milestone. No changes to analytics, AI behaviour, routing, clarification, or results logic.
+
+### Delivered
+
+* CRC-branded hero card with logo, org label, app title, subtitle, and capability badges
+* Reusable shell modules: `ui/branding.py`, `ui/components/app_shell.py`
+* Streamlit theme in `.streamlit/config.toml` (CRC-green primary accent)
+* Sidebar workflow unchanged (dataset upload, samples, profile summary)
+* AppTest helper `assert_app_shell_visible()` and bootstrap test updates
+
+### Portfolio note
+
+The shell modules are structured for reuse across future CRC portfolio applications with shared brand constants and hero rendering.
+
+Completed in Phase 4 (Milestone 12a):
+
+- Branded application shell — hero-owned CRC identity; functional sidebar unchanged
+- `ui/branding.py` and `ui/components/app_shell.py`
+- `.streamlit/config.toml` CRC-aligned theme
+- AppTests updated; full regression suite passing
 
 Next planned work:
 

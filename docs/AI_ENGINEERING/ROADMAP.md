@@ -4,8 +4,8 @@
 
 **Version:** 1.0
 **Last Updated:** June 2026
-**Current Phase:** Phase 4 — AI Narrative Layer (Milestone 11f complete)  
-**Current Milestone:** Milestone 11f — Business Narrative Translation Layer (complete)
+**Current Phase:** Phase 4 — Presentation and polish (Milestone 12a complete)  
+**Current Milestone:** Milestone 12a — Branded Application Shell (complete)
 
 ---
 
@@ -383,6 +383,30 @@ Explicitly out of scope for 11f:
 
 * Analytics, routing, Executive Reasoning engine, System Transparency formatters, evidence generation changes
 * Unifying UI metric humanisation with narrative registry (future consistency work)
+
+### Milestone 12a — Branded Application Shell
+
+Status:
+
+✅ Completed
+
+**Summary:** Milestone 12a introduced a CRC-branded application shell with a professional hero card, capability badges, and Streamlit theme alignment — presentation-only, with no analytical or AI behaviour changes.
+
+Objective:
+
+Create a portfolio-ready branded shell aligned with CHASE RISK & COMPLIANCE identity while keeping sidebar workflow unchanged.
+
+Delivered:
+
+* [`ui/branding.py`](ui/branding.py) — brand constants, logo path, capability badges, minimal shell CSS
+* [`ui/components/app_shell.py`](ui/components/app_shell.py) — reusable `render_app_hero()` for CRC portfolio apps
+* Branded hero with CRC logo, org label, app title, subtitle, and capability badges
+* [`.streamlit/config.toml`](.streamlit/config.toml) — CRC-green primary theme
+* AppTest updates (`assert_app_shell_visible`)
+
+Explicitly out of scope for 12a:
+
+* Results page redesign, sidebar branding, analytics, narrative, routing, or provider changes
 
 Future milestones (planned):
 

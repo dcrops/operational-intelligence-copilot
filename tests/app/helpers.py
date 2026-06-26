@@ -8,6 +8,11 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from tests.app.golden_expectations import (
+    APP_SHELL_BADGE_FRAGMENT,
+    APP_SHELL_BRAND,
+    APP_SHELL_SIDEBAR_PLATFORM,
+    APP_SHELL_SUBTITLE_FRAGMENT,
+    APP_SHELL_TITLE,
     ExpectedOutcome,
     GoldenQuestion,
     GoldenScenario,
@@ -114,6 +119,25 @@ def assert_bootstrap_prompt_hidden(app: AppTest) -> None:
     assert not any(
         "Upload a CSV in the sidebar or load a sample dataset" in (info.value or "")
         for info in app.info
+    )
+
+
+def assert_app_shell_visible(app: AppTest) -> None:
+    """Assert branded application shell content is visible."""
+    visible = user_visible_text(app)
+    assert APP_SHELL_TITLE in visible, f"Expected app title {APP_SHELL_TITLE!r} in hero."
+    assert APP_SHELL_BRAND in visible, f"Expected brand label {APP_SHELL_BRAND!r} in hero."
+    assert APP_SHELL_SUBTITLE_FRAGMENT in visible, (
+        "Expected hero subtitle fragment in visible text."
+    )
+    assert APP_SHELL_BADGE_FRAGMENT in visible, (
+        "Expected at least one capability badge in visible text."
+    )
+
+    sidebar = sidebar_visible_text(app)
+    assert APP_SHELL_BRAND in sidebar, f"Expected brand label {APP_SHELL_BRAND!r} in sidebar."
+    assert APP_SHELL_SIDEBAR_PLATFORM in sidebar, (
+        f"Expected sidebar platform label {APP_SHELL_SIDEBAR_PLATFORM!r}."
     )
 
 

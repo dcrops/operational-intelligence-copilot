@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from src.operational_intelligence.profiling import DatasetProfiler
+from ui.components.app_shell import render_sidebar_branding
 from ui.state import set_dataset
 
 SAMPLE_DATASETS = {
@@ -50,6 +51,7 @@ def _load_sample_dataset(label: str) -> None:
 
 
 def render_sidebar() -> None:
+    render_sidebar_branding()
     st.sidebar.header("Dataset")
 
     uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])

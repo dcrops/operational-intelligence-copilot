@@ -65,6 +65,12 @@ PROFILE_SUMMARY_HEADING = "Profile summary"
 LOAD_SUCCESS_MARKER = "Loaded"
 INVALID_EMPTY_CSV_MARKER = "uploaded CSV is empty"
 
+APP_SHELL_TITLE = "Operational Intelligence Copilot"
+APP_SHELL_BRAND = "CHASE RISK & COMPLIANCE"
+APP_SHELL_SIDEBAR_PLATFORM = "Operational Intelligence Platform"
+APP_SHELL_SUBTITLE_FRAGMENT = "Transform operational data into trusted executive decisions"
+APP_SHELL_BADGE_FRAGMENT = "Evidence-Based Analytics"
+
 
 @dataclass(frozen=True)
 class GoldenDataset:

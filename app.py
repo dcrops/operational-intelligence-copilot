@@ -5,6 +5,7 @@ import streamlit as st
 from ui.analysis_service import run_analysis
 from ui.components.clarification_panel import render_clarification
 from ui.components.results_panel import render_results
+from ui.components.app_shell import render_app_hero
 from ui.components.upload import render_sidebar
 from ui.state import has_dataset, init_session_state, set_analysis_error, set_analysis_result
 
@@ -58,13 +59,8 @@ st.set_page_config(
 )
 
 init_session_state()
+render_app_hero()
 render_sidebar()
-
-st.title("Operational Intelligence Copilot")
-st.write(
-    "Upload operational data, ask a natural language question, and review "
-    "deterministic findings from the analysis pipeline."
-)
 
 if not has_dataset():
     st.info("Upload a CSV in the sidebar or load a sample dataset to get started.")
