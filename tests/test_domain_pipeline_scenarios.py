@@ -345,19 +345,19 @@ class TestFollowUpInvestigationsIntegration:
                 manufacturing_bundle,
                 "How has downtime_minutes changed over time?",
                 {},
-                "Investigate whether downtime minutes changes are concentrated",
+                "Which production line has the highest downtime minutes",
             ),
             (
                 education_bundle,
                 "Which school has the lowest attendance?",
                 {},
-                "school values contributed most",
+                "Which school has the lowest",
             ),
             (
                 workforce_bundle,
                 "What looks unusual?",
                 {},
-                "Investigate whether anomalies",
+                "Which employee name has the highest",
             ),
         ],
     )

@@ -187,7 +187,9 @@ def assert_no_causation_claims(text: str) -> None:
     for phrase in _CAUSATION_CLAIM_PHRASES:
         assert phrase not in lowered, f"Unexpected causation claim phrase: {phrase!r}"
 
-_HUMILITY_VERBS = ("investigate", "review", "explore", "examine", "may warrant")
+_DIRECT_QUESTION_PREFIXES = ("how ", "what ", "which ", "show ", "list ", "compare ")
+
+_HUMILITY_VERBS = ("investigate", "review", "explore", "examine", "may warrant", "show", "list")
 
 _SUGGESTION_CAUSATION_PHRASES = (
     "caused by",
@@ -202,10 +204,11 @@ _SUGGESTION_CAUSATION_PHRASES = (
 def assert_suggestions_are_humble(suggestions: list[str]) -> None:
     assert suggestions, "Expected at least one suggestion"
     for suggestion in suggestions:
-        lowered = suggestion.lower()
-        assert any(verb in lowered for verb in _HUMILITY_VERBS), (
-            f"Suggestion missing humble wording: {suggestion!r}"
-        )
+        lowered = suggestion.lower().strip()
+        is_direct_capability_question = lowered.startswith(_DIRECT_QUESTION_PREFIXES)
+        assert is_direct_capability_question or any(
+            verb in lowered for verb in _HUMILITY_VERBS
+        ), f"Suggestion missing supported question wording: {suggestion!r}"
         for phrase in _SUGGESTION_CAUSATION_PHRASES:
             assert phrase not in lowered, (
                 f"Unexpected causation phrase {phrase!r} in suggestion: {suggestion!r}"

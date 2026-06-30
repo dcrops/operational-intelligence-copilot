@@ -32,7 +32,7 @@ Items recorded here are not necessarily defects. Many represent deliberate trade
 | Medium    | Planned                     | Unsupported Temporal Intent Transparency         |
 | Low       | Planned                     | Temporal Filter Deduplication                    |
 | Low       | Planned                     | Year-Only Temporal Parsing False Positives       |
-| Medium    | Deferred                    | Capability-Aware Investigation Suggestions       |
+| Completed | Implemented (Milestone 13g) | Capability-Aware Investigation Suggestions       |
 | Medium    | Partially Implemented       | Metrics Analysed Presentation Improvements       |
 | Low       | Planned                     | Empty-Findings Answer Does Not Reference Temporal Scope |
 | Low       | Planned                     | Deterministic Answer Transparency Alignment      |
@@ -249,7 +249,7 @@ Reference temporal scope in answer generation when a filter was applied and zero
 
 # Capability-Aware Investigation Suggestions
 
-**Status:** Deferred
+**Status:** Implemented (Milestone 13g)
 
 ## Context
 
@@ -257,13 +257,13 @@ Milestone 7 introduced deterministic investigation suggestions intended to guide
 
 During testing, it became apparent that some suggested investigations could not always be executed through the current analytical capabilities.
 
-### Example flow
+### Example flow (resolved in 13g)
 
 Question:
 
 > "How has attendance changed over time?"
 
-Suggested investigation:
+Previously suggested investigation:
 
 > "Review which groups contributed most to the observed change."
 
@@ -271,33 +271,27 @@ User asks:
 
 > "Which schools contributed most?"
 
-Current behaviour:
+Previous behaviour:
 
 > No findings identified.
 
-## Problem
+## What was implemented
 
-The investigation suggestion generator currently produces plausible analytical next steps without verifying that those next steps can be:
+`InvestigationSuggestionGenerator` now receives `DatasetProfile` and applies static capability checks before emitting suggestions:
 
-* routed successfully,
-* resolved unambiguously,
-* executed using existing analytical tools.
+* tool support via `suitable_tools`
+* dimension support via evidence keys and `potential_dimensions`
+* temporal support via `date_columns` for trend follow-ups
+* banned generic templates (`related metrics`, `particular groups`, unsupported anomaly clustering)
+* maximum three suggestions; safe deterministic fallback when no specific template qualifies
+* Priority Action deduplication at report generation
+* Guided follow-up UX: **Ask this** populates the question input, returns the user to the question area, and the next completed analysis opens on **Summary**
 
-This exposes capability boundaries within the current platform.
+Integration coverage: `tests/test_follow_up_reliability.py` across manufacturing, education, and workforce golden datasets; AppTests in `tests/app/test_follow_up_question_buttons.py` and `tests/app/test_follow_up_workflow.py`.
 
-## Desired future behaviour
+## Remaining deferred UX
 
-Suggested investigations should only be surfaced when they map to analyses that the current platform can reliably perform.
-
-Potential future capabilities include:
-
-* capability-aware suggestion generation,
-* executable follow-up investigations,
-* guided drill-down workflows.
-
-## Suggested future milestone
-
-**Milestone 7.5 — Capability-Aware Investigation Suggestions**
+Auto-run / one-click drill-down execution from follow-up suggestions remains deferred (see **Guided Drill-Down Investigations** below).
 
 ---
 
@@ -574,9 +568,9 @@ This enhancement would improve explanatory power rather than analytical correctn
 
 ## Context
 
-Current investigation suggestions are informational only.
+Milestone 13g added guided follow-up UX: users can click **Ask this** beside a suggestion to populate the question input and return to the question area. Analysis still requires the user to click **Analyse**.
 
-Users must manually formulate new questions.
+Auto-run drill-down — where selecting a suggestion executes a pre-configured workflow without user confirmation — remains a future enhancement.
 
 ## Desired future behaviour
 

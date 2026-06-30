@@ -74,7 +74,12 @@ def run_analysis(
         profile.potential_metrics,
     )
     reasoning = ExecutiveReasoningEngine().reason(findings)
-    report = ExecutiveReportGenerator().generate(findings, reasoning=reasoning)
+    report = ExecutiveReportGenerator().generate(
+        findings,
+        reasoning=reasoning,
+        profile=profile,
+        original_question=cleaned_question,
+    )
 
     answer_generator = AnswerGenerator()
     deterministic_answer = answer_generator.generate(request, findings, report)

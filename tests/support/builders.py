@@ -2,7 +2,31 @@
 
 from __future__ import annotations
 
-from src.operational_intelligence.models import EvidenceItem, Finding
+from src.operational_intelligence.models import DatasetProfile, EvidenceItem, Finding
+
+
+def make_suggestion_profile(**overrides) -> DatasetProfile:
+    """Dataset profile with full analytical capability for suggestion tests."""
+    defaults: dict = {
+        "dataset_name": "test_dataset",
+        "row_count": 100,
+        "column_count": 5,
+        "column_names": ["department", "hours", "month", "school", "production_line"],
+        "numeric_columns": ["hours", "attendance_rate", "downtime_minutes"],
+        "categorical_columns": ["department", "school", "production_line"],
+        "date_columns": ["month"],
+        "missing_value_count": 0,
+        "potential_metrics": ["hours", "attendance_rate", "downtime_minutes", "overtime_hours"],
+        "potential_dimensions": ["department", "school", "production_line"],
+        "suitable_tools": [
+            "trend_analysis",
+            "variance_analysis",
+            "anomaly_detection",
+            "risk_assessment",
+        ],
+    }
+    defaults.update(overrides)
+    return DatasetProfile(**defaults)
 
 
 def make_variance_evidence_item(

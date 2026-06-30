@@ -1,6 +1,9 @@
 from src.operational_intelligence.executive_reasoning import ExecutiveReasoningResult
-from src.operational_intelligence.investigation_suggestions import InvestigationSuggestionGenerator
-from src.operational_intelligence.models import ExecutiveReport, Finding
+from src.operational_intelligence.investigation_suggestions import (
+    InvestigationSuggestionGenerator,
+    filter_duplicate_priority_actions,
+)
+from src.operational_intelligence.models import DatasetProfile, ExecutiveReport, Finding
 
 
 def _recommended_next_steps_from_findings(findings: list[Finding]) -> list[str]:
@@ -23,6 +26,9 @@ class ExecutiveReportGenerator:
         self,
         findings: list[Finding],
         reasoning: ExecutiveReasoningResult | None = None,
+        *,
+        profile: DatasetProfile | None = None,
+        original_question: str | None = None,
     ) -> ExecutiveReport:
         """
         Generate an executive-ready report from findings.
@@ -71,8 +77,15 @@ class ExecutiveReportGenerator:
             recommended_next_steps = _recommended_next_steps_from_findings(findings)
 
         suggested_follow_up_investigations = InvestigationSuggestionGenerator().generate_for_findings(
-            findings
+            findings,
+            profile=profile,
+            original_question=original_question,
         )
+        if reasoning is not None and reasoning.priority_actions:
+            suggested_follow_up_investigations = filter_duplicate_priority_actions(
+                suggested_follow_up_investigations,
+                [action.action for action in reasoning.priority_actions],
+            )
 
         report_kwargs = {
             "executive_summary": executive_summary,

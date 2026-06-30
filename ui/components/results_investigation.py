@@ -13,15 +13,40 @@ from ui.components.results_shared import (
 )
 from ui.executive_reasoning_presentation import (
     ANALYTICAL_FINDINGS_HEADING,
-    filter_duplicate_investigations,
     split_follow_up_investigations,
 )
 from ui.models import AnalysisResult
+from ui.results_headings import FOLLOW_UP_ASK_BUTTON_LABEL
 from ui.results_presentation import (
     ZONE_INVESTIGATION,
     render_empty_state,
     render_level2_heading,
 )
+from ui.state import apply_suggested_question
+
+
+def _render_follow_up_suggestion(display_text: str, question_text: str, *, key: str) -> None:
+    text_column, button_column = st.columns([8, 1.2], vertical_alignment="center")
+    with text_column:
+        st.markdown(f"- {display_text}")
+    with button_column:
+        if st.button(FOLLOW_UP_ASK_BUTTON_LABEL, key=key):
+            apply_suggested_question(question_text)
+
+
+def _render_follow_up_suggestions(
+    result: AnalysisResult,
+    suggestions: list[str],
+    *,
+    key_prefix: str,
+) -> None:
+    for index, suggestion in enumerate(suggestions):
+        display_text = humanise_report_text(result, suggestion)
+        _render_follow_up_suggestion(
+            display_text,
+            display_text,
+            key=f"{key_prefix}_{index}",
+        )
 
 
 def render_investigation_sections(result: AnalysisResult) -> None:
@@ -49,19 +74,17 @@ def render_investigation_sections(result: AnalysisResult) -> None:
     def render_investigations() -> None:
         investigations = result.report.suggested_follow_up_investigations
         if investigations:
-            humanised = [
-                humanise_report_text(result, suggestion) for suggestion in investigations
-            ]
-            if result.report.priority_actions:
-                humanised = filter_duplicate_investigations(humanised, result.report)
-            if humanised:
-                presentation = split_follow_up_investigations(humanised)
-                for suggestion in presentation.visible:
-                    st.markdown(f"- {suggestion}")
+            presentation = split_follow_up_investigations(investigations)
+            visible = presentation.visible
+            if visible:
+                _render_follow_up_suggestions(result, visible, key_prefix="follow_up_visible")
                 if presentation.additional:
                     with st.expander(presentation.expander_label, expanded=False):
-                        for suggestion in presentation.additional:
-                            st.markdown(f"- {suggestion}")
+                        _render_follow_up_suggestions(
+                            result,
+                            presentation.additional,
+                            key_prefix="follow_up_additional",
+                        )
             else:
                 render_empty_state(
                     "Follow-up investigations are covered by the Priority Actions above.",

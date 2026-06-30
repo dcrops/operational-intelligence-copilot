@@ -256,6 +256,28 @@ def ask_question(app: AppTest, question: str) -> AppTest:
     return app
 
 
+def assert_question_input(app: AppTest, expected: str) -> None:
+    """Assert the main question text area contains the expected value."""
+    question_input = app.text_area(key="question")
+    assert question_input is not None, "Expected question text area to be present."
+    assert question_input.value == expected
+
+
+def click_follow_up_ask_button(app: AppTest, *, index: int = 0) -> AppTest:
+    """Click an Ask this button for a suggested follow-up investigation."""
+    from ui.results_headings import FOLLOW_UP_ASK_BUTTON_LABEL, TAB_FINDINGS_LABEL
+
+    select_results_tab(app, TAB_FINDINGS_LABEL)
+    ask_buttons = [button for button in app.button if button.label == FOLLOW_UP_ASK_BUTTON_LABEL]
+    assert ask_buttons, "Expected at least one follow-up Ask this button."
+    assert index < len(ask_buttons), (
+        f"Expected follow-up button index {index}, found {len(ask_buttons)}."
+    )
+    ask_buttons[index].click().run()
+    assert_no_app_exception(app)
+    return app
+
+
 def _seed_stale_clarification_widget_state(app: AppTest) -> None:
     """Seed resolved clarification widget keys retained by AppTest between runs."""
     for radio in app.radio:

@@ -4,8 +4,8 @@
 
 **Version:** 1.0
 **Last Updated:** June 2026
-**Current Phase:** Phase 5 — Executive Experience (Milestone 13f complete)
-**Current Milestone:** Milestone 13f — MVP Readiness & Content Quality (complete)
+**Current Phase:** Phase 5 — Executive Experience (Milestone 13g complete)
+**Current Milestone:** Milestone 13g — Intelligent Follow-up Question Reliability (complete)
 
 ---
 
@@ -586,6 +586,31 @@ Delivered:
 Explicitly out of scope for 13f:
 
 * New analytics, prompt templates, tab redesign, orchestration changes, pipeline contract hardening
+
+---
+
+### Milestone 13g — Intelligent Follow-up Question Reliability
+
+Status: **Complete**
+
+**Summary:** Milestone 13g is the final MVP engineering milestone before Exit Review. Follow-up suggestions are now capability-aware, statically validated, and filtered for executability — preferring 2–3 trustworthy questions over speculative volume.
+
+Delivered:
+
+* Follow-up templates map directly to implemented tools (`trend_analysis`, `variance_analysis`, `anomaly_detection`)
+* Static capability checks before emitting suggestions (tools, dimensions, temporal support)
+* Unsupported investigative phrasing removed (concentrated periods, contributing factors, driver analysis, volatility review, speculative baseline prompts)
+* Direct routable wording (for example `How has {metric} changed over time?`, `Which {dimension} has the lowest {metric}?`, `Show unusual {metric} records.`)
+* Omission over speculation when no supported question exists for a finding
+* Original-question deduplication with progression to the next supported investigation step
+* Priority Action deduplication moved to report generation (`filter_duplicate_priority_actions`)
+* Guided follow-up UX: **Ask this** populates the question input, scrolls back to the question area, and the next completed analysis opens on **Summary**
+* Golden dataset integration tests including follow-up re-execution (`tests/test_follow_up_reliability.py`)
+* AppTests for follow-up buttons and workflow navigation (`tests/app/test_follow_up_question_buttons.py`, `tests/app/test_follow_up_workflow.py`)
+
+Explicitly out of scope for 13g:
+
+* New analytics, LLM follow-ups, routing architecture changes, tab redesign, auto-run / one-click drill-down execution (deferred)
 
 Future milestones (planned):
 

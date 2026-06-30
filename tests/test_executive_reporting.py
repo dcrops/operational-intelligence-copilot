@@ -71,7 +71,7 @@ class TestExecutiveReportGenerator:
         report = ExecutiveReportGenerator().generate(findings)
 
         assert report.suggested_follow_up_investigations
-        assert len(report.suggested_follow_up_investigations) >= 3
+        assert 1 <= len(report.suggested_follow_up_investigations) <= 3
 
     def test_empty_findings_have_empty_suggested_investigations(self):
         report = ExecutiveReportGenerator().generate([])

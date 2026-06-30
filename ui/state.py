@@ -7,6 +7,9 @@ import streamlit as st
 
 from src.operational_intelligence.models import DatasetProfile
 from ui.narrative_runtime import narrative_mode_from_environment
+from ui.results_headings import TAB_SUMMARY_LABEL
+
+RESULTS_TABS_SESSION_KEY = "results_tabs"
 
 if TYPE_CHECKING:
     from ui.models import AnalysisResult
@@ -20,6 +23,8 @@ def init_session_state() -> None:
         "last_result": None,
         "last_error": None,
         "question": "",
+        "pending_question": "",
+        "scroll_to_question_pending": False,
         "loaded_source_id": None,
         "narrative_mode": narrative_mode_from_environment(),
     }
@@ -50,3 +55,23 @@ def set_analysis_result(result: AnalysisResult | None) -> None:
 def set_analysis_error(message: str) -> None:
     st.session_state.last_error = message
     st.session_state.last_result = None
+
+
+def apply_suggested_question(question: str) -> None:
+    """Stage a suggested follow-up for the main question input on the next rerun."""
+    st.session_state.pending_question = question.strip()
+    st.session_state.scroll_to_question_pending = True
+    st.rerun()
+
+
+def reset_results_tab_to_summary() -> None:
+    """Return the results panel to the Summary tab after a new analysis."""
+    st.session_state[RESULTS_TABS_SESSION_KEY] = TAB_SUMMARY_LABEL
+
+
+def consume_pending_question() -> None:
+    """Apply a staged follow-up question before the question widget is rendered."""
+    pending = st.session_state.get("pending_question", "")
+    if pending:
+        st.session_state.question = pending
+        st.session_state.pending_question = ""

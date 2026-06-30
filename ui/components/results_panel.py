@@ -16,6 +16,7 @@ from ui.components.results_investigation import render_findings_bundle
 from ui.models import AnalysisResult
 from ui.results_headings import TAB_AUDIT_LABEL, TAB_FINDINGS_LABEL, TAB_SUMMARY_LABEL
 from ui.results_presentation import inject_results_styles
+from ui.state import RESULTS_TABS_SESSION_KEY
 
 
 def render_results(result: AnalysisResult) -> None:
@@ -24,7 +25,10 @@ def render_results(result: AnalysisResult) -> None:
     render_analysis_header(result)
 
     summary_tab, findings_tab, audit_tab = st.tabs(
-        [TAB_SUMMARY_LABEL, TAB_FINDINGS_LABEL, TAB_AUDIT_LABEL]
+        [TAB_SUMMARY_LABEL, TAB_FINDINGS_LABEL, TAB_AUDIT_LABEL],
+        key=RESULTS_TABS_SESSION_KEY,
+        default=TAB_SUMMARY_LABEL,
+        on_change="rerun",
     )
 
     with summary_tab:

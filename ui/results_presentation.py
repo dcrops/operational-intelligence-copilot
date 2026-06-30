@@ -268,6 +268,9 @@ _RESULTS_STYLES = f"""
 .oic-follow-up-block {{
     margin-top: 0.15rem;
 }}
+.oic-follow-up-block [data-testid="column"] {{
+    align-self: center;
+}}
 
 .oic-evidence-panel {{
     margin: 0.35rem 0 0.75rem 0;

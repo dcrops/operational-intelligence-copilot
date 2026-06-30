@@ -3,7 +3,7 @@ import streamlit as st
 from ui.analysis_service import run_analysis
 from ui.formatting import format_column_label
 from ui.models import AnalysisResult
-from ui.state import set_analysis_result
+from ui.state import reset_results_tab_to_summary, set_analysis_result
 
 _CLARIFICATION_MESSAGES = {
     "metric": (
@@ -104,6 +104,7 @@ def render_clarification(result: AnalysisResult) -> None:
                     requested_analysis_type=requested_analysis_type,
                 )
             set_analysis_result(continued_result)
+            reset_results_tab_to_summary()
             st.rerun()
         except ValueError as exc:
             st.error(str(exc))

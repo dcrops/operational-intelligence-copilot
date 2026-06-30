@@ -732,6 +732,70 @@ Completed in Phase 5 (Milestone 13f):
 - MVP content quality and action deduplication
 - Shared transparency trail builder for narrative snapshots
 
+---
+
+## Milestone 13g — Intelligent Follow-up Question Reliability
+
+Final MVP engineering milestone ensuring every visible follow-up question is dataset-aware, tool-aware, and answerable.
+
+### Engineering principle
+
+Generated follow-up investigations are constrained to supported deterministic analytical capabilities. The application never suggests investigations that it cannot perform.
+
+Follow-up suggestions extend the investigation rather than repeating the user's original question. Candidates are compared to the original question using lightweight normalisation before display.
+
+### Capability-aware generation
+
+| Input | Used for |
+|-------|----------|
+| `DatasetProfile.suitable_tools` | Gate trend, variance, and anomaly templates |
+| `potential_dimensions` / evidence dimension keys | Name groups in variance follow-ups |
+| `date_columns` | Gate trend follow-ups |
+
+### Supported suggestion rules
+
+Each template maps directly to one implemented analytical tool:
+
+* **Trend (`trend_analysis`):** `How has {metric} changed over time?`
+* **Variance (`variance_analysis`):** `Which {dimension} has the highest/lowest {metric}?` or `Compare {metric} across {dimension}.`
+* **Anomaly (`anomaly_detection`):** `Show unusual {metric} records.` (router-aligned anomaly intent)
+
+Unsupported investigative phrasing (for example concentrated periods, contributing factors, driver analysis, volatility review, or baseline comparison prompts without a routable tool) is never emitted.
+
+### Validation and filtering
+
+* Banned generic and unsupported patterns are rejected at generation time
+* `classify_suggestion_capability()` validates tool mapping in tests
+* Maximum three visible suggestions (`MAX_FOLLOW_UP_SUGGESTIONS`)
+* Follow-ups deduplicated against Priority Actions in `ExecutiveReportGenerator.generate()`
+* If no supported question exists for a finding, omit it rather than inventing a speculative investigation
+
+### Testing
+
+* Unit tests: `tests/test_investigation_suggestions.py`
+* Golden dataset integration: `tests/test_follow_up_reliability.py`
+* App workflow: `tests/app/test_follow_up_question_buttons.py`, `tests/app/test_follow_up_workflow.py`
+
+### Guided follow-up UX
+
+Each suggested follow-up in the Findings tab includes an **Ask this** button that:
+
+* populates the main question input with the selected follow-up question
+* scrolls the user back to the **Ask a Question** area (`ui/question_navigation.py`)
+* leaves analysis under user control — the user clicks **Analyse** to run the next step
+
+After any completed analysis (including after clarification), results reopen on the **Summary** tab.
+
+### Deferred UX work
+
+* Auto-run / one-click drill-down execution (Milestone 9) remains deferred — follow-ups populate the question but do not execute automatically
+
+Completed in Phase 5 (Milestone 13g):
+
+- Capability-aware follow-up generation and static validation
+- Report-layer Priority Action deduplication for follow-ups
+- Guided follow-up workflow (Ask this, scroll-to-question, Summary tab reset)
+
 See [REGRESSION.md](REGRESSION.md) for regression execution and [ROADMAP.md](ROADMAP.md) for milestone history.
 
 ---

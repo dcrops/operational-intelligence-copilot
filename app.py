@@ -9,7 +9,15 @@ from ui.components.app_shell import render_app_hero
 from ui.components.upload import render_sidebar
 from ui.narrative_runtime import get_narrative_runtime_config
 from ui.results_presentation import render_muted_panel
-from ui.state import has_dataset, init_session_state, set_analysis_error, set_analysis_result
+from ui.question_navigation import render_question_anchor, scroll_to_question_if_pending
+from ui.state import (
+    consume_pending_question,
+    has_dataset,
+    init_session_state,
+    reset_results_tab_to_summary,
+    set_analysis_error,
+    set_analysis_result,
+)
 
 EXAMPLE_QUESTIONS_BY_DATASET = {
     "workforce_demo": [
@@ -95,6 +103,7 @@ else:
     st.subheader("Dataset Preview")
     _render_dataset_preview()
 
+render_question_anchor()
 st.subheader("Ask a Question")
 st.caption("Example questions:")
 example_cols = st.columns(len(example_questions))
@@ -102,11 +111,13 @@ for index, example in enumerate(example_questions):
     if example_cols[index].button(example, key=f"example_{index}"):
         st.session_state.question = example
 
+consume_pending_question()
 st.text_area(
     "Your question",
     key="question",
     placeholder=_question_placeholder_for_dataset(dataset_name),
 )
+scroll_to_question_if_pending()
 
 if st.button(
     "Analyse",
@@ -123,6 +134,7 @@ if st.button(
                 narrative_config=get_narrative_runtime_config(),
             )
         set_analysis_result(result)
+        reset_results_tab_to_summary()
         st.rerun()
     except ValueError as exc:
         set_analysis_error(str(exc))

@@ -43,7 +43,7 @@ class TestAnswerGeneratorFullOutput:
         answer = AnswerGenerator().generate(_request(), findings, report)
 
         assert "Suggested Follow-Up Investigations:" in answer
-        assert "Investigate whether anomalies" in answer
+        assert "Show unusual" in answer
 
 
     def test_no_findings_path_returns_expected_message(self):

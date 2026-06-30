@@ -626,31 +626,6 @@ def format_priority_action(
     )
 
 
-def _normalize_action_text(text: str) -> str:
-    return re.sub(r"\s+", " ", text.strip().lower())
-
-
-def filter_duplicate_investigations(
-    investigations: list[str],
-    report: ExecutiveReport,
-) -> list[str]:
-    """Remove follow-ups that substantially repeat Priority Actions."""
-    priority_phrases = [
-        _normalize_action_text(format_priority_action(action, report).action_text)
-        for action in report.priority_actions
-    ]
-    filtered: list[str] = []
-    for investigation in investigations:
-        normalized = _normalize_action_text(investigation)
-        if any(
-            phrase and (phrase in normalized or normalized in phrase)
-            for phrase in priority_phrases
-        ):
-            continue
-        filtered.append(investigation)
-    return filtered
-
-
 def split_follow_up_investigations(
     investigations: list[str],
     *,
