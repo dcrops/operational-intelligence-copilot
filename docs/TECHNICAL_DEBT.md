@@ -40,8 +40,9 @@ Items recorded here are not necessarily defects. Many represent deliberate trade
 | Low       | Future Enhancement          | Contextual Baseline Intelligence                 |
 | Future    | Future Enhancement          | Guided Drill-Down Investigations                 |
 | Low       | Deferred (Milestone 13e)    | Presentation helper consolidation                |
-| Low       | Deferred (Milestone 13e)    | Deprecated navigation placeholder removal        |
 | Low       | Deferred (Milestone 13e)    | CSS token extraction across branding/results     |
+| Completed | Implemented (Milestone 13f) | Deprecated navigation placeholder removal        |
+| Completed | Implemented (Milestone 13f) | Presentation action limit constant consolidation |
 
 ---
 
@@ -623,9 +624,8 @@ Future behaviour should support controlled synonym mapping or clarification when
 
 **Status:** Deferred (Milestone 13e)
 
-Milestone 13e established a lightweight design system without deep refactors. The following remain acceptable post-MVP cleanup:
+Milestone 13e established a lightweight design system without deep refactors. Milestone 13f addressed content-quality deduplication and removed deprecated navigation placeholder code. The following remain acceptable post-MVP cleanup:
 
-* Consolidate `DEFAULT_INVESTIGATION_LIMIT` and `DEFAULT_VISIBLE_ACTION_LIMIT` in `ui/results_headings.py`
-* Remove deprecated [`ui/components/results_navigation_placeholder.py`](ui/components/results_navigation_placeholder.py) once test references are migrated
 * Extract shared CSS tokens if branding and results styles continue to diverge
 * Consolidate duplicate overview bullet formatting helpers if Analysis Overview is reintroduced elsewhere
+* Unify transparency trail rendering between Audit tab UI and shared builder (Audit tab still uses section-specific renderers)

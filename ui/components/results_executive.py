@@ -18,7 +18,7 @@ from ui.components.results_shared import (
     render_section,
     should_render_recommended_actions,
 )
-from ui.executive_reasoning_presentation import DEFAULT_INVESTIGATION_LIMIT
+from ui.results_headings import DEFAULT_VISIBLE_ACTION_LIMIT as DEFAULT_INVESTIGATION_LIMIT
 from ui.models import AnalysisResult
 from ui.narrative_presentation import (
     ASSESSMENT_CONFIDENCE_HEADING,
@@ -74,17 +74,17 @@ def _render_capped_numbered_actions(
             render_numbered_items(additional_lines)
 
 
-def _render_executive_actions_section(section: NarrativeSection) -> None:
+def _render_executive_actions_section(result: AnalysisResult, section: NarrativeSection) -> None:
     render_level2_heading(section.title, zone=ZONE_EXECUTIVE)
     _render_capped_numbered_actions(
-        section.content,
+        humanise_report_text(result, section.content),
         more_label=MORE_EXECUTIVE_ACTIONS_LABEL,
     )
 
 
-def _render_collapsed_summary_section(section: NarrativeSection) -> None:
+def _render_collapsed_summary_section(result: AnalysisResult, section: NarrativeSection) -> None:
     with st.expander(section.title, expanded=False):
-        st.markdown(section.content)
+        st.markdown(humanise_report_text(result, section.content))
 
 
 def _render_assessment_confidence(
@@ -122,15 +122,15 @@ def render_executive_summary_content(result: AnalysisResult) -> None:
 
         for section in narrative.sections:
             if section.title in _COLLAPSED_SUMMARY_SECTIONS:
-                _render_collapsed_summary_section(section)
+                _render_collapsed_summary_section(result, section)
                 continue
 
             if section.title == ADVISOR_SECTION_EXECUTIVE_ACTIONS:
-                _render_executive_actions_section(section)
+                _render_executive_actions_section(result, section)
                 continue
 
             render_level2_heading(section.title, zone=ZONE_EXECUTIVE)
-            st.markdown(section.content)
+            st.markdown(humanise_report_text(result, section.content))
 
             if (
                 section.title == ADVISOR_SECTION_KEY_MESSAGE

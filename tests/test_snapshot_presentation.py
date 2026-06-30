@@ -124,7 +124,7 @@ class TestSnapshotTransparency:
 
         assert lines == [
             "Period: April 2026",
-            "Reason: Single temporal period detected",
+            "Reason: Only one temporal period remained in the scoped dataset.",
             "Analysis: Snapshot Intelligence",
         ]
 

@@ -703,7 +703,34 @@ Completed in Phase 5 (Milestone 13e):
 - Production polish and design system foundation
 - Documentation aligned to Summary / Findings / Audit model
 
-Next planned work:
+---
+
+## Milestone 13f — MVP Readiness & Content Quality
+
+Content-quality milestone improving clarity, specificity, and deduplication using existing deterministic pipeline outputs — without new analytics or prompt changes.
+
+### Content authority model
+
+| Surface | Owns |
+|---------|------|
+| **Summary → Executive Actions** | Narrative executive actions derived from Priority Actions and Direct Answer |
+| **Findings → Priority Actions** | Structured, evidence-linked operational actions |
+| **Findings → Follow-Up Investigations** | Exploratory prompts; deduplicated when overlapping Priority Actions |
+| **Findings → per-finding captions** | Suppressed when a Priority Action already covers the finding |
+
+### Delivered improvements
+
+* Key Message prefers substantive Direct Answer when quantified or detailed
+* Executive Actions avoid generic lead advice when Priority Actions exist
+* Priority Actions and conclusions reuse variance/anomaly evidence and group names
+* Operational Assessment lists primary affected theme areas
+* Confidence rationale no longer repeats “validate source data” across sections
+* Audit Verification complete when narrative is disabled
+
+Completed in Phase 5 (Milestone 13f):
+
+- MVP content quality and action deduplication
+- Shared transparency trail builder for narrative snapshots
 
 See [REGRESSION.md](REGRESSION.md) for regression execution and [ROADMAP.md](ROADMAP.md) for milestone history.
 

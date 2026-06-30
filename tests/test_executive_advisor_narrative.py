@@ -186,7 +186,7 @@ class TestDeterministicAdvisorGeneration:
             if section.title == "Executive Actions"
         )
 
-        assert "production line" in executive_actions.lower() or "validate" in executive_actions.lower()
+        assert "inspect line b tooling" in executive_actions.lower()
         assert "Inspect Line B tooling" in executive_actions or any(
             "Inspect Line B tooling" in section.content
             for section in response.sections

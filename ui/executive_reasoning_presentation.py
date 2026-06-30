@@ -22,7 +22,7 @@ ANALYSIS_OVERVIEW_HEADING = "Analysis Overview"
 ANALYTICAL_FINDINGS_HEADING = "Analytical Findings"
 EXECUTIVE_REASONING_HEADING = "Executive Reasoning"
 EVIDENCE_CONSIDERED_HEADING = "Evidence Considered"
-DEFAULT_INVESTIGATION_LIMIT = 3
+from ui.results_headings import DEFAULT_VISIBLE_ACTION_LIMIT as DEFAULT_INVESTIGATION_LIMIT
 ADDITIONAL_INVESTIGATIONS_EXPANDER_LABEL = "Show additional investigations"
 
 ASSESSMENT_LEVEL_INDICATORS = {
@@ -316,11 +316,25 @@ def format_analysis_overview(
 
 def format_operational_assessment(
     assessment: OperationalAssessment,
+    *,
+    themes: list[ExecutiveTheme] | None = None,
 ) -> OperationalAssessmentPresentation:
+    explanation = _strip_bullet_prefix(assessment.rationale)
+    if themes and assessment.assessment_level != ASSESSMENT_HEALTHY:
+        affected = [
+            humanise_theme_label(theme.theme_label)
+            for theme in themes
+            if theme.findings
+        ][:4]
+        if affected:
+            explanation = (
+                f"{explanation}\n\nPrimary areas: {', '.join(affected)}."
+            )
+
     return OperationalAssessmentPresentation(
         level=assessment.assessment_level,
         level_display=format_assessment_level_display(assessment.assessment_level),
-        explanation=_strip_bullet_prefix(assessment.rationale),
+        explanation=explanation,
     )
 
 
@@ -424,6 +438,118 @@ def synthesize_conclusion_insight(
     return f"{title} should continue to be monitored."
 
 
+def _finding_evidence_summary(finding: Finding) -> str:
+    from ui.anomaly_presentation import anomaly_business_description
+    from ui.variance_presentation import variance_business_description
+
+    finding_type = _resolve_finding_type(finding)
+    metric_name = finding.evidence[0].metric_name if finding.evidence else finding.title
+    metric_label = humanise_metric_name(metric_name)
+
+    if finding_type == "variance":
+        business = variance_business_description(finding, metric_label)
+        if (
+            finding.description
+            and "across operational groups" in business
+            and "between" not in business.lower()
+        ):
+            return humanise_user_facing_text(finding.description)
+        return business
+    if finding_type == "anomaly":
+        business = anomaly_business_description(finding, metric_label)
+        if finding.description and any(character.isdigit() for character in finding.description):
+            return humanise_user_facing_text(finding.description)
+        return business
+    if finding.description and len(finding.description.strip()) > 40:
+        return humanise_user_facing_text(finding.description)
+    return summarize_finding_evidence(finding)
+
+
+def _variance_groups_from_finding(finding: Finding) -> tuple[str | None, str | None, str | None]:
+    targets = [
+        item
+        for item in finding.evidence
+        if item.supporting_context.get("is_comparison_target") is True
+    ]
+    if not targets:
+        return None, None, None
+
+    ignored = {
+        "aggregation",
+        "comparison_direction",
+        "comparison_extreme",
+        "is_comparison_target",
+    }
+
+    def dimension_value(ctx: dict) -> tuple[str | None, str | None]:
+        for key, value in ctx.items():
+            if key not in ignored and value is not None:
+                return key, str(value)
+        return None, None
+
+    top_group = bottom_group = None
+    group_label = None
+    for item in targets:
+        label, value = dimension_value(item.supporting_context)
+        if label and group_label is None:
+            group_label = label
+        extreme = item.supporting_context.get("comparison_extreme")
+        if extreme == "top":
+            top_group = value
+        elif extreme == "bottom":
+            bottom_group = value
+
+    if top_group is None and targets:
+        _, top_group = dimension_value(targets[0].supporting_context)
+    if bottom_group is None and len(targets) > 1:
+        _, bottom_group = dimension_value(targets[-1].supporting_context)
+
+    return group_label, top_group, bottom_group
+
+
+def _specific_priority_action_text(
+    action: PriorityAction,
+    report: ExecutiveReport,
+) -> str | None:
+    theme = next(
+        (candidate for candidate in report.executive_themes if candidate.theme_id in action.linked_theme_ids),
+        None,
+    )
+    if theme is None or not theme.findings:
+        return None
+
+    metric_label = humanise_theme_label(theme.theme_label)
+    primary_finding = theme.findings[0]
+    finding_type = _resolve_finding_type(primary_finding)
+
+    if finding_type == "variance":
+        group_label, top_group, bottom_group = _variance_groups_from_finding(primary_finding)
+        if top_group and bottom_group:
+            dimension = humanise_user_facing_text(group_label or "group")
+            return (
+                f"Review differences in {metric_label} between "
+                f"{humanise_user_facing_text(top_group)} and "
+                f"{humanise_user_facing_text(bottom_group)} ({dimension})."
+            )
+        if top_group:
+            dimension = humanise_user_facing_text(group_label or "group")
+            return (
+                f"Review {metric_label} for "
+                f"{humanise_user_facing_text(top_group)} ({dimension})."
+            )
+
+    if finding_type == "anomaly":
+        return f"Investigate anomalous {metric_label} records identified in the evidence."
+
+    if finding_type == "snapshot":
+        return f"Review {metric_label} for the scoped period against the dataset baseline."
+
+    if finding_type == "trend":
+        return f"Review recent {metric_label} movement shown in the evidence."
+
+    return None
+
+
 def _evidence_bullets_for_theme(theme: ExecutiveTheme | None) -> list[str]:
     if theme is None or not theme.findings:
         return []
@@ -431,7 +557,7 @@ def _evidence_bullets_for_theme(theme: ExecutiveTheme | None) -> list[str]:
     bullets: list[str] = []
     seen: set[str] = set()
     for finding in theme.findings:
-        summary = summarize_finding_evidence(finding)
+        summary = _finding_evidence_summary(finding)
         if summary in seen:
             continue
         seen.add(summary)
@@ -482,13 +608,47 @@ def humanise_priority_action_text(action: str) -> str:
     return humanise_user_facing_text(text)
 
 
-def format_priority_action(action: PriorityAction) -> PriorityActionPresentation:
+def format_priority_action(
+    action: PriorityAction,
+    report: ExecutiveReport | None = None,
+) -> PriorityActionPresentation:
+    action_text = humanise_priority_action_text(action.action)
+    if report is not None:
+        specific = _specific_priority_action_text(action, report)
+        if specific is not None:
+            action_text = specific
+
     return PriorityActionPresentation(
         header=f"Priority {action.rank} • {action.urgency}",
-        action_text=humanise_priority_action_text(action.action),
+        action_text=action_text,
         reason_label="Reason",
         reason_text=humanise_priority_rationale(action.rationale),
     )
+
+
+def _normalize_action_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text.strip().lower())
+
+
+def filter_duplicate_investigations(
+    investigations: list[str],
+    report: ExecutiveReport,
+) -> list[str]:
+    """Remove follow-ups that substantially repeat Priority Actions."""
+    priority_phrases = [
+        _normalize_action_text(format_priority_action(action, report).action_text)
+        for action in report.priority_actions
+    ]
+    filtered: list[str] = []
+    for investigation in investigations:
+        normalized = _normalize_action_text(investigation)
+        if any(
+            phrase and (phrase in normalized or normalized in phrase)
+            for phrase in priority_phrases
+        ):
+            continue
+        filtered.append(investigation)
+    return filtered
 
 
 def split_follow_up_investigations(

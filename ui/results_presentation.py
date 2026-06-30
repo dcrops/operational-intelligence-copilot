@@ -9,7 +9,6 @@ from typing import Callable
 import streamlit as st
 
 from ui.branding import CRC_PRIMARY_COLOR, CRC_TEXT_MUTED, inject_shell_styles
-from ui.metric_presentation import humanise_metric_name
 from ui.models import AnalysisResult
 
 ZONE_EXECUTIVE = "executive"
@@ -495,45 +494,6 @@ def split_action_lines(content: str, *, limit: int) -> tuple[list[str], list[str
     else:
         source_lines = lines
     return source_lines[:limit], source_lines[limit:]
-
-
-def format_investigation_overview_bullets(result: AnalysisResult) -> list[str]:
-    """Business-first overview bullets for Investigation (tools omitted; see Audit)."""
-    from ui.executive_reasoning_presentation import format_analysis_overview
-
-    overview = format_analysis_overview(
-        findings=result.findings,
-        routes=result.routes,
-        report=result.report,
-    )
-    bullets: list[str] = []
-    for bullet in overview.bullets:
-        if bullet.endswith(" executed"):
-            continue
-        if "analytical finding" in bullet:
-            findings_count = len(result.findings)
-            finding_word = "finding" if findings_count == 1 else "findings"
-            bullets.append(f"{findings_count} {finding_word}")
-            continue
-        bullets.append(bullet)
-
-    metric_names: list[str] = []
-    seen: set[str] = set()
-    for metric in result.metrics_analysed or []:
-        if metric not in seen:
-            metric_names.append(humanise_metric_name(metric))
-            seen.add(metric)
-    if not metric_names:
-        for finding in result.findings:
-            for item in finding.evidence:
-                if item.metric_name and item.metric_name not in seen:
-                    metric_names.append(humanise_metric_name(item.metric_name))
-                    seen.add(item.metric_name)
-
-    if metric_names and not any(bullet.startswith("Primary metrics affected:") for bullet in bullets):
-        bullets.append(f"Primary metrics affected: {', '.join(metric_names[:4])}")
-
-    return bullets
 
 
 def render_collapsible_group(

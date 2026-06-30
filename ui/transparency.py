@@ -89,9 +89,36 @@ def format_snapshot_trail(snapshot_context: SnapshotContext | None) -> list[str]
 
     return [
         f"Period: {snapshot_context.period_label}",
-        "Reason: Single temporal period detected",
+        f"Reason: {snapshot_context.reason}",
         "Analysis: Snapshot Intelligence",
     ]
+
+
+def build_transparency_trail_lines(
+    *,
+    temporal_filter: TemporalFilterContext | None,
+    snapshot_context: SnapshotContext | None,
+    findings: list[Finding],
+    request: AnalysisRequest,
+    routes: list[str],
+    metrics_analysed: list[str] | None = None,
+) -> list[str]:
+    """Assemble deterministic transparency lines for audit and narrative snapshot."""
+    lines: list[str] = []
+    lines.extend(format_temporal_filter_trail(temporal_filter))
+    lines.extend(format_snapshot_trail(snapshot_context))
+    lines.extend(format_snapshot_contributors_trail(findings))
+    lines.extend(format_clarification_trail(request))
+    lines.extend(
+        format_auto_resolved_trail(
+            request,
+            findings,
+            routes,
+            metrics_analysed=metrics_analysed or [],
+        )
+    )
+    lines.extend(format_metrics_analysed_trail(metrics_analysed or []))
+    return lines
 
 
 def format_snapshot_contributors_trail(findings: list[Finding]) -> list[str]:

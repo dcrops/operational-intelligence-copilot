@@ -546,6 +546,8 @@ Presentation helpers live in `ui/narrative_presentation.py`. The Executive Summa
 
 **Design system (Milestone 13e):** [`ui/results_presentation.py`](ui/results_presentation.py) centralises zone accents, heading tiers (level 1–3), severity presentation, evidence field grids, action lists, empty states, and provider status helpers. Shell-level muted panels and clarification styling live in [`ui/branding.py`](ui/branding.py). Direct Answer uses `.oic-direct-answer-card`; the app hero retains `.oic-hero-card`.
 
+**Content quality (Milestone 13f):** [`executive_context_builder.py`](src/operational_intelligence/llm/executive_context_builder.py) prefers Priority Actions and substantive Direct Answer content for Key Message and Executive Actions. [`executive_reasoning_presentation.py`](ui/executive_reasoning_presentation.py) enriches Priority Actions and Executive Conclusions from existing finding evidence. Summary owns executive narrative actions; Findings owns structured Priority Actions; follow-ups are deduplicated at render time.
+
 **OpenAI is a communication adapter only; deterministic analytics remain authoritative.**
 
 ---

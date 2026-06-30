@@ -65,7 +65,7 @@ def test_format_snapshot_trail_includes_period_reason_and_analysis_mode():
 
     assert format_snapshot_trail(snapshot_context) == [
         "Period: April 2026",
-        "Reason: Single temporal period detected",
+        "Reason: Only one temporal period remained in the scoped dataset.",
         "Analysis: Snapshot Intelligence",
     ]
 

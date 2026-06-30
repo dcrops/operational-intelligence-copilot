@@ -277,7 +277,18 @@ def bucketed_findings(result: AnalysisResult) -> list[Finding]:
     )
 
 
-def render_finding(finding: Finding) -> None:
+def _priority_action_for_finding(
+    finding_id: str,
+    report: ExecutiveReport,
+) -> str | None:
+    for action in report.priority_actions:
+        if finding_id in action.linked_finding_ids:
+            presentation = format_priority_action(action, report)
+            return presentation.action_text
+    return None
+
+
+def render_finding(finding: Finding, *, report: ExecutiveReport | None = None) -> None:
     badge = severity_badge(finding.severity)
     panel_class = severity_panel_class(finding.severity)
     st.markdown(
@@ -287,7 +298,12 @@ def render_finding(finding: Finding) -> None:
     st.markdown(f"{badge} · **{finding.title}**")
     st.markdown(business_friendly_description(finding))
 
-    if finding.recommended_action:
+    linked_action = (
+        _priority_action_for_finding(finding.finding_id, report)
+        if report is not None
+        else None
+    )
+    if linked_action is None and finding.recommended_action:
         st.caption(f"Suggested action: {finding.recommended_action}")
 
     with st.expander(f"Evidence ({len(finding.evidence)})", expanded=False):
@@ -300,7 +316,10 @@ def render_operational_assessment(report: ExecutiveReport) -> None:
     if assessment is None:
         return
 
-    presentation = format_operational_assessment(assessment)
+    presentation = format_operational_assessment(
+        assessment,
+        themes=list(report.executive_themes),
+    )
     render_level3_heading(presentation.level_display, zone=ZONE_INVESTIGATION)
     st.markdown(presentation.explanation)
 
@@ -325,7 +344,7 @@ def render_priority_actions(report: ExecutiveReport) -> None:
         return
 
     for index, action in enumerate(report.priority_actions):
-        presentation = format_priority_action(action)
+        presentation = format_priority_action(action, report)
         render_level3_heading(presentation.header, zone=ZONE_INVESTIGATION)
         st.markdown(presentation.action_text)
         st.markdown(f"**{presentation.reason_label}**")

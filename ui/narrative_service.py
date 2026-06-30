@@ -3,14 +3,7 @@
 from __future__ import annotations
 
 from ui.models import AnalysisResult
-from ui.transparency import (
-    format_auto_resolved_trail,
-    format_clarification_trail,
-    format_metrics_analysed_trail,
-    format_snapshot_contributors_trail,
-    format_snapshot_trail,
-    format_temporal_filter_trail,
-)
+from ui.transparency import build_transparency_trail_lines
 
 from src.operational_intelligence.llm.business_narrative_translation import (
     BusinessNarrativeTranslator,
@@ -59,20 +52,14 @@ def build_deterministic_analysis_snapshot(result: AnalysisResult) -> Determinist
         )
     reasoning_trace = BusinessNarrativeTranslator().translate_reasoning_trace(reasoning_trace)
 
-    transparency_lines: list[str] = []
-    transparency_lines.extend(format_temporal_filter_trail(result.temporal_filter))
-    transparency_lines.extend(format_snapshot_trail(result.snapshot_context))
-    transparency_lines.extend(format_snapshot_contributors_trail(result.findings))
-    transparency_lines.extend(format_clarification_trail(result.request))
-    transparency_lines.extend(
-        format_auto_resolved_trail(
-            result.request,
-            result.findings,
-            result.routes,
-            metrics_analysed=result.metrics_analysed,
-        )
+    transparency_lines = build_transparency_trail_lines(
+        temporal_filter=result.temporal_filter,
+        snapshot_context=result.snapshot_context,
+        findings=result.findings,
+        request=result.request,
+        routes=result.routes,
+        metrics_analysed=result.metrics_analysed,
     )
-    transparency_lines.extend(format_metrics_analysed_trail(result.metrics_analysed))
 
     included_sections: list[str] = ["Direct Answer", "Executive Summary"]
     if analytical_findings:

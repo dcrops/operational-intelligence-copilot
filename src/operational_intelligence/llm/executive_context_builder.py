@@ -251,6 +251,15 @@ def _meaningful_severity_phrase(executive_severity: str | None) -> str:
     return ""
 
 
+def _is_substantive_direct_answer(text: str) -> bool:
+    stripped = text.strip()
+    if not stripped or is_analytical_telemetry(stripped):
+        return False
+    if any(character.isdigit() for character in stripped):
+        return True
+    return len(stripped.split()) >= 10
+
+
 def _build_key_message(
     *,
     affected_metrics: tuple[str, ...],
@@ -258,6 +267,12 @@ def _build_key_message(
     direct_answer_summary: str,
     operational_significance: str | None,
 ) -> str:
+    if direct_answer_summary and _is_substantive_direct_answer(direct_answer_summary):
+        return direct_answer_summary
+
+    if operational_significance and not is_analytical_telemetry(operational_significance):
+        return operational_significance
+
     severity_phrase = _meaningful_severity_phrase(executive_severity)
 
     if len(affected_metrics) > 1:
@@ -273,9 +288,6 @@ def _build_key_message(
             f"{affected_metrics[0]} shows {severity_phrase}performance materially outside "
             "normal expectations and requires investigation."
         ).replace("  ", " ")
-
-    if operational_significance and not is_analytical_telemetry(operational_significance):
-        return operational_significance
 
     if direct_answer_summary and not is_analytical_telemetry(direct_answer_summary):
         return direct_answer_summary
@@ -374,12 +386,12 @@ def _build_assessment_confidence(
     if confidence_signals >= 2 or (finding_count >= 1 and has_operational_assessment):
         return (
             "Medium",
-            "Findings are supported by reported evidence but should be validated against source data.",
+            "Findings are supported by reported evidence across the analysis.",
         )
 
     return (
         "Medium",
-        "Findings are based on limited evidence and should be validated against source data.",
+        "Findings are based on limited evidence and should be interpreted alongside supporting detail.",
     )
 
 
@@ -390,13 +402,13 @@ def _build_why_this_matters(
     if finding_count > 0:
         return (
             "These findings indicate that current reported performance may not accurately "
-            "represent operational conditions. Validate the reported pattern before making "
-            "significant operational or strategic decisions."
+            "represent operational conditions. Review the Direct Answer and Priority Actions "
+            "before making significant operational or strategic decisions."
         )
 
     return (
-        "Validate the reported pattern before making significant operational or strategic "
-        "decisions."
+        "Review the Direct Answer and supporting evidence before making significant "
+        "operational or strategic decisions."
     )
 
 
@@ -446,63 +458,88 @@ def _build_investigation_strategy(
     affected_metrics: tuple[str, ...],
     finding_count: int,
 ) -> str:
-    parts = [
-        "Begin by determining whether the issue is isolated to a particular operational area, "
-        "concentrated within specific dimensions, or widespread across the dataset."
-    ]
+    parts: list[str] = []
 
     if investigation_targets:
         target_text = _format_list(investigation_targets)
         parts.append(
-            f"Compare results across {target_text} to assess whether the pattern is "
-            "localised or concentrated."
+            f"Start by comparing results across {target_text} to see whether the pattern "
+            "is localised or widespread."
         )
         parts.append(
             "If the pattern is concentrated, investigate local operational causes in the "
             "affected areas first."
         )
-    elif finding_count > 1 or len(affected_metrics) > 1:
-        parts.append(
-            "Review whether the pattern clusters within specific areas or appears across "
-            "unrelated parts of the operation."
-        )
-        parts.append(
-            "If the pattern appears widespread, validate data quality and reporting "
-            "consistency before making operational decisions."
-        )
     else:
         parts.append(
-            "Review the primary answer and supporting evidence to confirm where the pattern "
-            "is most pronounced before expanding the investigation."
+            "Begin by determining whether the issue is isolated to a particular operational area, "
+            "concentrated within specific dimensions, or widespread across the dataset."
         )
+        if finding_count > 1 or len(affected_metrics) > 1:
+            parts.append(
+                "Review whether the pattern clusters within specific areas or appears across "
+                "unrelated parts of the operation."
+            )
+        else:
+            parts.append(
+                "Review the primary answer and supporting evidence to confirm where the pattern "
+                "is most pronounced before expanding the investigation."
+            )
 
     return " ".join(parts)
 
 
 def _build_executive_actions(
+    request: NarrativeRequest,
     *,
     investigation_targets: tuple[str, ...],
     affected_metrics: tuple[str, ...],
     finding_count: int,
     executive_severity: str | None,
+    translator: BusinessNarrativeTranslator,
+    person_dimensions: tuple[str, ...],
 ) -> tuple[str, ...]:
     actions: list[str] = []
 
     def add_action(action: str) -> None:
         normalized = action.strip().rstrip(".")
-        if normalized and normalized not in actions:
-            actions.append(f"{normalized}.")
+        if not normalized:
+            return
+        normalized_lower = normalized.lower()
+        if any(existing.lower().rstrip(".") == normalized_lower for existing in actions):
+            return
+        actions.append(f"{normalized}.")
 
-    add_action("Validate source data")
-    if investigation_targets:
-        add_action(
-            "Determine whether the issue is organisation-wide or isolated within "
-            f"{_format_list(investigation_targets)}"
+    for action in request.priority_actions:
+        translated = _translate_executive_text(
+            action,
+            translator=translator,
+            person_dimensions=person_dimensions,
         )
-    elif len(affected_metrics) > 1 or finding_count > 1:
-        add_action("Determine whether the issue is organisation-wide or isolated")
-    if executive_severity and executive_severity.lower() in {"critical", "high"}:
-        add_action("Escalate confirmed operational risks")
+        if translated:
+            add_action(translated)
+
+    if actions:
+        return tuple(actions[:3])
+
+    if investigation_targets:
+        target_text = _format_list(investigation_targets)
+        add_action(
+            f"Compare results across {target_text} to confirm where the pattern is concentrated"
+        )
+    elif affected_metrics:
+        add_action(
+            f"Review {_format_list(affected_metrics[:2])} using the Direct Answer and "
+            "supporting evidence"
+        )
+
+    if executive_severity and executive_severity.lower() in {"critical", "high"} and finding_count > 0:
+        add_action("Confirm high-priority findings before making operational commitments")
+
+    if not actions:
+        add_action(
+            "Review the Direct Answer and supporting evidence before deciding next steps"
+        )
 
     return tuple(actions)
 
@@ -511,39 +548,31 @@ def _build_operational_investigation_actions(
     request: NarrativeRequest,
     *,
     affected_metrics: tuple[str, ...],
+    executive_actions: tuple[str, ...],
     translator: BusinessNarrativeTranslator,
     person_dimensions: tuple[str, ...],
 ) -> tuple[str, ...]:
     actions: list[str] = []
+    executive_normalized = {
+        action.lower().rstrip(".") for action in executive_actions
+    }
 
     def add_action(action: str) -> None:
         normalized = action.strip().rstrip(".")
-        if normalized and normalized not in actions:
-            actions.append(f"{normalized}.")
+        if not normalized:
+            return
+        normalized_lower = normalized.lower()
+        if normalized_lower in executive_normalized:
+            return
+        if any(existing.lower().rstrip(".") == normalized_lower for existing in actions):
+            return
+        actions.append(f"{normalized}.")
 
     for metric in affected_metrics:
-        add_action(f"Review {metric} records")
+        add_action(f"Review {metric} records for supporting detail")
 
-    for action in request.priority_actions:
-        translated = _translate_executive_text(
-            action,
-            translator=translator,
-            person_dimensions=person_dimensions,
-        )
-        if not translated:
-            continue
-        lower = translated.lower()
-        if any(
-            marker in lower
-            for marker in (
-                "validate source data",
-                "determine whether",
-                "escalate confirmed",
-                "organisation-wide",
-            )
-        ):
-            continue
-        add_action(translated)
+    if not actions and request.analytical_findings:
+        add_action("Review supporting analytical evidence linked to the priority action")
 
     return tuple(actions)
 
@@ -708,14 +737,18 @@ class ExecutiveContextBuilder:
         )
         why_this_matters = _build_why_this_matters(finding_count=finding_count)
         executive_actions = _build_executive_actions(
+            request,
             investigation_targets=investigation_targets,
             affected_metrics=affected_metrics,
             finding_count=finding_count,
             executive_severity=executive_severity,
+            translator=translator,
+            person_dimensions=person_dimensions,
         )
         operational_investigation_actions = _build_operational_investigation_actions(
             request,
             affected_metrics=affected_metrics,
+            executive_actions=executive_actions,
             translator=translator,
             person_dimensions=person_dimensions,
         )

@@ -288,11 +288,11 @@ class TestExecutiveReasoningPresentationFormatting:
         assert "high-severity anomalies" in presentation.insight.lower()
         assert presentation.evidence_heading == EVIDENCE_CONSIDERED_HEADING
         assert presentation.evidence_bullets == [
-            "Trend analysis detected increased volatility.",
-            "Variance analysis identified material differences between groups.",
-            "Anomaly detection identified abnormal operational records.",
+            "The series remained volatile over the period.",
+            "Variance across production lines detected.",
+            "38 abnormal production records identified.",
         ]
-        assert "Variance across production lines detected." not in presentation.evidence_bullets
+        assert "Variance across production lines detected." in presentation.evidence_bullets
         assert "38 abnormal production records identified." not in presentation.insight
 
     def test_snapshot_synthesis_uses_baseline_language(self):

@@ -13,6 +13,7 @@ from ui.components.results_shared import (
 )
 from ui.executive_reasoning_presentation import (
     ANALYTICAL_FINDINGS_HEADING,
+    filter_duplicate_investigations,
     split_follow_up_investigations,
 )
 from ui.models import AnalysisResult
@@ -37,7 +38,7 @@ def render_investigation_sections(result: AnalysisResult) -> None:
             )
         else:
             for index, finding in enumerate(findings, start=1):
-                render_finding(finding)
+                render_finding(finding, report=result.report)
                 if index < len(findings):
                     st.divider()
 
@@ -51,13 +52,21 @@ def render_investigation_sections(result: AnalysisResult) -> None:
             humanised = [
                 humanise_report_text(result, suggestion) for suggestion in investigations
             ]
-            presentation = split_follow_up_investigations(humanised)
-            for suggestion in presentation.visible:
-                st.markdown(f"- {suggestion}")
-            if presentation.additional:
-                with st.expander(presentation.expander_label, expanded=False):
-                    for suggestion in presentation.additional:
-                        st.markdown(f"- {suggestion}")
+            if result.report.priority_actions:
+                humanised = filter_duplicate_investigations(humanised, result.report)
+            if humanised:
+                presentation = split_follow_up_investigations(humanised)
+                for suggestion in presentation.visible:
+                    st.markdown(f"- {suggestion}")
+                if presentation.additional:
+                    with st.expander(presentation.expander_label, expanded=False):
+                        for suggestion in presentation.additional:
+                            st.markdown(f"- {suggestion}")
+            else:
+                render_empty_state(
+                    "Follow-up investigations are covered by the Priority Actions above.",
+                    title="No additional follow-ups",
+                )
         else:
             render_empty_state(
                 "No follow-up investigations were suggested for this analysis.",

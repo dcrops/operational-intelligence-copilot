@@ -24,6 +24,11 @@ NARRATIVE_DISABLED_MESSAGE = (
     "The deterministic analysis above is the authoritative answer."
 )
 
+NARRATIVE_NOT_GENERATED_MESSAGE = (
+    "Executive Summary was not generated for this analysis run. "
+    "Deterministic results remain authoritative."
+)
+
 GOVERNANCE_CAPTION = (
     "This executive summary synthesises the deterministic analysis above "
     "and suggests where to investigate. "

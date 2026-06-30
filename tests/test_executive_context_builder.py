@@ -162,6 +162,8 @@ class TestExecutiveContextBuilder:
         assert (
             "outside normal expectations" in context.business_summary.lower()
             or "requires immediate review" in context.business_summary.lower()
+            or "outside the normal operating range" in context.business_summary.lower()
+            or "line b" in context.business_summary.lower()
         )
 
     def test_investigation_strategy_is_action_oriented(self) -> None:
@@ -178,16 +180,12 @@ class TestExecutiveContextBuilder:
         assert len(context.investigation_categories) >= 4
         assert any("data quality" in category for category in context.investigation_categories)
 
-    def test_key_message_mentions_affected_metrics(self) -> None:
+    def test_key_message_prefers_direct_answer(self) -> None:
         context = ExecutiveContextBuilder().build(_technical_request())
 
         assert context.key_message
-        assert (
-            "Defects" in context.key_message
-            or "defect" in context.key_message.lower()
-            or "Line B" in context.direct_answer_summary
-        )
-        assert "findings detected" not in context.key_message.lower()
+        assert "Line B" in context.key_message or "52" in context.key_message
+        assert "materially outside normal expectations" not in context.key_message.lower()
 
     def test_assessment_confidence_is_present(self) -> None:
         context = ExecutiveContextBuilder().build(_technical_request())
@@ -208,14 +206,14 @@ class TestExecutiveContextBuilder:
         assert context.prioritized_explanations.startswith("Based on the available evidence")
         assert "hypothesis" in context.prioritized_explanations.lower()
 
-    def test_recommended_actions_are_grouped(self) -> None:
+    def test_recommended_actions_prefer_priority_actions(self) -> None:
         context = ExecutiveContextBuilder().build(_technical_request())
         combined = " ".join(
             [*context.executive_actions, *context.operational_investigation_actions]
         ).lower()
 
-        assert "validate source data" in combined
-        assert combined.count("validate source data") == 1
+        assert "inspect line b tooling" in combined
+        assert "validate source data" not in combined
 
     def test_derives_investigation_targets_from_transparency_metadata(self) -> None:
         context = ExecutiveContextBuilder().build(_technical_request())
