@@ -1,10 +1,10 @@
 # Operational Intelligence Copilot
 # Engineering Handbook
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Last Updated:** June 2026  
-**Project Status:** Phase 4 — Presentation polish (Milestone 12d complete)  
-**Current Milestone:** Phase 4 — Milestone 12d — Executive Narrative UX Refinement
+**Project Status:** MVP Complete (Milestone 14)  
+**Final Engineering Milestone:** Milestone 13g — Intelligent Follow-up Question Reliability
 
 ---
 
@@ -796,22 +796,38 @@ Completed in Phase 5 (Milestone 13g):
 - Report-layer Priority Action deduplication for follow-ups
 - Guided follow-up workflow (Ask this, scroll-to-question, Summary tab reset)
 
+See [MILESTONE_14_MVP_EXIT_REVIEW.md](MILESTONE_14_MVP_EXIT_REVIEW.md) for formal MVP exit assessment.
+
+---
+
+## Milestone 14 — MVP Exit Review & Project Closure
+
+Formal release review confirming **READY TO SHIP (MVP)**. No implementation — documentation and project closure only.
+
+Delivered:
+
+* MVP exit review document with product, engineering, AI portfolio, commercial, and debt assessments
+* Lessons learned and Version 2 backlog confirmation
+* Portfolio preparation activities separated from engineering completion
+* Documentation synchronisation across README, ROADMAP, ARCHITECTURE, REGRESSION, and TECHNICAL_DEBT
+
+**Engineering status:** Complete. No Milestone 15. Remaining activities are portfolio packaging and Version 2 planning.
+
 See [REGRESSION.md](REGRESSION.md) for regression execution and [ROADMAP.md](ROADMAP.md) for milestone history.
 
 ---
 
 # Future Direction
 
-Future work includes:
+Future work is **Version 2** only — see [ROADMAP.md](ROADMAP.md), [TECHNICAL_DEBT.md](../TECHNICAL_DEBT.md), and [MILESTONE_14_MVP_EXIT_REVIEW.md](MILESTONE_14_MVP_EXIT_REVIEW.md). Themes include:
 
-- Expanded Application Testing
-- Playwright Browser Testing
-- LLM Narrative Generation
-- LLM Evaluation Framework
-- Workspace Management
-- Multi-dataset Support
-- Historical Analysis
-- Production Deployment
+- LLM evaluation framework
+- Visual analytics and charts
+- Auto-run guided drill-down
+- Export and workspace management
+- Enterprise deployment
+
+MVP engineering is complete. No further MVP milestones are planned.
 
 ---
 
@@ -827,7 +843,7 @@ The project will be considered successful if it demonstrates:
 - Professional Documentation
 - Maintainable Code
 
-Success is measured by engineering quality rather than feature count.
+Success is measured by engineering quality rather than feature count. **These criteria were met at Milestone 14 MVP closure.**
 
 ---
 
@@ -835,6 +851,7 @@ Success is measured by engineering quality rather than feature count.
 
 This handbook should be read alongside:
 
+- [MILESTONE_14_MVP_EXIT_REVIEW.md](MILESTONE_14_MVP_EXIT_REVIEW.md)
 - ARCHITECTURE.md
 - ROADMAP.md
 - AI_COLLABORATION.md

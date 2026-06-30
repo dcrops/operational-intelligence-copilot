@@ -2,6 +2,8 @@
 
 Tracked limitations, known gaps, consciously deferred enhancements, and planned future capabilities for the Operational Intelligence Copilot.
 
+**Project status:** MVP Complete (Milestone 14). All items below are **Accept for MVP** or **Version 2** — none are release blockers. See [MILESTONE_14_MVP_EXIT_REVIEW.md](AI_ENGINEERING/MILESTONE_14_MVP_EXIT_REVIEW.md) for the formal assessment.
+
 ---
 
 ## What belongs here?
@@ -17,6 +19,8 @@ This document is intended to prevent scope creep while preserving valuable insig
 
 Items recorded here are not necessarily defects. Many represent deliberate trade-offs made to maintain delivery momentum and milestone focus.
 
+**Status key:** `Planned` and `Future Enhancement` items are **Version 2** scope — not MVP blockers. No open item requires MVP engineering work.
+
 ---
 
 ## Prioritisation
@@ -26,7 +30,8 @@ Items recorded here are not necessarily defects. Many represent deliberate trade
 | Completed | Implemented (Milestone 8.1) | Temporal Intelligence — Phase 1 (explicit periods) |
 | Completed | Implemented (Milestone 7.2) | Adaptive Direct Answer Summarisation             |
 | Completed | Implemented (Milestone 8.5) | Snapshot Intelligence                            |
-| High      | Planned                     | Pipeline ↔ Transparency Contract Protection      |
+| Completed | Implemented (Milestone 14)  | MVP Exit Review & Project Closure                |
+| High      | Version 2                   | Pipeline ↔ Transparency Contract Protection      |
 | Medium    | Planned                     | Month-only Cross-Year Ambiguity                  |
 | Medium    | Planned                     | Temporal Intent Without Applicable Date Columns  |
 | Medium    | Planned                     | Unsupported Temporal Intent Transparency         |

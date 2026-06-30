@@ -2,9 +2,10 @@
 
 # Architecture
 
-**Version:** 1.1
+**Version:** 1.2
 **Last Updated:** June 2026  
-**Current Milestone:** Phase 4 — Milestone 11f — Business Narrative Translation Layer
+**Project Status:** MVP Complete (Milestone 14)  
+**Architecture baseline:** Phases 1–5 Executive Experience through Milestone 13g
 
 ---
 
@@ -721,8 +722,10 @@ The following principles should guide future development.
 
 This document should be read alongside:
 
+* [MILESTONE_14_MVP_EXIT_REVIEW.md](MILESTONE_14_MVP_EXIT_REVIEW.md)
 * ENGINEERING_HANDBOOK.md
 * ROADMAP.md
+* REGRESSION.md
 * AI_COLLABORATION.md
 
 Together these documents describe how the Operational Intelligence Copilot is engineered, implemented, and evolved.

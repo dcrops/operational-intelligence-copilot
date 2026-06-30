@@ -130,12 +130,13 @@ The project includes a comprehensive behavioural testing framework built using S
 
 Coverage includes:
 
-* Golden User Journeys
+* Golden User Journeys (17 scenarios)
 * Clarification Workflows
 * Temporal Behaviour
 * Snapshot Behaviour
 * Dataset Lifecycle
-* Engineering Regression
+* Follow-up reliability and guided workflow
+* Engineering Regression (595 tests)
 
 Tests validate user-visible behaviour rather than implementation details.
 
@@ -257,9 +258,19 @@ The engineering documentation describes the architectural decisions and developm
 
 Clone the repository.
 
-Install dependencies.
+Install runtime dependencies:
 
-Run the Streamlit application.
+```bash
+pip install -r requirements.txt
+```
+
+For development and tests, also install:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+Run the Streamlit application:
 
 ```bash
 streamlit run app.py
@@ -302,10 +313,12 @@ The repository includes a complete Engineering Knowledge Base.
 * ENGINEERING_HANDBOOK.md
 * ARCHITECTURE.md
 * ROADMAP.md
+* MILESTONE_14_MVP_EXIT_REVIEW.md
 * AI_COLLABORATION.md
 * CODING_STANDARDS.md
 * REGRESSION.md
 * PERFORMANCE_BASELINES.md
+* TECHNICAL_DEBT.md
 
 These documents evolved alongside the codebase and describe the engineering philosophy, architectural decisions, testing strategy, and roadmap.
 
@@ -313,42 +326,38 @@ These documents evolved alongside the codebase and describe the engineering phil
 
 # Current Status
 
-**Phase 4 — AI Narrative Layer**
+## Project Status: MVP Complete
 
-Milestone 11f complete. The deterministic platform is production-ready; optional Executive Narrative generation is available when enabled.
+**Milestone 14 — MVP Exit Review:** Complete. Project 2 is formally closed as a shipped MVP. See [MILESTONE_14_MVP_EXIT_REVIEW.md](docs/AI_ENGINEERING/MILESTONE_14_MVP_EXIT_REVIEW.md).
 
-Completed capabilities include:
+The application delivers:
 
-* Deterministic Analytics
-* Executive Reasoning
-* Executive Reporting
-* System Transparency
-* Business Narrative Translation Layer
-* Executive Narrative (AI-Assisted)
-* Behavioural Application Testing
-* Golden Dataset Registry
-* Golden User Journeys
-* Clarification Testing
-* Temporal Intelligence
-* Dataset Lifecycle Testing
-* Engineering Readiness
+* **Deterministic analytics** — profiling, intent routing, trend/variance/anomaly/snapshot analysis, and risk assessment
+* **Executive reasoning and reporting** — Direct Answer, executive summary, priority actions, and structured findings
+* **Summary / Findings / Audit & Verification tabs** — executive-first information hierarchy with full transparency
+* **Optional governed AI narrative** — Business Narrative Translation and Executive Narrative (deterministic or OpenAI-backed)
+* **Intelligent clarification** — resolves ambiguous questions before analysis
+* **Temporal and snapshot intelligence** — period filtering and snapshot mode with contributor transparency
+* **Guided follow-up investigations** — capability-aware suggestions with **Ask this** workflow
+* **Behavioural application testing** — 595 tests, 17 golden scenarios, 11 AppTest modules
 
-Enable narrative generation with `OIC_NARRATIVE_ENABLED=true` (see `docs/AI_ENGINEERING/ARCHITECTURE.md`).
+Enable narrative generation with `OIC_NARRATIVE_ENABLED=true` (see [ARCHITECTURE.md](docs/AI_ENGINEERING/ARCHITECTURE.md)).
+
+**Remaining work** is portfolio preparation (screenshots, demo video, GitHub release) and Version 2 planning — not MVP engineering.
 
 ---
 
 # Future Direction
 
-Phase 5 introduces an LLM evaluation framework.
+Version 2 scope is documented in [ROADMAP.md](docs/AI_ENGINEERING/ROADMAP.md) and [TECHNICAL_DEBT.md](docs/TECHNICAL_DEBT.md). Planned themes include:
 
-The AI narrative layer:
+* LLM evaluation framework
+* Visual analytics and charts
+* Auto-run guided drill-down
+* Export and workspace management
+* Enterprise deployment capabilities
 
-* communicates deterministic findings
-* applies registry-driven business translation before executive presentation
-* remains fully governed by deterministic evidence
-* preserves explainability and transparency
-
-This project demonstrates how Large Language Models can be integrated into trustworthy analytical systems without compromising engineering discipline.
+No further MVP engineering milestones are planned.
 
 ---
 

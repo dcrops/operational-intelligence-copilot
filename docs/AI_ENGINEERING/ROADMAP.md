@@ -4,8 +4,10 @@
 
 **Version:** 1.0
 **Last Updated:** June 2026
-**Current Phase:** Phase 5 — Executive Experience (Milestone 13g complete)
-**Current Milestone:** Milestone 13g — Intelligent Follow-up Question Reliability (complete)
+**Project Status:** MVP Complete (Milestone 14)
+**Current Phase:** Phase 5 — Executive Experience (complete)
+**Final Engineering Milestone:** Milestone 13g — Intelligent Follow-up Question Reliability (complete)
+**Closure Milestone:** Milestone 14 — MVP Exit Review (complete)
 
 ---
 
@@ -612,13 +614,33 @@ Explicitly out of scope for 13g:
 
 * New analytics, LLM follow-ups, routing architecture changes, tab redesign, auto-run / one-click drill-down execution (deferred)
 
-Future milestones (planned):
+---
+
+### Milestone 14 — MVP Exit Review & Project Closure
+
+Status: **Complete**
+
+**Summary:** Formal engineering release review confirming MVP ship readiness. No implementation milestone — documentation and project closure only.
+
+Delivered:
+
+* [MILESTONE_14_MVP_EXIT_REVIEW.md](MILESTONE_14_MVP_EXIT_REVIEW.md) — product, engineering, AI portfolio, commercial, debt, and ship decision assessment
+* Documentation synchronisation (README, ARCHITECTURE, HANDBOOK, REGRESSION, TECHNICAL_DEBT)
+* MVP status declared; Version 2 backlog preserved; portfolio preparation separated from engineering completion
+
+**MVP Exit Decision:** READY TO SHIP (MVP)
+
+Explicitly out of scope for Milestone 14:
+
+* New features, refactors, analytics, routing, UI changes, or Milestone 15
+
+Future milestones (planned — Version 2):
 
 * LLM evaluation framework
 
 ---
 
-# Phase 5 — LLM Evaluation Framework
+# Phase 5 — LLM Evaluation Framework (Version 2)
 
 Status:
 
@@ -638,7 +660,7 @@ Potential capabilities:
 
 ---
 
-# Phase 6 — Workspace & Dataset Management
+# Phase 6 — Workspace & Dataset Management (Version 2)
 
 Status:
 
