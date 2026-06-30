@@ -12,6 +12,7 @@ from ui.narrative_runtime import (
     format_narrative_mode_label,
     get_narrative_runtime_config,
 )
+from ui.results_presentation import render_provider_status
 
 
 def render_narrative_controls() -> None:
@@ -37,9 +38,6 @@ def render_narrative_controls() -> None:
 
     config = get_narrative_runtime_config()
     status_level, status_message = describe_provider_status(config)
-    if status_level == "active":
-        st.sidebar.success(f"🟢 {status_message}")
-    elif status_level == "warning":
-        st.sidebar.warning(f"🟡 {status_message}")
+    render_provider_status(status_level, status_message, sidebar=True)
 
     st.sidebar.caption("Applies to the next analysis run.")

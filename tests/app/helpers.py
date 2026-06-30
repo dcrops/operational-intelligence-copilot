@@ -145,18 +145,14 @@ def assert_section_hidden(app: AppTest, section_title: str) -> None:
 
 def assert_bootstrap_prompt_visible(app: AppTest) -> None:
     """Assert the app prompts the user to load a dataset."""
-    assert any(
-        "Upload a CSV in the sidebar or load a sample dataset" in (info.value or "")
-        for info in app.info
-    )
+    visible = user_visible_text(app)
+    assert "Upload a CSV in the sidebar or load a sample dataset" in visible
 
 
 def assert_bootstrap_prompt_hidden(app: AppTest) -> None:
     """Assert the bootstrap dataset prompt is not shown."""
-    assert not any(
-        "Upload a CSV in the sidebar or load a sample dataset" in (info.value or "")
-        for info in app.info
-    )
+    visible = user_visible_text(app)
+    assert "Upload a CSV in the sidebar or load a sample dataset" not in visible
 
 
 def assert_app_shell_visible(app: AppTest) -> None:
@@ -271,7 +267,7 @@ def _seed_stale_clarification_widget_state(app: AppTest) -> None:
 def run_analysis(app: AppTest) -> AppTest:
     """Submit the current question for analysis."""
     analyze = app.button(key="analyze_question")
-    assert not analyze.disabled, "Analyze button is disabled — enter a question first."
+    assert not analyze.disabled, "Analyse button is disabled — enter a question first."
     analyze.click().run()
     assert_no_app_exception(app)
     return app
@@ -685,19 +681,25 @@ def assert_narrative_placeholder_visible(app: AppTest) -> None:
         NARRATIVE_DISABLED_MARKER,
         SECTION_AI_ASSISTED_EXECUTIVE_NARRATIVE,
     )
+    from ui.results_headings import TAB_SUMMARY_LABEL
 
     assert_section_visible(app, SECTION_AI_ASSISTED_EXECUTIVE_NARRATIVE)
-    assert any(
-        NARRATIVE_DISABLED_MARKER in (info.value or "") for info in app.info
-    ), "Expected disabled narrative placeholder info message."
+    select_results_tab(app, TAB_SUMMARY_LABEL)
+    visible = tab_user_visible_text(_summary_tab(app))
+    assert NARRATIVE_DISABLED_MARKER in visible, (
+        "Expected disabled narrative placeholder message on the Summary tab."
+    )
 
 
 def assert_narrative_placeholder_hidden(app: AppTest) -> None:
     from tests.app.golden_expectations import NARRATIVE_DISABLED_MARKER
+    from ui.results_headings import TAB_SUMMARY_LABEL
 
-    assert not any(
-        NARRATIVE_DISABLED_MARKER in (info.value or "") for info in app.info
-    ), "Placeholder should not appear when narrative is enabled."
+    select_results_tab(app, TAB_SUMMARY_LABEL)
+    visible = tab_user_visible_text(_summary_tab(app))
+    assert NARRATIVE_DISABLED_MARKER not in visible, (
+        "Placeholder should not appear when narrative is enabled."
+    )
 
 
 def select_narrative_mode(app: AppTest, mode: str) -> AppTest:

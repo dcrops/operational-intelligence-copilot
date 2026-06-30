@@ -25,9 +25,12 @@ from ui.results_presentation import (
     close_section_heading,
     open_section_heading,
     render_collapsible_group,
+    render_empty_state,
     render_labelled_field,
     render_level2_heading,
+    render_level3_heading,
     render_section,
+    severity_panel_class,
 )
 from ui.variance_presentation import variance_business_description
 
@@ -218,7 +221,10 @@ def render_evidence_item(item: EvidenceItem, index: int, evidence_type_name: str
 
 def render_evidence(evidence: list[EvidenceItem], finding: Finding) -> None:
     if not evidence:
-        st.caption("No evidence attached.")
+        render_empty_state(
+            "No evidence items were attached to this finding.",
+            title="No evidence",
+        )
         return
 
     evidence_type_name = evidence_type(finding)
@@ -273,7 +279,11 @@ def bucketed_findings(result: AnalysisResult) -> list[Finding]:
 
 def render_finding(finding: Finding) -> None:
     badge = severity_badge(finding.severity)
-    st.markdown('<div class="oic-finding-item">', unsafe_allow_html=True)
+    panel_class = severity_panel_class(finding.severity)
+    st.markdown(
+        f'<div class="oic-finding-item {panel_class}">',
+        unsafe_allow_html=True,
+    )
     st.markdown(f"{badge} · **{finding.title}**")
     st.markdown(business_friendly_description(finding))
 
@@ -291,7 +301,7 @@ def render_operational_assessment(report: ExecutiveReport) -> None:
         return
 
     presentation = format_operational_assessment(assessment)
-    st.markdown(f"### {presentation.level_display}")
+    render_level3_heading(presentation.level_display, zone=ZONE_INVESTIGATION)
     st.markdown(presentation.explanation)
 
 
@@ -301,8 +311,8 @@ def render_executive_conclusions(report: ExecutiveReport) -> None:
 
     for index, conclusion in enumerate(report.executive_conclusions):
         presentation = format_executive_conclusion(conclusion, report)
-        st.markdown(f"##### {presentation.title}")
-        st.markdown(f"### {presentation.insight}")
+        render_level3_heading(presentation.title, zone=ZONE_INVESTIGATION)
+        st.markdown(presentation.insight)
         st.markdown(f"**{presentation.evidence_heading}**")
         for summary in presentation.evidence_bullets:
             st.caption(f"• {summary}")
@@ -316,8 +326,8 @@ def render_priority_actions(report: ExecutiveReport) -> None:
 
     for index, action in enumerate(report.priority_actions):
         presentation = format_priority_action(action)
-        st.markdown(f"**{presentation.header}**")
-        st.markdown(f"### {presentation.action_text}")
+        render_level3_heading(presentation.header, zone=ZONE_INVESTIGATION)
+        st.markdown(presentation.action_text)
         st.markdown(f"**{presentation.reason_label}**")
         st.caption(presentation.reason_text)
         if index < len(report.priority_actions) - 1:

@@ -82,7 +82,8 @@ def render_sidebar() -> None:
     )
 
     if st.sidebar.button("Load selected sample"):
-        _load_sample_dataset(selected_sample)
+        with st.sidebar.spinner(f"Loading {selected_sample}..."):
+            _load_sample_dataset(selected_sample)
 
     profile = st.session_state.get("profile")
     if profile is not None:

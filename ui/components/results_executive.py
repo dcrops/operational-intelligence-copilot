@@ -37,6 +37,7 @@ from ui.results_presentation import (
     ZONE_EXECUTIVE,
     render_hero_body,
     render_level2_heading,
+    render_muted_panel,
     render_numbered_items,
     split_action_lines,
 )
@@ -105,7 +106,10 @@ def render_executive_summary_content(result: AnalysisResult) -> None:
     def body() -> None:
         narrative = result.narrative
         if narrative is None:
-            st.info(NARRATIVE_DISABLED_MESSAGE)
+            render_muted_panel(
+                NARRATIVE_DISABLED_MESSAGE,
+                title="Executive summary unavailable",
+            )
             return
 
         st.markdown('<div class="oic-executive-briefing">', unsafe_allow_html=True)
@@ -125,10 +129,7 @@ def render_executive_summary_content(result: AnalysisResult) -> None:
                 _render_executive_actions_section(section)
                 continue
 
-            if section.title == ADVISOR_SECTION_KEY_MESSAGE:
-                render_level2_heading(section.title, zone=ZONE_EXECUTIVE)
-            else:
-                st.markdown(f"##### {section.title}")
+            render_level2_heading(section.title, zone=ZONE_EXECUTIVE)
             st.markdown(section.content)
 
             if (

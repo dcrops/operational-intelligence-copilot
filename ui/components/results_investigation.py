@@ -12,27 +12,15 @@ from ui.components.results_shared import (
     render_section,
 )
 from ui.executive_reasoning_presentation import (
-    ANALYSIS_OVERVIEW_HEADING,
     ANALYTICAL_FINDINGS_HEADING,
     split_follow_up_investigations,
 )
 from ui.models import AnalysisResult
 from ui.results_presentation import (
     ZONE_INVESTIGATION,
-    format_investigation_overview_bullets,
+    render_empty_state,
     render_level2_heading,
-    render_overview_bullets,
 )
-
-
-def render_overview_content(result: AnalysisResult) -> None:
-    """Render Analysis Overview beneath the Overview section heading."""
-
-    def body() -> None:
-        bullets = format_investigation_overview_bullets(result)
-        render_overview_bullets(bullets)
-
-    render_section(ANALYSIS_OVERVIEW_HEADING, body, zone=ZONE_INVESTIGATION)
 
 
 def render_investigation_sections(result: AnalysisResult) -> None:
@@ -43,7 +31,10 @@ def render_investigation_sections(result: AnalysisResult) -> None:
         findings = bucketed_findings(result)
 
         if not findings:
-            st.caption("No findings were identified from the analysis.")
+            render_empty_state(
+                "No findings were identified from the analysis.",
+                title="No findings",
+            )
         else:
             for index, finding in enumerate(findings, start=1):
                 render_finding(finding)
@@ -68,7 +59,10 @@ def render_investigation_sections(result: AnalysisResult) -> None:
                     for suggestion in presentation.additional:
                         st.markdown(f"- {suggestion}")
         else:
-            st.caption("No follow-up investigations suggested.")
+            render_empty_state(
+                "No follow-up investigations were suggested for this analysis.",
+                title="No follow-ups",
+            )
 
     render_level2_heading("Suggested Follow-Up Investigations", zone=ZONE_INVESTIGATION)
     st.markdown('<div class="oic-follow-up-block">', unsafe_allow_html=True)

@@ -6,6 +6,8 @@ SECTION_INVESTIGATION = "Investigation"
 SECTION_FINDINGS = "Findings"
 SECTION_AUDIT = "Audit"
 
+# Tab labels (Milestone 13d+). Summary = executive briefing; Findings = evidence;
+# Audit & Verification = transparency and provider verification.
 TAB_SUMMARY_LABEL = "Summary"
 TAB_FINDINGS_LABEL = SECTION_FINDINGS
 TAB_AUDIT_LABEL = "Audit & Verification"

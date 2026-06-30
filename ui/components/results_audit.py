@@ -13,7 +13,13 @@ from ui.narrative_presentation import (
     format_generation_details,
     format_generation_method,
 )
-from ui.results_presentation import ZONE_AUDIT, render_section, render_subsection
+from ui.results_presentation import (
+    ZONE_AUDIT,
+    render_level3_heading,
+    render_provider_status,
+    render_section,
+    render_subsection,
+)
 from ui.transparency import (
     format_auto_resolved_trail,
     format_clarification_trail,
@@ -30,18 +36,10 @@ def _render_generated_by(result: AnalysisResult) -> None:
         return
 
     status_level, provider_label = format_generation_method(narrative.generation_metadata)
-    st.markdown(f"**{GENERATED_BY_HEADING}**")
-    if status_level == "warning":
-        st.warning(f"🟡 {provider_label}")
-    else:
-        st.success(f"🟢 {provider_label}")
+    render_level3_heading(GENERATED_BY_HEADING, zone=ZONE_AUDIT)
+    render_provider_status(status_level, provider_label)
     for line in format_generated_by_secondary_metadata(narrative.generation_metadata):
         st.caption(line)
-
-
-def _render_runtime_metadata(result: AnalysisResult) -> None:
-    for warning in result.narrative_warnings:
-        st.warning(warning)
 
 
 def _render_governance_information() -> None:
@@ -67,6 +65,7 @@ def render_audit_bundle(result: AnalysisResult) -> None:
     st.markdown('<div class="oic-audit-body">', unsafe_allow_html=True)
 
     def render_transparency() -> None:
+        st.markdown('<div class="oic-transparency-trail">', unsafe_allow_html=True)
         st.markdown(f"**Question:** {result.request.question}")
         st.markdown(f"**Routed tools:** {', '.join(result.routes) or 'None'}")
         st.markdown(f"**Findings returned:** {len(result.findings)}")
@@ -115,6 +114,7 @@ def render_audit_bundle(result: AnalysisResult) -> None:
             st.markdown("**Metrics analysed:**")
             for metric in metrics_analysed:
                 st.markdown(f"- {metric}")
+        st.markdown("</div>", unsafe_allow_html=True)
 
     render_section("System Transparency", render_transparency, zone=ZONE_AUDIT)
 
@@ -123,7 +123,6 @@ def render_audit_bundle(result: AnalysisResult) -> None:
         st.markdown('<div class="oic-audit-generated-by">', unsafe_allow_html=True)
         _render_generated_by(result)
         st.markdown("</div>", unsafe_allow_html=True)
-        _render_runtime_metadata(result)
         _render_technical_details(result)
         _render_governance_information()
         st.markdown("</div>", unsafe_allow_html=True)

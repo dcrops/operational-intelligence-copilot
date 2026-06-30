@@ -107,7 +107,7 @@ _RESULTS_STYLES = f"""
     font-weight: 750;
     margin-bottom: 0.55rem;
 }}
-.oic-hero-card {{
+.oic-direct-answer-card {{
     padding: 1.6rem 1.7rem;
     border: 1px solid rgba(124, 255, 58, 0.42);
     border-radius: 0.9rem;
@@ -118,7 +118,7 @@ _RESULTS_STYLES = f"""
     );
     box-shadow: 0 6px 28px rgba(0, 0, 0, 0.22);
 }}
-.oic-hero-card p {{
+.oic-direct-answer-card p {{
     font-size: 1.3rem;
     line-height: 1.72;
     margin: 0;
@@ -224,7 +224,22 @@ _RESULTS_STYLES = f"""
     gap: 0.65rem;
 }}
 .oic-finding-item {{
-    padding: 0.35rem 0 0.45rem 0;
+    padding: 0.55rem 0.65rem 0.62rem 0.65rem;
+    border-radius: 0.4rem;
+    background: rgba(15, 23, 42, 0.18);
+    border-left: 3px solid rgba(148, 163, 184, 0.35);
+}}
+.oic-finding-item.oic-severity-high {{
+    border-left-color: #dc2626;
+}}
+.oic-finding-item.oic-severity-medium {{
+    border-left-color: #ea580c;
+}}
+.oic-finding-item.oic-severity-low {{
+    border-left-color: #ca8a04;
+}}
+.oic-finding-item.oic-severity-info {{
+    border-left-color: #3b82f6;
 }}
 .oic-finding-item strong {{
     font-size: 1.02rem;
@@ -296,6 +311,37 @@ _RESULTS_STYLES = f"""
 }}
 .oic-audit-generated-by {{
     margin-top: 0.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}}
+.oic-transparency-trail {{
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    line-height: 1.5;
+}}
+.oic-transparency-trail p {{
+    margin-bottom: 0.15rem;
+}}
+
+@media (max-width: 720px) {{
+    .oic-metadata-grid {{
+        grid-template-columns: 1fr;
+        gap: 0.12rem 0;
+    }}
+    .oic-metadata-label {{
+        margin-top: 0.35rem;
+    }}
+    .oic-evidence-field {{
+        grid-template-columns: 1fr;
+        gap: 0.15rem;
+        padding: 0.38rem 0;
+    }}
+    .oic-action-item {{
+        grid-template-columns: 1.35rem 1fr;
+        gap: 0.4rem;
+    }}
 }}
 </style>
 """
@@ -367,7 +413,46 @@ def render_executive_spacer(size: str = "md") -> None:
 
 def render_hero_body(text: str) -> None:
     st.markdown(
-        f'<div class="oic-hero-card"><p>{html.escape(text)}</p></div>',
+        f'<div class="oic-direct-answer-card"><p>{html.escape(text)}</p></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def severity_panel_class(severity: str) -> str:
+    mapping = {
+        "HIGH": "oic-severity-high",
+        "MEDIUM": "oic-severity-medium",
+        "LOW": "oic-severity-low",
+        "INFO": "oic-severity-info",
+    }
+    return mapping.get(severity.upper(), "oic-severity-info")
+
+
+def render_provider_status(status_level: str, message: str, *, sidebar: bool = False) -> None:
+    """Render consistent provider status feedback (sidebar and Audit tab)."""
+    target = st.sidebar if sidebar else st
+    if status_level == "warning":
+        target.warning(f"🟡 {message}")
+    else:
+        target.success(f"🟢 {message}")
+
+
+def render_muted_panel(message: str, *, title: str | None = None) -> None:
+    title_html = ""
+    if title:
+        title_html = f'<p class="oic-muted-panel-title">{html.escape(title)}</p>'
+    st.markdown(
+        f'<div class="oic-muted-panel">{title_html}'
+        f"<p>{html.escape(message)}</p></div>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_empty_state(message: str, *, title: str = "Nothing to show") -> None:
+    st.markdown(
+        f'<div class="oic-empty-state">'
+        f'<p class="oic-empty-state-title">{html.escape(title)}</p>'
+        f"<p>{html.escape(message)}</p></div>",
         unsafe_allow_html=True,
     )
 

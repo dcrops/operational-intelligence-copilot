@@ -130,6 +130,57 @@ section[data-testid="stSidebar"] > div:first-child {{
         grid-template-columns: 1fr;
     }}
 }}
+
+.oic-muted-panel {{
+    margin: 0.75rem 0 1rem 0;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 0.55rem;
+    background: rgba(15, 23, 42, 0.28);
+    line-height: 1.55;
+    color: #CBD5E1;
+}}
+.oic-muted-panel-title {{
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: {CRC_TEXT_MUTED};
+    margin: 0 0 0.35rem 0;
+}}
+.oic-muted-panel p {{
+    margin: 0;
+    font-size: 0.92rem;
+}}
+.oic-empty-state {{
+    margin: 0.35rem 0 0.5rem 0;
+    padding: 0.75rem 0.85rem;
+    border: 1px dashed rgba(148, 163, 184, 0.28);
+    border-radius: 0.45rem;
+    background: rgba(15, 23, 42, 0.14);
+    line-height: 1.5;
+    color: {CRC_TEXT_MUTED};
+}}
+.oic-empty-state-title {{
+    font-size: 0.78rem;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 0.25rem 0;
+    color: #94A3B8;
+}}
+.oic-empty-state p {{
+    margin: 0;
+    font-size: 0.88rem;
+}}
+.oic-clarification-panel {{
+    margin: 0.5rem 0 1rem 0;
+    padding: 0.85rem 1rem 0.35rem 1rem;
+    border: 1px solid rgba(217, 119, 6, 0.35);
+    border-left: 3px solid #D97706;
+    border-radius: 0.5rem;
+    background: rgba(217, 119, 6, 0.08);
+}}
 </style>
 """
 

@@ -55,6 +55,7 @@ def render_clarification(result: AnalysisResult) -> None:
     if clarification is None:
         return
 
+    st.markdown('<div class="oic-clarification-panel">', unsafe_allow_html=True)
     st.subheader("Clarification Required")
     st.write(_clarification_message(clarification.clarification_type))
     st.caption("Select an option below to continue the analysis.")
@@ -111,3 +112,4 @@ def render_clarification(result: AnalysisResult) -> None:
                 "Something went wrong while running the analysis. "
                 "Please check your dataset and try again."
             )
+    st.markdown("</div>", unsafe_allow_html=True)

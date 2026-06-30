@@ -8,6 +8,7 @@ from ui.components.results_panel import render_results
 from ui.components.app_shell import render_app_hero
 from ui.components.upload import render_sidebar
 from ui.narrative_runtime import get_narrative_runtime_config
+from ui.results_presentation import render_muted_panel
 from ui.state import has_dataset, init_session_state, set_analysis_error, set_analysis_result
 
 EXAMPLE_QUESTIONS_BY_DATASET = {
@@ -64,7 +65,10 @@ render_app_hero()
 render_sidebar()
 
 if not has_dataset():
-    st.info("Upload a CSV in the sidebar or load a sample dataset to get started.")
+    render_muted_panel(
+        "Upload a CSV in the sidebar or load a sample dataset to begin analysis.",
+        title="Get started",
+    )
     st.stop()
 
 dataset_name = st.session_state.dataset_name
@@ -72,7 +76,7 @@ example_questions = _example_questions_for_dataset(dataset_name)
 
 def _render_dataset_preview() -> None:
     df = st.session_state.df
-    st.dataframe(df.head(PREVIEW_ROW_LIMIT), use_container_width=True)
+    st.dataframe(df.head(PREVIEW_ROW_LIMIT), width='stretch')
     if len(df) > PREVIEW_ROW_LIMIT:
         st.caption(f"Showing first {PREVIEW_ROW_LIMIT} of {len(df)} rows.")
     else:
@@ -105,7 +109,7 @@ st.text_area(
 )
 
 if st.button(
-    "Analyze",
+    "Analyse",
     type="primary",
     disabled=not st.session_state.question.strip(),
     key="analyze_question",
