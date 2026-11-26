@@ -350,12 +350,48 @@ Implementation lives under `src/operational_intelligence/llm/`:
 |----------|---------|---------|
 | `OIC_NARRATIVE_ENABLED` | off | Master narrative switch |
 | `OIC_NARRATIVE_PROVIDER` | `deterministic` | `deterministic` or `openai` |
-| `OIC_OPENAI_MODEL` | `gpt-4.1-mini` | Model for OpenAI adapter |
+| `OIC_OPENAI_MODEL` | `gpt-6-luna` | Model for OpenAI adapter. Override with `gpt-4.1-mini` to keep that model's historical parameters. |
 | `OPENAI_API_KEY` | unset | Required for OpenAI calls |
 
 When provider is `openai`, `FallbackNarrativeGenerator` wraps `OpenAINarrativeGenerator` with `DeterministicNarrativeGenerator` as fallback. On timeout, auth failure, network error, rate limiting, or malformed response, the application continues with deterministic narrative and explicit limitations text — failure is not silent.
 
 `OpenAIClient` (`openai_client.py`) uses the `truststore` package to inject OS-native SSL certificate trust before HTTP calls, improving reliability on Windows and corporate networks. Transient API errors are retried with bounded attempts before the fallback layer handles the failure.
+
+The constructor model defaults to `DEFAULT_OPENAI_MODEL` in `narrative_config.py`. `OIC_OPENAI_MODEL` overrides that value when the OpenAI provider is explicitly selected. Setting the model variable does not select the OpenAI provider. The product default remains deterministic narrative, controlled by `OIC_NARRATIVE_ENABLED` and `OIC_NARRATIVE_PROVIDER`.
+
+For the exact model id `gpt-6-luna`, Chat Completions requests send `reasoning_effort="none"`, omit temperature, retain the existing timeout, and add no token limit. For `gpt-4.1-mini`, requests keep `temperature=0.0`, omit `reasoning_effort`, and retain the existing timeout. The integration remains Chat Completions on OpenAI SDK 1.109.1.
+
+### Chat model migration — 26 November 2026
+
+The OpenAI adapter default moved from `gpt-4.1-mini` to `gpt-6-luna` after a controlled comparison. Deterministic analytics, prompts, narrative parsing, provider selection, and the production retry loop were not changed.
+
+Environment repair, before the comparison:
+
+- Installed the already-declared `truststore` 0.10.5 package into the project `.venv`.
+- Retained OpenAI SDK 1.109.1. pandas, Pydantic, and httpx were not upgraded.
+- Certificate verification remained enabled.
+
+Offline baseline before the request-parameter tests: 603 passed, 0 failed, 0 skipped, using the repaired project `.venv`. That matched the earlier ai311 baseline. Seven request-parameter tests were then added. The suite after those tests, and before the default-model change, was 610 passed, 0 failed, 0 skipped.
+
+Controlled comparison, one execution of three synthetic manufacturing questions for each model:
+
+- Questions: highest defects by production line, downtime trend, and unusual records.
+- Six successful Chat Completions calls. Three per model.
+- Zero API errors, retries, parsing failures, and deterministic fallbacks.
+- Every response finished with `stop` and zero reasoning tokens.
+- GPT-4.1 Mini: 5,085 prompt tokens, 1,356 completion tokens, 16.1 seconds combined latency. Returned model `gpt-4.1-mini-2025-04-14`.
+- GPT-6 Luna: 5,082 prompt tokens, 909 completion tokens, 10.0 seconds combined latency. Returned model `gpt-6-luna`.
+- These figures are a single run. They do not establish a statistical latency or token improvement.
+
+Numerical fidelity on that single run:
+
+- Both models stated the supplied variance facts Line C 1000 and Line A 196, and did not invent the other line totals.
+- Both models stated downtime 1304 to 3026, 132.1%, from 2026-01-01 to 2026-06-01, direction increased.
+- Both models stated defect row 126 = 52 and row 148 = 72 against an average of 8.22.
+- Mini added unsupported investigation dimensions and, on the anomaly question, described the separate metric anomalies as coinciding.
+- Luna kept stated numbers inside the supplied evidence and labelled causes as hypotheses.
+
+The comparison did not add numerical or semantic validation of narrative claims. Final regression and the production smoke test are recorded in [REGRESSION.md](REGRESSION.md).
 
 When enabled, `AnalysisResult.narrative` may hold a `NarrativeResponse`. Deterministic fields remain unchanged.
 

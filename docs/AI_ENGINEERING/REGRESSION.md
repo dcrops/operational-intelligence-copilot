@@ -198,6 +198,34 @@ When CI is added, Tier 2 and Tier 3 commands are sufficient for a minimal pipeli
 
 ---
 
+## Chat model migration — 26 November 2026
+
+Final offline regression after changing the OpenAI adapter default to `gpt-6-luna`. Interpreter: project `.venv`. Command: `python -m pytest tests --tb=line -q`.
+
+- Passed: 611
+- Failed: 0
+- Skipped: 0
+- Elapsed: 11.18 seconds
+
+The reviewed baseline immediately before this default change was 610 passed, 0 failed, 0 skipped. The additional passing test checks that the production factory selects `gpt-6-luna` and still wraps it in the deterministic fallback. No behavioural assertion was removed.
+
+The offline suite does not establish live generation quality. One production smoke call was run separately through `resolve_narrative()` with `OIC_OPENAI_MODEL` unset and the OpenAI provider explicitly selected.
+
+Smoke question: `Which production line has the highest defects?` on `data/sample/manufacturing_demo.csv`.
+
+- Prompt inspected before transmission. No supervisor names or employee records were present.
+- Deterministic direct answer remained Line C, 1000 defects.
+- One API call. Application and SDK retries were disabled on that smoke client only.
+- Requested and returned model: `gpt-6-luna`.
+- Request parameters: `reasoning_effort="none"`, timeout 30, temperature omitted, no token limit.
+- Six advisor sections parsed. Generator type `openai`. No deterministic fallback.
+- Finish reason `stop`. Prompt tokens 1495. Completion tokens 265. Reasoning tokens 0. Latency 4.1 seconds.
+- Narrative numbers stated were Line C 1000, Line A 196, and five production-line categories. Those values are in the supplied evidence.
+
+This smoke call is a single execution. It does not establish statistical narrative quality, and the application still does not validate narrative numbers.
+
+---
+
 ## Related documentation
 
 - [ENGINEERING_HANDBOOK.md](ENGINEERING_HANDBOOK.md) — testing philosophy

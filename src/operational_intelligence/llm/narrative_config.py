@@ -19,7 +19,9 @@ SUPPORTED_PROVIDERS = frozenset({PROVIDER_DETERMINISTIC, PROVIDER_OPENAI})
 
 NarrativeProvider = Literal["deterministic", "openai"]
 
-DEFAULT_OPENAI_MODEL = "gpt-4.1-mini"
+# Exact chat model id that uses the validated Luna request profile.
+LUNA_CHAT_MODEL = "gpt-6-luna"
+DEFAULT_OPENAI_MODEL = LUNA_CHAT_MODEL
 
 
 @dataclass(frozen=True)

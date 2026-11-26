@@ -628,3 +628,18 @@ Milestone 13e established a lightweight design system without deep refactors. Mi
 * Extract shared CSS tokens if branding and results styles continue to diverge
 * Consolidate duplicate overview bullet formatting helpers if Analysis Overview is reintroduced elsewhere
 * Unify transparency trail rendering between Audit tab UI and shared builder (Audit tab still uses section-specific renderers)
+
+---
+
+# Narrative claim validation
+
+**Status:** Known limitation. Not changed during the 26 November 2026 chat-model migration.
+
+The OpenAI narrative adapter communicates deterministic findings. It does not validate narrative claims.
+
+* There is no independent numerical check of numbers stated in a generated narrative.
+* Evidence references are not mandatory in the generated advisor sections.
+* The variance executive context can describe anomalies across multiple unrelated operational metrics when the analysis is a single-metric comparison. Repeating that upstream statement is not evidence that the narrative is correct.
+* The production retry loop and SDK retries can hide an API failure behind the deterministic fallback. The controlled comparison and the final smoke test disabled retries on their own client instances. Production retry behaviour was not redesigned.
+
+These limits were recorded during the `gpt-6-luna` migration. The migration did not add a numerical or semantic narrative-validation framework.
